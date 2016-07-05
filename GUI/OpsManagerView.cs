@@ -152,15 +152,23 @@ namespace WildBlueIndustries
         public List<string> GetButtonLabels()
         {
             List<string> buttonLabels = new List<string>();
+            int resourceCount = this.part.Resources.Count;
+            List<ModuleResourceConverter> converters = this.part.FindModulesImplementing<ModuleResourceConverter>();
 
             //Get our part modules
             UpdateConverters();
             GetPartModules();
 
             buttonLabels.Add("Config");
-            buttonLabels.Add("Command");
-            buttonLabels.Add("Resources");
-            buttonLabels.Add("Converters");
+
+            if (commandModule != null || lightModule != null || switcher.decalsVisible)
+                buttonLabels.Add("Command");
+
+            if (resourceCount > 0)
+                buttonLabels.Add("Resources");
+
+            if (converters.Count > 0)
+                buttonLabels.Add("Converters");
 
             return buttonLabels;
         }
@@ -270,6 +278,7 @@ namespace WildBlueIndustries
         protected void drawResourceView()
         {
             GUILayout.BeginVertical();
+            _scrollPosResources = GUILayout.BeginScrollView(_scrollPosResources, new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
 
             if (this.part.Resources.Count == 0)
             {
@@ -279,7 +288,6 @@ namespace WildBlueIndustries
                 return;
             }
 
-            _scrollPosResources = GUILayout.BeginScrollView(_scrollPosResources, new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
             foreach (PartResource resource in this.part.Resources)
             {
                 if (resource.isVisible)
