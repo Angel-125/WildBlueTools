@@ -35,6 +35,9 @@ namespace WildBlueIndustries
         protected string needCrew = "Missing {0} Crew";
 
         public static bool showResults = true;
+        public static bool repairsRequireResources;
+        public static bool partsCanBreak;
+        public static bool requireSkillCheck;
 
         [KSPField]
         public int crewsRequired = 0;
@@ -187,7 +190,6 @@ namespace WildBlueIndustries
 
         protected override void PostProcess(ConverterResults result, double deltaTime)
         {
-            base.PostProcess(result, deltaTime);
             Events["StartResourceConverter"].guiActive = false;
             Events["StopResourceConverter"].guiActive = false;
 
@@ -207,10 +209,10 @@ namespace WildBlueIndustries
 
             //Make sure we have the minimum crew
             if (hasMinimumCrew() == false)
-            {
-                StopConverter();
                 return;
-            }
+
+            //Now run the base converter stuff
+            base.PostProcess(result, deltaTime);
 
             //Calculate the crew skill and seconds of research per cycle.
             //Thes values can change if the player swaps out crew.
@@ -238,12 +240,9 @@ namespace WildBlueIndustries
                 }
             }
 
-            //If we're missing resources then stop the converter
+            //If we're missing resources then update status
             if (result.Status.ToLower().Contains("missing"))
-            {
-                StopConverter();
                 status = result.Status;
-            }
         }
 
         public virtual void SetGuiVisible(bool isVisible)

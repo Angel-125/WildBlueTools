@@ -28,6 +28,13 @@ namespace WildBlueIndustries
         void ExperimentRequirementsMet(float resultRoll);
     }
 
+    public struct SExperimentResource
+    {
+        public string name;
+        public double targetAmount;
+        public double currentAmount;
+    }
+
     [KSPModule("Science Experiment")]
     public class WBIModuleScienceExperiment : ModuleScienceExperiment
     {
@@ -51,6 +58,9 @@ namespace WildBlueIndustries
 
         [KSPField]
         public string requiredResources = string.Empty;
+
+        [KSPField(isPersistant = true)]
+        public string accumulatedResources = string.Empty;
 
         [KSPField]
         public string situations = string.Empty;
@@ -94,10 +104,14 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool notificationSent;
 
+        [KSPField(isPersistant = true)]
+        public bool isRunning = true;
+
         public event ExperimentTransferedEvent onExperimentTransfered;
         public event TransferReceivedEvent onExperimentReceived;
 
-        public Dictionary<string, double> resourceMap = null;
+        public Dictionary<string, SExperimentResource> resourceMap = null;
+        public string[] resourceMapKeys;
 
         protected int currentPartCount;
         protected bool hasRequiredParts;
@@ -110,6 +124,14 @@ namespace WildBlueIndustries
                 LoadFromDefinition(overrideExperimentID);
         }
 
+        public override void OnSave(ConfigNode node)
+        {
+            PackResources();
+
+            //Now call the base class.
+            base.OnSave(node);
+        }
+
         public override void OnStart(StartState state)
         {
             if (HighLogic.LoadedSceneIsFlight)
@@ -120,46 +142,70 @@ namespace WildBlueIndustries
             rebuildResourceMap();
         }
 
+        protected bool resultsSafetyCheck;
+
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+
+            //Safety check: make sure we deployed the experiment if it has been completed.
+            ScienceData[] data = GetData();
+            if ((data == null || data.Length == 0) && experimentID != defaultExperiment && !resultsSafetyCheck)
+            {
+                resultsSafetyCheck = true;
+                Deployed = false;
+                Inoperable = false;
+                DeployExperiment();
+            }
+        }
+
         public override string GetInfo()
         {
             StringBuilder info = new StringBuilder();
-
-            if (HighLogic.LoadedSceneIsEditor)
-            {
-                return "";
-            }
-            
+            StringBuilder requirements = new StringBuilder();
+           
             info.Append(title + "\r\n\r\n");
             info.Append(description + "\r\n\r\n");
-            info.Append("<b>Requirements</b>\r\n\r\n");
 
             //Celestial bodies
             if (string.IsNullOrEmpty(celestialBodies) == false)
-                info.Append("<b>Allowed Planets: </b>" + celestialBodies + "\r\n");
+                requirements.Append("<b>Allowed Planets: </b>" + celestialBodies + "\r\n");
             //Flight states
             if (string.IsNullOrEmpty(situations) == false)
-                info.Append("<b>Allowed Sitiations: </b>" + situations + "\r\n");
+                requirements.Append("<b>Allowed Sitiations: </b>" + situations + "\r\n");
             //Mininum Crew
             if (minCrew > 0)
-                info.Append("<b>Minimum Crew: </b>" + minCrew + "\r\n");
+                requirements.Append("<b>Minimum Crew: </b>" + minCrew + "\r\n");
             //Min Altitude
             if (minAltitude > 0.001f)
-                info.Append(string.Format("<b>Min altitude: </b>{0:f2}m\r\n", minAltitude));
+                requirements.Append(string.Format("<b>Min altitude: </b>{0:f2}m\r\n", minAltitude));
             //Max Altitude
             if (maxAltitude > 0.001f)
-                info.Append(string.Format("<b>Max altitude: </b>{0:f2}m\r\n", maxAltitude));
+                requirements.Append(string.Format("<b>Max altitude: </b>{0:f2}m\r\n", maxAltitude));
             //Required parts
             if (string.IsNullOrEmpty(requiredParts) == false)
-                info.Append("<b>Parts: </b>" + requiredParts + "\r\n");
+                requirements.Append("<b>Parts: </b>" + requiredParts + "\r\n");
             //Required resources
             if (string.IsNullOrEmpty(requiredResources) == false)
             {
-                info.Append("<b>Resources: </b>\r\n");
+                if (resourceMap == null)
+                    rebuildResourceMap();
 
-                foreach (string resourceName in resourceMap.Keys)
+                requirements.Append("<b>Resources: </b>\r\n");
+                SExperimentResource experimentResource;
+
+                for (int index = 0; index < resourceMapKeys.Length; index ++)
                 {
-                    info.Append(resourceName + string.Format(" ({0:f2})\r\n", resourceMap[resourceName]));
+                    experimentResource = resourceMap[resourceMapKeys[index]];
+                    requirements.Append(resourceMapKeys[index] + string.Format(" {0:f2}\r\n", experimentResource.targetAmount));
                 }
+            }
+
+            string requirementsInfo = requirements.ToString();
+            if (string.IsNullOrEmpty(requirementsInfo) == false)
+            {
+                info.Append("<b>Requirements</b>\r\n\r\n");
+                info.Append(requirementsInfo);
             }
             return info.ToString();
         }
@@ -174,20 +220,40 @@ namespace WildBlueIndustries
         public bool CheckCompletion()
         {
             float resultRoll = 100f;
-            bool partHasRequiredResource = false;
+            int totalCount;
+            int index;
+            Part testPart;
 
             if (HighLogic.LoadedSceneIsFlight == false)
                 return false;
 
             //Might already been completed or failed
             if (isCompleted)
+            {
+                status = "Completed";
                 return true;
+            }
             else if (experimentFailed)
+            {
+                status = "Failed to yield results";
                 return false;
+            }
+            else if (isRunning == false)
+            {
+                status = "Paused";
+                return false;
+            }
 
             //Default experiment
             if (experimentID == defaultExperiment)
+            {
+                isCompleted = false;
+                isRunning = false;
+                experimentFailed = false;
+                finalTransfer = false;
+                notificationSent = false;
                 return false;
+            }
 
             //Mininum Crew
             if (minCrew > 0)
@@ -248,14 +314,17 @@ namespace WildBlueIndustries
                 {
                     currentPartCount = partCount;
                     hasRequiredParts = false;
-                    foreach (Part vesselPart in this.part.vessel.Parts)
+                    totalCount = this.part.vessel.parts.Count;
+                    for (index = 0; index < totalCount; index++)
                     {
-                        if (requiredParts.Contains(vesselPart.partInfo.title))
+                        testPart = this.part.vessel.parts[index];
+                        if (requiredParts.Contains(testPart.partInfo.title))
                         {
                             hasRequiredParts = true;
                             break;
                         }
                     }
+
                     if (hasRequiredParts == false)
                     {
                         status = "Needs " + requiredParts;
@@ -274,23 +343,18 @@ namespace WildBlueIndustries
             if (string.IsNullOrEmpty(requiredResources) == false)
             {
                 //for each resource, see if we still need more
-                foreach (PartResource resource in this.part.Resources)
+                totalCount = resourceMapKeys.Length;
+                SExperimentResource experimentResource;
+                for (index = 0; index < totalCount; index++)
                 {
-                    if (resourceMap.ContainsKey(resource.resourceName))
+                    experimentResource = resourceMap[resourceMapKeys[index]];
+                    if (experimentResource.currentAmount < experimentResource.targetAmount)
                     {
-                        partHasRequiredResource = true;
-                        if (resource.amount < resource.maxAmount)
-                        {
-                            status = "Needs more " + resource.resourceName;
-                            return false;
-                        }
+                        status = "Needs " + experimentResource.name + string.Format(" ({0:f3}/{1:f3})", experimentResource.currentAmount, experimentResource.targetAmount);
+                        return false;
                     }
                 }
             }
-
-            //If the part has none of the required resources then we're done.
-            if (partHasRequiredResource == false)
-                return false;
 
             //chanceOfSuccess
             if (chanceOfSuccess > 0.001f && isCompleted == false && experimentFailed == false)
@@ -308,10 +372,56 @@ namespace WildBlueIndustries
 
             //AOK
             isCompleted = true;
-            status = "Completed";
+            if (xmitDataScalar < 0.001f)
+                status = "Completed, send home for science";
+            else
+                status = "Completed";
             runCompletionHandler(resultRoll);
             sendResultsMessage();
             return true;
+        }
+
+        public double TakeShare(string resourceName, double shareAmount)
+        {
+            SExperimentResource experimentResource;
+            double remainder = 0f;
+
+            if (resourceMap.ContainsKey(resourceName))
+            {
+                experimentResource = resourceMap[resourceName];
+                experimentResource.currentAmount += shareAmount;
+                if (experimentResource.currentAmount > experimentResource.targetAmount)
+                {
+                    remainder = experimentResource.currentAmount - experimentResource.targetAmount;
+                    experimentResource.currentAmount = experimentResource.targetAmount;
+                }
+                resourceMap[resourceName] = experimentResource;
+            }
+
+            return remainder;
+        }
+
+        public List<SExperimentResource> GetRequiredResources()
+        {
+            List<SExperimentResource> requiredResources = new List<SExperimentResource>();
+            SExperimentResource experimentResource;
+
+            if (experimentID == defaultExperiment)
+                return requiredResources;
+            if (isCompleted)
+                return requiredResources;
+            if (isRunning == false)
+                return requiredResources;
+
+            for (int index = 0; index < resourceMapKeys.Length; index++)
+            {
+                experimentResource = resourceMap[resourceMapKeys[index]];
+
+                if (experimentResource.currentAmount <= experimentResource.targetAmount)
+                    requiredResources.Add(experimentResource);
+            }
+
+            return requiredResources;
         }
 
         protected void sendResultsMessage()
@@ -394,12 +504,24 @@ namespace WildBlueIndustries
                 onExperimentTransfered(this);
 
             LoadFromDefinition(defaultExperiment);
+            rebuildResourceMap();
         }
 
         public void TransferExperiment(WBIModuleScienceExperiment sourceExperiment)
         {
             //Load parameters from experiment definition
             LoadFromDefinition(sourceExperiment.experimentID);
+
+            //Set state variables
+            this.isCompleted = sourceExperiment.isCompleted;
+            this.isRunning = sourceExperiment.isRunning;
+            this.experimentFailed = sourceExperiment.experimentFailed;
+            this.status = sourceExperiment.status;
+            this.notificationSent = sourceExperiment.notificationSent;
+            this.accumulatedResources = sourceExperiment.accumulatedResources;
+
+            //Rebuild resource map
+            rebuildResourceMap();
 
             //Let listeners know
             if (onExperimentReceived != null)
@@ -409,6 +531,7 @@ namespace WildBlueIndustries
 
             //Now set the source experiment to a dummy experiment
             sourceExperiment.LoadFromDefinition(defaultExperiment);
+            sourceExperiment.CheckCompletion();
 
             //Do a quick check for completion
             CheckCompletion();
@@ -425,10 +548,13 @@ namespace WildBlueIndustries
         {
             ConfigNode[] experiments = GameDatabase.Instance.GetConfigNodes("EXPERIMENT_DEFINITION");
             ConfigNode nodeDefinition = null;
+            ConfigNode nodeExperiment;
+            int index;
 
             //Find our desired experiment
-            foreach (ConfigNode nodeExperiment in experiments)
+            for (index = 0; index < experiments.Length; index++)
             {
+                nodeExperiment = experiments[index];
                 if (nodeExperiment.HasValue("id"))
                 {
                     if (nodeExperiment.GetValue("id") == experimentIDCode)
@@ -449,6 +575,18 @@ namespace WildBlueIndustries
             overrideExperimentID = experimentID;
             experiment = ResearchAndDevelopment.GetExperiment(experimentID);
             status = "Ready";
+
+            //Set defaults
+            if (experimentID == defaultExperiment)
+            {
+                isCompleted = false;
+                isRunning = false;
+                experimentFailed = false;
+                finalTransfer = false;
+                notificationSent = false;
+                status = "";
+                accumulatedResources = string.Empty;
+            }
 
             if (nodeDefinition.HasValue("experimentActionName"))
                 experimentActionName = nodeDefinition.GetValue("experimentActionName");
@@ -498,10 +636,7 @@ namespace WildBlueIndustries
 
             //requiredResources
             if (nodeDefinition.HasValue("requiredResources"))
-            {
                 requiredResources = nodeDefinition.GetValue("requiredResources");
-                rebuildResourceMap();
-            }
 
             //situations
             if (nodeDefinition.HasValue("situations"))
@@ -539,20 +674,71 @@ namespace WildBlueIndustries
                 onExperimentReceived(this);
         }
 
+        public void PackResources()
+        {
+            if (string.IsNullOrEmpty(requiredResources))
+                return;
+            if (resourceMap == null)
+                return;
+            if (experimentID == defaultExperiment)
+                return;
+
+            StringBuilder builder = new StringBuilder();
+
+            //Pack up the accumulated resources
+            SExperimentResource experimentResource;
+            for (int index = 0; index < resourceMapKeys.Length; index++)
+            {
+                experimentResource = resourceMap[resourceMapKeys[index]];
+                builder.Append(resourceMapKeys[index] + "," + experimentResource.currentAmount.ToString() + ";");
+            }
+            accumulatedResources = builder.ToString();
+            accumulatedResources = accumulatedResources.Substring(0, accumulatedResources.Length - 1);
+        }
+
         protected void rebuildResourceMap()
         {
+            SExperimentResource experimentResource;
             if (string.IsNullOrEmpty(requiredResources))
                 return;
 
             //Build resource map
             string[] resources = requiredResources.Split(new char[] { ';' });
             string[] resourceAmount = null;
+            int index;
+            string resource;
 
-            resourceMap = new Dictionary<string, double>();
-            foreach (string resource in resources)
+            resourceMap = new Dictionary<string, SExperimentResource>();
+            for (index = 0; index < resources.Length; index++)
             {
+                resource = resources[index];
+
                 resourceAmount = resource.Split(new char[] { ',' });
-                resourceMap.Add(resourceAmount[0], double.Parse(resourceAmount[1]));
+                experimentResource = new SExperimentResource();
+                experimentResource.name = resourceAmount[0];
+                experimentResource.targetAmount = double.Parse(resourceAmount[1]);
+                resourceMap.Add(resourceAmount[0], experimentResource);
+            }
+
+            //Save the keys
+            resourceMapKeys = resourceMap.Keys.ToArray<string>();
+
+            //Unpack accumulated resources (if any)
+            if (string.IsNullOrEmpty(accumulatedResources) == false)
+            {
+                resources = accumulatedResources.Split(new char[] { ';' });
+                for (index = 0; index < resources.Length; index++)
+                {
+                    resource = resources[index];
+
+                    resourceAmount = resource.Split(new char[] { ',' });
+                    if (resourceMap.ContainsKey(resourceAmount[0]))
+                    {
+                        experimentResource = resourceMap[resourceAmount[0]];
+                        experimentResource.currentAmount = double.Parse(resourceAmount[1]);
+                        resourceMap[resourceAmount[0]] = experimentResource;
+                    }
+                }
             }
         }
     }

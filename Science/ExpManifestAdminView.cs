@@ -21,13 +21,16 @@ namespace WildBlueIndustries
 {
     internal class ExpManifestAdminView : Window<ExpManifestAdminView>
     {
+        static Texture loadIcon;
         static Texture transferIcon;
         static Texture experimentIcon;
         static Texture infoIcon;
         static Texture completedIcon;
         static Texture trashcanIcon;
+        static Texture playIcon;
+        static Texture pauseIcon;
 
-        public List<WBIModuleScienceExperiment> experimentSlots = null;
+        public WBIModuleScienceExperiment[] experimentSlots = null;
         public Part part = null;
         public WBIExperimentLab experimentLab = null;
         public LoadExperimentView loadExperimentView = new LoadExperimentView();
@@ -61,6 +64,7 @@ namespace WildBlueIndustries
             labGUIVisible = showLabGUI;
             part = parentPart;
             experimentLab = lab;
+            WindowTitle = this.part.partInfo.title + ": Experiment Manifest";
         }
 
         public override void SetVisible(bool newValue)
@@ -108,6 +112,9 @@ namespace WildBlueIndustries
 
         protected void drawExperiments()
         {
+            int index;
+            WBIModuleScienceExperiment experimentSlot;
+
             if (experimentSlots == null)
             {
                 GUILayout.Label("No experiment slots available");
@@ -115,15 +122,23 @@ namespace WildBlueIndustries
             }
 
             scrollPos = GUILayout.BeginScrollView(scrollPos);
-            foreach (WBIModuleScienceExperiment experimentSlot in experimentSlots)
+            for (index = 0; index < experimentSlots.Length; index++)
             {
+                experimentSlot = experimentSlots[index];
+
                 GUILayout.BeginVertical();
 
                 GUILayout.BeginScrollView(scrollPosPanel, experimentPanelOptions);
 
                 GUILayout.BeginHorizontal();
+
                 //Transfer button
-                if (GUILayout.Button(transferIcon, buttonOptions))
+                Texture xFerIcon;
+                if (HighLogic.LoadedSceneIsFlight)
+                    xFerIcon = transferIcon;
+                else
+                    xFerIcon = loadIcon;
+                if (GUILayout.Button(xFerIcon, buttonOptions))
                     transferExperiment(experimentSlot);
                 GUILayout.BeginVertical();
 
@@ -133,8 +148,28 @@ namespace WildBlueIndustries
                 GUILayout.Label(experimentSlot.title);
                 GUILayout.EndHorizontal();
 
-                //Trashcan
                 GUILayout.BeginHorizontal();
+
+                //Run/Pause (flight only, Experiment Lab only)
+                if (experimentLab != null && labGUIVisible)
+                {
+                    if (HighLogic.LoadedSceneIsFlight && experimentSlot.isCompleted == false)
+                    {
+                        if (experimentSlot.isRunning)
+                        {
+                            if (GUILayout.Button(pauseIcon, iconOptions))
+                                experimentSlot.isRunning = false;
+                        }
+
+                        else
+                        {
+                            if (GUILayout.Button(playIcon, iconOptions))
+                                experimentSlot.isRunning = true;
+                        }
+                    }
+                }
+
+                //Trashcan
                 if (GUILayout.Button(trashcanIcon, iconOptions))
                 {
                     //Verify that user wants to clear the experiment.
@@ -161,6 +196,12 @@ namespace WildBlueIndustries
                         GUILayout.Label(infoIcon, iconOptions);
                     GUILayout.Label(experimentSlot.status);
                 }
+
+                else if (experimentLab == null && experimentSlot.isCompleted)
+                {
+                    GUILayout.Label("Ready to be recovered");
+                }
+
                 GUILayout.EndHorizontal();
 
                 GUILayout.EndVertical();
@@ -185,8 +226,18 @@ namespace WildBlueIndustries
 
         protected void drawLabGUI()
         {
+            StringBuilder builder = new StringBuilder();
+
             GUILayout.Label("<color=white><b>Status: </b>" + experimentLab.status + "</color>");
-            GUILayout.Label("<color=white><b>Last Attempt: </b>" + experimentLab.lastAttempt + "</color>");
+            GUILayout.Label("<color=white><b>Bonus Science Research: </b>" + experimentLab.lastAttempt + "</color>");
+            GUILayout.Label(string.Format("<color=white><b>Bonus Science Gained (requires transmission): </b>{0:f2}</color>", experimentLab.scienceAdded));
+
+            int totalCount = experimentLab.outputList.Count;
+            for (int index = 0; index < totalCount; index++)
+                builder.Append(experimentLab.outputList[index].ResourceName + ",");
+            string outputs = builder.ToString();
+            outputs = outputs.Substring(0, outputs.Length - 1);
+            GUILayout.Label("<color=yellow><b>NOTE:</b> Bonus science and " + outputs + " can be generated without running experiments.</color>");
 
             if (experimentLab.IsActivated)
             {
@@ -202,15 +253,21 @@ namespace WildBlueIndustries
         protected void setupIcons()
         {
             if (transferIcon == null)
-                transferIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/MOLE/Icons/TransferIcon", false);
+                transferIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/TransferIcon", false);
+            if (loadIcon == null)
+                loadIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/SelectExpIcon", false);
             if (experimentIcon == null)
-                experimentIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/MOLE/Icons/ExperimentIcon", false);
+                experimentIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/ExperimentIcon", false);
             if (infoIcon == null)
-                infoIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/MOLE/Icons/infoIcon", false);
+                infoIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/infoIcon", false);
             if (completedIcon == null)
-                completedIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/MOLE/Icons/CompletedIcon", false);
+                completedIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/CompletedIcon", false);
             if (trashcanIcon == null)
-                trashcanIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/MOLE/Icons/TrashCan", false);
+                trashcanIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/TrashCan", false);
+            if (playIcon == null)
+                playIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/PlayIcon", false);
+            if (pauseIcon == null)
+                pauseIcon  = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/PauseIcon", false);
         }
 
         protected void transferExperiment(WBIModuleScienceExperiment experimentSlot)
@@ -221,6 +278,8 @@ namespace WildBlueIndustries
                 loadExperimentView.defaultExperiment = experimentSlot.defaultExperiment;
                 loadExperimentView.transferRecipient = experimentSlot;
                 loadExperimentView.part = this.part;
+                loadExperimentView.windowPos = this.windowPos;
+                loadExperimentView.windowPos.position += new Vector2(40.0f, 40.0f);
                 loadExperimentView.SetVisible(true);
             }
 
@@ -257,10 +316,17 @@ namespace WildBlueIndustries
                 Color sourceColor = new Color(1, 1, 0);
                 Color destinationColor = new Color(0, 191, 243);
                 bool foundAvailableSlot = false;
+                int index;
+                int totalCount;
+                WBIExperimentManifest manifest;
+                WBIExperimentLab lab;
 
                 //Highlight the manifests
-                foreach (WBIExperimentManifest manifest in manifests)
+                totalCount = manifests.Count;
+                for (index = 0; index < totalCount; index++)
                 {
+                    manifest = manifests[index];
+
                     //Part can accept the experiment if it is not full.
                     if (manifest != thisManifest && manifest.HasAvailableSlots())
                     {
@@ -276,8 +342,11 @@ namespace WildBlueIndustries
                 }
 
                 //Highlight labs
-                foreach (WBIExperimentLab lab in labs)
+                totalCount = labs.Count;
+                for (index = 0; index < totalCount; index++)
                 {
+                    lab = labs[index];
+
                     //Part can accept the experiment if it is not full.
                     if (lab != thisLab && lab.HasAvailableSlots())
                     {
@@ -322,10 +391,17 @@ namespace WildBlueIndustries
             List<WBIExperimentLab> labs = this.part.vessel.FindPartModulesImplementing<WBIExperimentLab>();
             WBIExperimentLab thisLab = this.part.FindModuleImplementing<WBIExperimentLab>();
             WBIExperimentManifest thisManifest = this.part.FindModuleImplementing<WBIExperimentManifest>();
+            int index;
+            int totalCount;
+            WBIExperimentManifest manifest;
+            WBIExperimentLab lab;
 
             //Clear all the highlights
-            foreach(WBIExperimentManifest manifest in manifests)
+            totalCount = manifests.Count;
+            for (index = 0; index < totalCount; index++)
             {
+                manifest = manifests[index];
+
                 //Highlighter off
                 manifest.part.highlighter.Off();
 
@@ -338,8 +414,11 @@ namespace WildBlueIndustries
                     manifest.TransferExperiment(experimentToTransfer);
             }
 
-            foreach (WBIExperimentLab lab in labs)
+            totalCount = labs.Count;
+            for (index = 0; index < totalCount; index++)
             {
+                lab = labs[index];
+
                 //Highlighter off
                 lab.part.highlighter.Off();
 
@@ -368,10 +447,17 @@ namespace WildBlueIndustries
                 List<WBIExperimentLab> labs = this.part.vessel.FindPartModulesImplementing<WBIExperimentLab>();
                 WBIExperimentLab thisLab = this.part.FindModuleImplementing<WBIExperimentLab>();
                 WBIExperimentManifest thisManifest = this.part.FindModuleImplementing<WBIExperimentManifest>();
+                int index;
+                int totalCount;
+                WBIExperimentManifest manifest;
+                WBIExperimentLab lab;
 
                 //Clear all the highlights
-                foreach (WBIExperimentManifest manifest in manifests)
+                totalCount = manifests.Count;
+                for (index = 0; index < totalCount; index++)
                 {
+                    manifest = manifests[index];
+
                     //Highlighter off
                     manifest.part.highlighter.Off();
 
@@ -380,8 +466,11 @@ namespace WildBlueIndustries
                         manifest.part.RemoveOnMouseDown(onPartMouseDown);
                 }
 
-                foreach (WBIExperimentLab lab in labs)
+                totalCount = labs.Count;
+                for (index = 0; index < totalCount; index++)
                 {
+                    lab = labs[index];
+
                     //Highlighter off
                     lab.part.highlighter.Off();
 

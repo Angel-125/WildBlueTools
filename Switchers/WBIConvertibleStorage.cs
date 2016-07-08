@@ -202,7 +202,7 @@ namespace WildBlueIndustries
             if (!string.IsNullOrEmpty(value))
                 moduleInfo.Append("Crew Capacity: " + nodeTemplate.GetValue("CrewCapacity") + "\r\n");
 
-            //Add just the converters
+            //Add part module info
             if (nodeTemplate.nodes.Contains("MODULE"))
             {
                 ConfigNode[] moduleNodes = nodeTemplate.nodes.GetNodes("MODULE");

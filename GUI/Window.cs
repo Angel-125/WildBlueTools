@@ -39,7 +39,6 @@ namespace WildBlueIndustries
     {
         private int windowId;
         private string configNodeName;
-        protected Rect windowPos;
         private bool mouseDown;
         private bool visible;
 
@@ -47,6 +46,7 @@ namespace WildBlueIndustries
         private GUIStyle resizeStyle;
         private GUIContent resizeContent;
 
+        public Rect windowPos;
         public string WindowTitle;
         public bool Resizable { get; set; }
         public bool HideCloseButton { get; set; }

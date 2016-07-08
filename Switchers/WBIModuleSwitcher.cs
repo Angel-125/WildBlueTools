@@ -121,7 +121,7 @@ namespace WildBlueIndustries
         #region Helpers
         protected void loadModuleSettings(PartModule module, ConfigNode moduleNode, int index)
         {
-            if (HighLogic.LoadedSceneIsFlight == false)
+            if (HighLogic.LoadedSceneIsFlight == false && HighLogic.LoadedSceneIsEditor == false && HighLogic.LoadedScene != GameScenes.SPACECENTER)
                 return;
 
             Log("loadModuleSettings called");

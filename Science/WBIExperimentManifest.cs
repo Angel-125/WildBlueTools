@@ -28,7 +28,7 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool isGUIVisible;
 
-        public List<WBIModuleScienceExperiment> experimentSlots = null;
+        public WBIModuleScienceExperiment[] experimentSlots = null;
 
         private ExpManifestAdminView manifestAdmin = new ExpManifestAdminView();
 
@@ -49,9 +49,13 @@ namespace WildBlueIndustries
 
         public bool HasAvailableSlots()
         {
+            WBIModuleScienceExperiment experimentSlot;
+
             //Find an available slot
-            foreach (WBIModuleScienceExperiment experimentSlot in experimentSlots)
+            for (int index = 0; index < experimentSlots.Length; index++)
             {
+                experimentSlot = experimentSlots[index];
+
                 if (experimentSlot.experimentID == experimentSlot.defaultExperiment)
                 {
                     return true;
@@ -63,9 +67,13 @@ namespace WildBlueIndustries
 
         public void TransferExperiment(WBIModuleScienceExperiment experiment)
         {
+            WBIModuleScienceExperiment experimentSlot;
+
             //Find an available slot
-            foreach (WBIModuleScienceExperiment experimentSlot in experimentSlots)
+            for (int index = 0; index < experimentSlots.Length; index++)
             {
+                experimentSlot = experimentSlots[index];
+
                 if (experimentSlot.experimentID == experimentSlot.defaultExperiment)
                 {
                     experimentSlot.TransferExperiment(experiment);
@@ -75,16 +83,22 @@ namespace WildBlueIndustries
             }
         }
 
-        public List<WBIModuleScienceExperiment> GetExperimentSlots()
+        public WBIModuleScienceExperiment[] GetExperimentSlots()
         {
             if (experimentSlots != null)
                 return experimentSlots;
+            WBIModuleScienceExperiment experiment;
+            List<WBIModuleScienceExperiment> experiments = this.part.FindModulesImplementing<WBIModuleScienceExperiment>();
+            int totalCount;
+            int index;
 
-            experimentSlots = this.part.FindModulesImplementing<WBIModuleScienceExperiment>();
-            Log("experimentSlots found: " + experimentSlots.Count.ToString());
+            totalCount = experiments.Count;
+            Log("experimentSlots found: " + totalCount.ToString());
 
-            foreach (WBIModuleScienceExperiment experiment in experimentSlots)
+            for (index = 0; index < totalCount; index++)
             {
+                experiment = experiments[index];
+
                 experiment.defaultExperiment = this.defaultExperiment;
                 experiment.onExperimentReceived += this.OnExperimentReceived;
                 experiment.onExperimentTransfered += this.OnExperimentTransfered;
@@ -94,6 +108,7 @@ namespace WildBlueIndustries
                     experiment.LoadFromDefinition(defaultExperiment);
             }
 
+            experimentSlots = experiments.ToArray<WBIModuleScienceExperiment>();
             return experimentSlots;
         }
 
@@ -165,12 +180,16 @@ namespace WildBlueIndustries
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
             float moduleCost = defaultCost;
+            WBIModuleScienceExperiment experimentSlot;
 
             if (experimentSlots == null)
                 return defaultCost;
 
-            foreach (WBIModuleScienceExperiment experimentSlot in experimentSlots)
+            for (int index = 0; index < experimentSlots.Length; index++)
+            {
+                experimentSlot = experimentSlots[index];
                 moduleCost += experimentSlot.cost;
+            }
 
             return moduleCost;
         }
@@ -186,12 +205,16 @@ namespace WildBlueIndustries
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
             float moduleMass = defaultMass;
+            WBIModuleScienceExperiment experimentSlot;
 
             if (experimentSlots == null)
                 return defaultMass;
 
-            foreach (WBIModuleScienceExperiment experimentSlot in experimentSlots)
+            for (int index = 0; index < experimentSlots.Length; index++)
+            {
+                experimentSlot = experimentSlots[index];
                 moduleMass += experimentSlot.partMass;
+            }
 
             return moduleMass;
         }

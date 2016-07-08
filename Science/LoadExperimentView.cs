@@ -50,6 +50,8 @@ namespace WildBlueIndustries
             base.SetVisible(newValue);
             ConfigNode[] experiments = GameDatabase.Instance.GetConfigNodes("EXPERIMENT_DEFINITION");
 
+            WindowTitle = this.part.partInfo.title + ": Load Experiment";
+
             setupIcons();
 
             if (newValue && experimentDefs == null)
@@ -157,9 +159,9 @@ namespace WildBlueIndustries
         protected void setupIcons()
         {
             if (transferIcon == null)
-                transferIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/MOLE/Icons/TransferIcon", false);
+                transferIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/CompletedIcon", false);
             if (experimentIcon == null)
-                experimentIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/MOLE/Icons/ExperimentIcon", false);
+                experimentIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/ExperimentIcon", false);
         }
 
         protected string getSynopsis(ConfigNode node)

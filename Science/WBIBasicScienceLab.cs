@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using KSP.IO;
+using KSP.UI.Screens;
 
 /*
 Source code copyrighgt 2015, by Michael Billard (Angel-125)
@@ -83,7 +84,7 @@ namespace WildBlueIndustries
         protected float successBonus;
         protected float dataAmount;
         protected TransmitHelper transmitHelper = new TransmitHelper();
-        ScienceLabResultsView scienceLabView = new ScienceLabResultsView("Science Lab");
+        protected ScienceLabResultsView scienceLabView = new ScienceLabResultsView("Science Lab");
 
         #region Actions And Events
         [KSPEvent(guiActive = true, guiActiveUnfocused = true, unfocusedRange = 3.0f, guiName = "Review Data")]
@@ -148,6 +149,7 @@ namespace WildBlueIndustries
             transmitHelper.part = this.part;
             transmitHelper.transmitCompleteDelegate = TransmitComplete;
             scienceLabView.part = this.part;
+            scienceLabView.scienceLab = this;
 
             //Feedback messages
             attemptCriticalFail = kResearchCriticalFail;
@@ -175,18 +177,21 @@ namespace WildBlueIndustries
         [KSPEvent(guiActiveUnfocused = true, unfocusedRange = 3f, guiName = "Perform repairs", guiActiveEditor = false, guiActive = true)]
         public virtual void RepairLab()
         {
-            double repairUnits = calculateRepairCost();
-
-            //Not enough resources to effect repairs? Tell the player.
-            if (repairUnits < 0.0f)
+            if (repairsRequireResources)
             {
-                string message = string.Format(notEnoughResourcesToRepair, this.part.partInfo.title, repairAmount, repairResource);
-                ScreenMessages.PostScreenMessage(message, kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
-                return;
-            }
+                double repairUnits = calculateRepairCost();
 
-            //We have enough, deduct the repair cost
-            FlightGlobals.ActiveVessel.rootPart.RequestResource(repairResource, repairUnits, ResourceFlowMode.ALL_VESSEL);
+                //Not enough resources to effect repairs? Tell the player.
+                if (repairUnits < 0.0f)
+                {
+                    string message = string.Format(notEnoughResourcesToRepair, this.part.partInfo.title, repairAmount, repairResource);
+                    ScreenMessages.PostScreenMessage(message, kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+                    return;
+                }
+
+                //We have enough, deduct the repair cost
+                FlightGlobals.ActiveVessel.rootPart.RequestResource(repairResource, repairUnits, ResourceFlowMode.ALL_VESSEL);
+            }
 
             //Finally, unset broken.
             isBroken = false;
@@ -213,6 +218,9 @@ namespace WildBlueIndustries
 
         protected virtual double calculateRepairCost()
         {
+            if (repairsRequireResources == false)
+                return 0f;
+
             double repairUnits = repairAmount;
             double totalAmount;
             List<ProtoCrewMember> crewMembers = FlightGlobals.ActiveVessel.GetVesselCrew();
@@ -225,7 +233,7 @@ namespace WildBlueIndustries
                 foreach (ProtoCrewMember crew in crewMembers)
                 {
                     experience = crew.experienceTrait;
-                    if (experience.TypeName == repairSkill)
+                    if (experience.TypeName == repairSkill || requireSkillCheck == false)
                     {
                         repairUnits = repairUnits * (0.9f - (experience.CrewMemberExperienceLevel() * 0.1f));
                         repairSkillFound = true;
@@ -314,6 +322,18 @@ namespace WildBlueIndustries
                 Events["RepairLab"].guiActive = true;
                 Events["StartResourceConverter"].active = false;
                 status = kNeedsRepairs;
+
+                StringBuilder resultsMessage = new StringBuilder();
+                MessageSystem.Message msg;
+
+                resultsMessage.AppendLine("From: " + this.part.vessel.vesselName);
+                resultsMessage.AppendLine("Lab: " + this.part.partInfo.title);
+                resultsMessage.AppendLine("Subject: Lab Critical Failure!");
+                resultsMessage.AppendLine("Summary: Unfortunately the " + this.part.partInfo.title + " has suffered a catastrophic failure and requires repairs.");
+                resultsMessage.AppendLine(string.Format("It will take {0:f2}", repairAmount) + " " + repairResource + " to repair");
+                msg = new MessageSystem.Message("Lab Critical Failure!", resultsMessage.ToString(),
+                    MessageSystemButton.MessageButtonColor.BLUE, MessageSystemButton.ButtonIcons.FAIL);
+                MessageSystem.Instance.AddMessage(msg);
             }
         }
 

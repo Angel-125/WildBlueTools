@@ -48,11 +48,6 @@ namespace WildBlueIndustries
         base(title, 600, 330)
         {
             Resizable = false;
-        }
-
-        public override void SetVisible(bool newValue)
-        {
-            base.SetVisible(newValue);
 
             if (transmitIconWhite == null)
             {
@@ -66,6 +61,11 @@ namespace WildBlueIndustries
                 repIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/WBIPublishWhite", false);
                 fundsIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/WBISellWhite", false);
             }
+        }
+
+        public override void SetVisible(bool newValue)
+        {
+            base.SetVisible(newValue);
 
             if (newValue)
             {
@@ -77,7 +77,7 @@ namespace WildBlueIndustries
                 scienceLab = null;
         }
 
-        protected override void DrawWindowContents(int windowId)
+        public void DrawGUIControls()
         {
             GUILayout.BeginVertical();
 
@@ -87,6 +87,11 @@ namespace WildBlueIndustries
             GUILayout.EndHorizontal();
             drawTransmitButtons();
             GUILayout.EndVertical();
+        }
+
+        protected override void DrawWindowContents(int windowId)
+        {
+            DrawGUIControls();
         }
 
         protected void findMPL()
