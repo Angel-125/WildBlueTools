@@ -80,12 +80,22 @@ namespace WildBlueIndustries
         public void DrawGUIControls()
         {
             GUILayout.BeginVertical();
+            GUILayout.BeginScrollView(new Vector2(), new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
+
+            if (HighLogic.LoadedSceneIsFlight == false)
+            {
+                GUILayout.Label("<color=yellow>This screen is working, but the contents can only be accessed in flight.</color>");
+                GUILayout.EndVertical();
+                GUILayout.EndScrollView();
+                return;
+            }
 
             GUILayout.BeginHorizontal();
             drawStatus();
             drawResultsText();
             GUILayout.EndHorizontal();
             drawTransmitButtons();
+            GUILayout.EndScrollView();
             GUILayout.EndVertical();
         }
 

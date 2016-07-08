@@ -221,8 +221,8 @@ namespace WildBlueIndustries
             }
 
             lightModule = this.part.FindModuleImplementing<WBILight>();
-            if (lightModule != null)
-                lightModule.showGui(false);
+//            if (lightModule != null)
+//                lightModule.showGui(false);
 
         }
 
