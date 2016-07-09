@@ -148,6 +148,9 @@ namespace WildBlueIndustries
         {
             base.OnUpdate();
 
+            if (!finalTransfer)
+                return;
+
             //Safety check: make sure we deployed the experiment if it has been completed.
             ScienceData[] data = GetData();
             if ((data == null || data.Length == 0) && experimentID != defaultExperiment && !resultsSafetyCheck)
