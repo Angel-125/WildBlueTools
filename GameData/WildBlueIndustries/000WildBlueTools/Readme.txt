@@ -6,6 +6,9 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.3.7
+- Fixed an issue with WBILight throwing NREs in the VAB/SPH.
+
 1.3.6
 - Minor bug fixes
 

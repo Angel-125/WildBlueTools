@@ -118,13 +118,16 @@ namespace WildBlueIndustries
             base.OnFixedUpdate();
 
             //Get the required EC
-            if (isDeployed && ecRequired > 0f)
+            if (HighLogic.LoadedSceneIsFlight)
             {
-                double ecPerTimeTick = ecRequired * TimeWarp.fixedDeltaTime;
-                double ecObtained = this.part.RequestResource("ElectricCharge", ecPerTimeTick, ResourceFlowMode.ALL_VESSEL);
+                if (isDeployed && ecRequired > 0f)
+                {
+                    double ecPerTimeTick = ecRequired * TimeWarp.fixedDeltaTime;
+                    double ecObtained = this.part.RequestResource("ElectricCharge", ecPerTimeTick, ResourceFlowMode.ALL_VESSEL);
 
-                if (ecObtained / ecPerTimeTick < 0.999)
-                    ToggleAnimation();
+                    if (ecObtained / ecPerTimeTick < 0.999)
+                        ToggleAnimation();
+                }
             }
 
             //If the settings have changed then re-setup the lights.
