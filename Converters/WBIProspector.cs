@@ -53,7 +53,7 @@ namespace WildBlueIndustries
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
-                if (this.part.vessel.situation == Vessel.Situations.SPLASHED || this.part.vessel.situation == Vessel.Situations.LANDED)
+                if (this.part.vessel.situation == Vessel.Situations.SPLASHED || this.part.vessel.situation == Vessel.Situations.LANDED || this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
                 {
                     if (Utils.IsBiomeUnlocked(this.part.vessel) == false)
                     {
@@ -78,6 +78,7 @@ namespace WildBlueIndustries
 
         protected void prepareOutputs()
         {
+//            Debug.Log("FRED prepareOutputs called");
             PartResourceDefinition inputDef = null;
 
             //Get the input mass from the list of inputs. Ignore ElectricCharge.
@@ -110,6 +111,7 @@ namespace WildBlueIndustries
 
         protected virtual void prepareOutputsByLocale()
         {
+//            Debug.Log("FRED prepareOutputsByLocale called");
             ResourceRatio outputSource = null;
             string biomeName = Utils.GetCurrentBiome(this.part.vessel).name;
             PartResourceDefinition outputDef = null;
@@ -122,6 +124,7 @@ namespace WildBlueIndustries
 
             foreach (ResourceCache.AbundanceSummary summary in abundanceCache)
             {
+//                Debug.Log("FRED checking " + summary.ResourceName);
                 outputDef = ResourceHelper.DefinitionForResource(summary.ResourceName);
                 abundance = summary.Abundance;
                 outputMass = abundance * yieldMass;
@@ -130,12 +133,14 @@ namespace WildBlueIndustries
                 //If the resource is an input resource then add its output mass to the byproductMass.
                 if (inputSources.Contains(summary.ResourceName))
                 {
+//                    Debug.Log("FRED " + summary.ResourceName + " added to byproductMass");
                     byproductMass += outputMass;
                 }
 
                 //If the resource is on our ignore list, then add the output mass to the byproductMass.
                 else if (!string.IsNullOrEmpty(ignoreResources) && ignoreResources.Contains(summary.ResourceName))
                 {
+//                    Debug.Log("FRED " + summary.ResourceName + " ignored and added to byproductMass");
                     byproductMass += outputMass;
                 }
 
@@ -156,10 +161,12 @@ namespace WildBlueIndustries
                 outputUnits = byproductMass / byproductDef.density;
                 outputSource = new ResourceRatio { ResourceName = byproduct, Ratio = outputUnits, FlowMode = "ALL_VESSEL", DumpExcess = true };
                 outputList.Add(outputSource);
+//                Debug.Log("FRED added " + byproduct + " to output list");
             }
 
 //            Debug.Log("FRED totalAbundance: " + totalAbundance);
 //            Debug.Log("FRED Slag Units: " + outputUnits);
+//            Debug.Log("FRED output resources added: " + outputList.Count);
         }
 
         protected override ConversionRecipe PrepareRecipe(double deltatime)

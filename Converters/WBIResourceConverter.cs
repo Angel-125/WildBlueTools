@@ -43,6 +43,9 @@ namespace WildBlueIndustries
         public int crewsRequired = 0;
 
         [KSPField]
+        public bool checkCrewsWholeVessel;
+
+        [KSPField]
         public float minimumSuccess;
 
         [KSPField]
@@ -358,10 +361,27 @@ namespace WildBlueIndustries
 
         protected virtual bool hasMinimumCrew()
         {
+            int crewCount;
+
             //Do we have enough crew?
             if (crewsRequired > 0)
             {
-                int crewCount = this.part.protoModuleCrew.Count;
+                if (checkCrewsWholeVessel)
+                {
+                    crewCount = this.part.vessel.GetCrewCount();
+
+                    if (crewCount >= crewsRequired)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        status = string.Format(needCrew, crewsRequired - crewCount);
+                        return false;
+                    }
+                }
+
+                crewCount = this.part.protoModuleCrew.Count;
 
                 if (crewsRequired > crewCount)
                 {

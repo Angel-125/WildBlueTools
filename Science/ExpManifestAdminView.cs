@@ -167,6 +167,9 @@ namespace WildBlueIndustries
                                 experimentSlot.isRunning = true;
                         }
                     }
+
+                    if (experimentSlot.isRunning && experimentLab.IsActivated == false)
+                        experimentLab.StartConverter();
                 }
 
                 //Trashcan

@@ -6,6 +6,9 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.3.6
+- Minor bug fixes
+
 1.3.5
 - Fixed an issue where lab experimetns would be completed before even being started.
 

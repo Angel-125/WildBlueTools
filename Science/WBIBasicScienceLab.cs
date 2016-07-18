@@ -314,9 +314,10 @@ namespace WildBlueIndustries
         protected override void onCriticalFailure()
         {
             base.onCriticalFailure();
-            StopConverter();
-            if (string.IsNullOrEmpty(repairResource) == false)
+
+            if (partsCanBreak)
             {
+                StopConverter();
                 isBroken = true;
                 Events["RepairLab"].active = true;
                 Events["RepairLab"].guiActive = true;
@@ -330,7 +331,8 @@ namespace WildBlueIndustries
                 resultsMessage.AppendLine("Lab: " + this.part.partInfo.title);
                 resultsMessage.AppendLine("Subject: Lab Critical Failure!");
                 resultsMessage.AppendLine("Summary: Unfortunately the " + this.part.partInfo.title + " has suffered a catastrophic failure and requires repairs.");
-                resultsMessage.AppendLine(string.Format("It will take {0:f2}", repairAmount) + " " + repairResource + " to repair");
+                if (repairsRequireResources && string.IsNullOrEmpty(repairResource) == false)
+                    resultsMessage.AppendLine(string.Format("It will take {0:f2}", repairAmount) + " " + repairResource + " to repair");
                 msg = new MessageSystem.Message("Lab Critical Failure!", resultsMessage.ToString(),
                     MessageSystemButton.MessageButtonColor.BLUE, MessageSystemButton.ButtonIcons.FAIL);
                 MessageSystem.Instance.AddMessage(msg);

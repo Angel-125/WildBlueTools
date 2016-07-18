@@ -30,6 +30,12 @@ namespace WildBlueIndustries
 
         #region Module Overrides
 
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            opsManagerView.WindowTitle = this.part.partInfo.title + " Operations";
+        }
+
         public override void OnUpdate()
         {
             base.OnUpdate();
