@@ -363,14 +363,20 @@ namespace WildBlueIndustries
                 if (!isInflatable && nodeTemplate.HasValue("CrewCapacity"))
                 {
                     this.part.CrewCapacity = int.Parse(nodeTemplate.GetValue("CrewCapacity"));
+                    this.part.CheckTransferDialog();
                     if (this.part.CrewCapacity == 0 && originalCrewCapacity > 0 && HighLogic.LoadedSceneIsFlight)
+                    {
                         this.part.DespawnIVA();
+                    }
                 }
                 else if (!isInflatable && this.part.CrewCapacity != originalCrewCapacity)
                 {
                     this.part.CrewCapacity = originalCrewCapacity;
+                    this.part.CheckTransferDialog();
                     if (this.part.CrewCapacity > 0 && HighLogic.LoadedSceneIsFlight)
+                    {
                         this.part.SpawnIVA();
+                    }
                 }
 
                 //Load the template resources into the module.

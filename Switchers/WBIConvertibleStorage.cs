@@ -182,7 +182,6 @@ namespace WildBlueIndustries
 
         protected string getStorageInfo(int templateIndex)
         {
-            Debug.Log("FRED getStorageInfo called");
             StringBuilder moduleInfo = new StringBuilder();
             StringBuilder converterInfo = new StringBuilder();
             ConfigNode nodeTemplate = templateManager[templateIndex];
