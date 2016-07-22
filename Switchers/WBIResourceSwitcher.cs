@@ -121,7 +121,10 @@ namespace WildBlueIndustries
             }
 
             foreach (PartResource resource in this.part.Resources)
-                resource.amount = 0;
+            {
+                if (resource.resourceName != "ElectricCharge")
+                    resource.amount = 0;
+            }
 
             if (onResourcesDumped != null)
                 onResourcesDumped();
