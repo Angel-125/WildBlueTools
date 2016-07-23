@@ -38,7 +38,7 @@ namespace WildBlueIndustries
         SDrawbleView currentDrawableView;
         ModuleCommand commandModule;
         WBIResourceSwitcher switcher;
-        WBILight lightModule;
+        WBILight lightModule = null;
 
         public OpsManagerView() :
         base("Manage Operations", 800, 480)
@@ -74,10 +74,14 @@ namespace WildBlueIndustries
         {
             converters.Clear();
             List<ModuleResourceConverter> possibleConverters = this.part.FindModulesImplementing<ModuleResourceConverter>();
+            int totalCount = possibleConverters.Count;
+            ModuleResourceConverter converter;
 
             //Now get rid of anything that is a basic science lab
-            foreach (ModuleResourceConverter converter in possibleConverters)
+            for (int index = 0; index < totalCount; index++)
             {
+                converter = possibleConverters[index];
+
                 if (!(converter is WBIBasicScienceLab))
                     converters.Add(converter);
             }
@@ -95,11 +99,18 @@ namespace WildBlueIndustries
 
             //Custom views from other PartModules
             List<IOpsView> templateOpsViews = this.part.FindModulesImplementing<IOpsView>();
-            foreach (IOpsView templateOps in templateOpsViews)
+            int totalCount = templateOpsViews.Count;
+            int labelCount;
+            string label;
+            IOpsView templateOps;
+            for (int index = 0; index < totalCount; index++)
             {
+                templateOps = templateOpsViews[index];
                 List<string> labels = templateOps.GetButtonLabels();
-                foreach (string label in labels)
+                labelCount = labels.Count;
+                for (int labelIndex = 0; labelIndex < labelCount; labelIndex++)
                 {
+                    label = labels[labelIndex];
                     drawableView = new SDrawbleView();
                     drawableView.buttonLabel = label;
                     drawableView.view = templateOps;
@@ -153,7 +164,6 @@ namespace WildBlueIndustries
         {
             List<string> buttonLabels = new List<string>();
             int resourceCount = this.part.Resources.Count;
-            List<ModuleResourceConverter> converters = this.part.FindModulesImplementing<ModuleResourceConverter>();
 
             //Get our part modules
             UpdateConverters();
@@ -185,8 +195,12 @@ namespace WildBlueIndustries
 
             //View buttons
             _scrollPosViews = GUILayout.BeginScrollView(_scrollPosViews, new GUILayoutOption[] { GUILayout.Width(160) });
-            foreach (SDrawbleView drawableView in views)
+            int totalViews = views.Count;
+            SDrawbleView drawableView;
+            for (int index = 0; index < totalViews; index++)
             {
+                drawableView = views[index];
+
                 if (GUILayout.Button(drawableView.buttonLabel))
                 {
                     _scrollPosViews = new Vector2();
@@ -203,13 +217,20 @@ namespace WildBlueIndustries
 
         public void GetPartModules()
         {
+            BaseEvent cmdEvent;
+            int totalEvents;
+
             commandModule = this.part.FindModuleImplementing<ModuleCommand>();
             if (commandModule != null)
-                foreach (BaseEvent cmdEvent in commandModule.Events)
+            {
+                totalEvents = commandModule.Events.Count;
+                for (int index = 0; index < totalEvents; index++)
                 {
+                    cmdEvent = commandModule.Events.GetByIndex(index);
                     cmdEvent.guiActive = false;
                     cmdEvent.guiActiveUnfocused = false;
                 }
+            }
 
             switcher = this.part.FindModuleImplementing<WBIResourceSwitcher>();
             if (switcher != null)
@@ -219,11 +240,6 @@ namespace WildBlueIndustries
                 switcher.Events["DumpResources"].guiActive = false;
                 switcher.Events["DumpResources"].guiActiveUnfocused = false;
             }
-
-            lightModule = this.part.FindModuleImplementing<WBILight>();
-//            if (lightModule != null)
-//                lightModule.showGui(false);
-
         }
 
         protected void drawCommandView()
@@ -277,6 +293,9 @@ namespace WildBlueIndustries
 
         protected void drawResourceView()
         {
+            PartResource resource;
+            int TotalCount;
+
             GUILayout.BeginVertical();
             _scrollPosResources = GUILayout.BeginScrollView(_scrollPosResources, new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
 
@@ -288,8 +307,10 @@ namespace WildBlueIndustries
                 return;
             }
 
-            foreach (PartResource resource in this.part.Resources)
+            TotalCount = this.part.Resources.Count;
+            for (int index = 0; index < TotalCount; index++)
             {
+                resource = this.part.Resources[index];
                 if (resource.isVisible)
                 {
                     GUILayout.Label(resource.resourceName);
@@ -306,6 +327,8 @@ namespace WildBlueIndustries
             string converterName = "??";
             string converterStatus = "??";
             bool isActivated;
+            ModuleResourceConverter converter;
+            int totalCount;
 
             _scrollPosConverters = GUILayout.BeginScrollView(_scrollPosConverters, new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
             if (converters.Count == 0)
@@ -316,8 +339,10 @@ namespace WildBlueIndustries
                 return;
             }
 
-            foreach (ModuleResourceConverter converter in converters)
+            totalCount = converters.Count;
+            for (int index = 0; index < totalCount; index++)
             {
+                converter = converters[index];
                 converterName = converter.ConverterName;
                 converterStatus = converter.status;
                 isActivated = converter.IsActivated;

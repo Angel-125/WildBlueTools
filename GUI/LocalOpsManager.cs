@@ -58,12 +58,18 @@ namespace WildBlueIndustries
             List<IOpsView> opsViews;
             List<string> buttonLabels;
             SDrawbleView drawableView;
+            Vessel vessel;
+            IOpsView opsView;
+            string label;
+            int totalVessels, totalViews, totalLabels;
 
             drawableViews.Clear();
 
             //Find all the loaded vessels in physics range
-            foreach (Vessel vessel in FlightGlobals.Vessels)
+            totalVessels = FlightGlobals.Vessels.Count;
+            for (int vesselIndex = 0; vesselIndex < totalVessels; vesselIndex++)
             {
+                vessel = FlightGlobals.Vessels[vesselIndex];
                 if (vessel.mainBody != FlightGlobals.ActiveVessel.mainBody)
                     continue;
 
@@ -72,10 +78,13 @@ namespace WildBlueIndustries
 
                 //Now find all part modules in the vessel that implement IOpsViews
                 opsViews = vessel.FindPartModulesImplementing<IOpsView>();
+                totalViews = opsViews.Count;
 
                 //Go through the list and get their drawable views
-                foreach (IOpsView opsView in opsViews)
+                for (int viewIndex = 0; viewIndex < totalViews; viewIndex++)
                 {
+                    opsView = opsViews[viewIndex];
+
                     //Set parent view
                     opsView.SetParentView(this);
 
@@ -88,8 +97,10 @@ namespace WildBlueIndustries
 
                     //Setup button labels
                     buttonLabels = opsView.GetButtonLabels();
-                    foreach (string label in buttonLabels)
+                    totalLabels = buttonLabels.Count;
+                    for (int labelIndex = 0; labelIndex < totalLabels; labelIndex++)
                     {
+                        label = buttonLabels[labelIndex];
                         drawableView = new SDrawbleView();
                         drawableView.buttonLabel = label;
                         drawableView.view = opsView;
@@ -114,12 +125,18 @@ namespace WildBlueIndustries
         protected override void DrawWindowContents(int windowId)
         {
             GUILayout.BeginHorizontal();
+            string[] viewKeys = drawableViews.Keys.ToArray<string>();
+            int totalKeys = viewKeys.Length;
+            string label;
+            int totalViews;
+            SDrawbleView drawableView;
 
             _scrollPosButtons = GUILayout.BeginScrollView(_scrollPosButtons);
 
             //Draw the buttons.
-            foreach (string label in drawableViews.Keys)
+            for (int labelIndex = 0; labelIndex < totalKeys; labelIndex++)
             {
+                label = viewKeys[labelIndex];
                 if (GUILayout.Button(label))
                 {
                     _scrollPosViews = new Vector2();
@@ -138,8 +155,10 @@ namespace WildBlueIndustries
             else
             {
                 _scrollPosViews = GUILayout.BeginScrollView(_scrollPosViews, new GUILayoutOption[] { GUILayout.Width(700) });
-                foreach (SDrawbleView drawableView in views)
+                totalViews = views.Count;
+                for (int viewIndex = 0; viewIndex < totalViews; viewIndex++)
                 {
+                    drawableView = views[viewIndex];
                     GUILayout.BeginVertical();
 
                     GUILayout.BeginScrollView(new Vector2(0, 0), new GUIStyle(GUI.skin.textArea), GUILayout.Height(530));
