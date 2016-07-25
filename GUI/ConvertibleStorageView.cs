@@ -32,6 +32,7 @@ namespace WildBlueIndustries
         public int templateCount = -1;
         public string requiredSkill = string.Empty;
         public TemplateManager templateManager;
+        public Part part;
 
         public PreviewTemplate previewTemplate;
         public SetTemplate setTemplate;
@@ -66,6 +67,12 @@ namespace WildBlueIndustries
             string buttonLabel;
             string panelName;
             Texture buttonDecal;
+
+            if (HighLogic.LoadedSceneIsEditor && this.part.symmetryCounterparts.Count > 0)
+            {
+                GUILayout.Label("<color=yellow>This part has symmetry parts or is a symmetry part. Cannot change the configuration. Remove symmetry parts before changing the configuration.</color>");
+                return;
+            }
 
             GUILayout.BeginHorizontal();
 

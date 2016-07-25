@@ -24,6 +24,9 @@ namespace WildBlueIndustries
         protected const int kDefaultLightAnimationLayer = 3;
 
         [KSPField]
+        public string toggleFriendAnimation = string.Empty;
+
+        [KSPField]
         public string colorPanelName;
 
         [KSPField(isPersistant = true)]
@@ -51,6 +54,7 @@ namespace WildBlueIndustries
         float prevGreen;
         float prevBlue;
         float prevLevel;
+        WBIAnimation friendAnimation = null;
 
         [KSPAction("Toggle Lights", KSPActionGroup.Light)]
         public void ToggleLightsAction(KSPActionParam param)
@@ -95,6 +99,11 @@ namespace WildBlueIndustries
                 Fields["level"].guiActive = false;
                 Fields["level"].guiActiveEditor = false;
             }
+
+            if (protoNode.HasValue("toggleFriendAnimation"))
+            {
+                toggleFriendAnimation = protoNode.GetValue("toggleFriendAnimation");
+            }
         }
 
         public override void OnStart(StartState state)
@@ -111,6 +120,22 @@ namespace WildBlueIndustries
             lights = this.part.gameObject.GetComponentsInChildren<Light>();
             Log("THERE! ARE! " + lights.Length + " LIGHTS!");
             setupLights();
+
+            if (string.IsNullOrEmpty(toggleFriendAnimation) == false)
+            {
+                List<WBIAnimation> animations = this.part.FindModulesImplementing<WBIAnimation>();
+                int totalCount = animations.Count;
+                WBIAnimation friendAnim;
+                for (int index = 0; index < totalCount; index++)
+                {
+                    friendAnim = animations[index];
+                    if (friendAnim.animationName == toggleFriendAnimation)
+                    {
+                        friendAnimation = friendAnim;
+                        break;
+                    }
+                }
+            }
         }
 
         public override void OnFixedUpdate()
@@ -181,6 +206,9 @@ namespace WildBlueIndustries
 
             base.ToggleAnimation();
             setupLights();
+
+            if (friendAnimation != null)
+                friendAnimation.ToggleAnimation();
         }
 
         protected void setupLights()
@@ -193,14 +221,20 @@ namespace WildBlueIndustries
                 return;
             Color color = new Color(red, green, blue, intensity * level);
 
-            foreach (Light light in lights)
+            try
             {
-                light.color = color;
+                foreach (Light light in lights)
+                {
+                    light.color = color;
 
-                if (isDeployed)
-                    light.intensity = intensity * level;
-                else
-                    light.intensity = 0;
+                    if (isDeployed)
+                        light.intensity = intensity * level;
+                    else
+                        light.intensity = 0;
+                }
+            }
+            catch
+            {
             }
 
             //Get baseline values

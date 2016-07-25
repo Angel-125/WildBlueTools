@@ -52,6 +52,13 @@ namespace WildBlueIndustries
             setup_decoupler();
 
             base.OnStart(state);
+
+            //Handle surface-attached decouplers
+            if (this.part.attachMode == AttachModes.SRF_ATTACH)
+            {
+                ExplosiveNode = this.part.srfAttachNode;
+                return;
+            }
         }
 
         private void setup_decoupler()
@@ -59,13 +66,15 @@ namespace WildBlueIndustries
             if (isDecoupler)
             {
                 Events["ToggleDecoupler"].guiName = "Change To Separator";
-                changeDecals(decalNames[0]);
+                if (!string.IsNullOrEmpty(decals))
+                    changeDecals(decalNames[0]);
                 decouplerType = "Decoupler";
             }
             else
             {
                 Events["ToggleDecoupler"].guiName = "Change To Decoupler";
-                changeDecals(decalNames[1]);
+                if (!string.IsNullOrEmpty(decals))
+                    changeDecals(decalNames[1]);
                 decouplerType = "Separator";
             }
 

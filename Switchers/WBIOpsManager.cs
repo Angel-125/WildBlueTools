@@ -56,7 +56,9 @@ namespace WildBlueIndustries
         public override void OnGUI()
         {
             if (opsManagerView.IsVisible())
+            {
                 opsManagerView.DrawWindow();
+            }
         }
 
         public override void OnUpdate()

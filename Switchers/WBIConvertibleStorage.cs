@@ -34,6 +34,7 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+            storageView.part = this.part;
             hideEditorButtons();
         }
 
@@ -269,7 +270,18 @@ namespace WildBlueIndustries
         public virtual void OnGUI()
         {
             if (storageView.IsVisible())
+            {
                 storageView.DrawWindow();
+                /*
+                Debug.Log("FRED event: " + Event.current);
+                if (Event.current.type == EventType.mouseDown)
+                {
+                    Debug.Log("FRED mouseDown");
+//                    if (storageView.windowPos.Contains(Event.current.mousePosition))
+//                        Debug.Log("FRED mouse in window");
+                }
+                 */
+            }
         }
 
         #region IOpsView

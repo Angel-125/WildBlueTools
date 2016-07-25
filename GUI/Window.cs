@@ -160,6 +160,8 @@ namespace WildBlueIndustries
                     windowPos = GUILayout.Window(windowId, windowPos, PreDrawWindowContents, WindowTitle, GUILayout.ExpandWidth(true),
                         GUILayout.ExpandHeight(true), GUILayout.MinWidth(64), GUILayout.MinHeight(64));
                 }
+
+
             }
         }
 
@@ -200,8 +202,69 @@ namespace WildBlueIndustries
                 HandleWindowEvents(resizeRect);
             }
 
+ //           preventClickthrough();
+
             GUI.DragWindow();
         }
+
+        /*
+        bool uiLocked;
+        private void preventClickthrough()
+        {
+            Event theEvent = Event.current;
+            bool mouseInWindow = windowPos.Contains(Input.mousePosition);
+
+            if (theEvent == null)
+                return;
+
+            if (Input.GetMouseButtonDown(0) && mouseInWindow)
+            {
+                if (theEvent.type == EventType.mouseDown)
+                    Debug.Log("FRED mouse down event");
+                theEvent.Use();
+            }
+            /*
+            if (mouseInWindow && !uiLocked && !Input.GetMouseButton(1))
+            {
+                Debug.Log("FRED locking controls");
+                uiLocked = true;
+                theEvent.Use();
+                if (HighLogic.LoadedSceneIsFlight)
+                    InputLockManager.SetControlLock(ControlTypes.ALLBUTCAMERAS, "WindowLock" + windowId);
+                else if (HighLogic.LoadedSceneIsEditor)
+                    EditorLogic.fetch.Lock(true, true, true, "WindowLock" + windowId);
+            }
+
+            else if (uiLocked && !mouseInWindow)
+            {
+                Debug.Log("FRED unlocking controls");
+                uiLocked = false;
+
+                if (HighLogic.LoadedSceneIsFlight)
+                    InputLockManager.RemoveControlLock("WindowLock" + windowId);
+                else if (HighLogic.LoadedSceneIsEditor)
+                    EditorLogic.fetch.Unlock("WindowLock" + windowId);
+            }
+
+            /*
+            if (theEvent.type == EventType.MouseDown && theEvent.button == 0 && windowPos.Contains(theEvent.mousePosition))
+            {
+                theEvent.Use();
+                if (HighLogic.LoadedSceneIsFlight)
+                    InputLockManager.SetControlLock(ControlTypes.ALLBUTCAMERAS, "WindowLock" + windowId);
+                else if (HighLogic.LoadedSceneIsEditor)
+                    EditorLogic.fetch.Lock(true, true, true, "WindowLock" + windowId);
+            }
+
+            else if (theEvent.type != EventType.Layout)
+            {
+                if (HighLogic.LoadedSceneIsFlight)
+                    InputLockManager.RemoveControlLock("WindowLock" + windowId);
+                else if (HighLogic.LoadedSceneIsEditor)
+                    EditorLogic.fetch.Unlock("WindowLock" + windowId);
+            }
+            */
+//        }
 
         protected abstract void DrawWindowContents(int windowId);
 
