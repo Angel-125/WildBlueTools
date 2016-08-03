@@ -127,6 +127,7 @@
     <Compile Include="Converters\WBIAsteroidProspector.cs" />
     <Compile Include="Utilities\WBIAsteroidSelector.cs" />
     <Compile Include="Utilities\WBISelfDestruct.cs" />
+    <Compile Include="Utilities\WBIDivas.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

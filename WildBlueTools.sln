@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperKerbal", "..\SuperKerb
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModCategorizer", "..\ModCategorizer\ModCategorizer.csproj", "{45E78EDF-830E-4220-888A-888505778688}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactionSwitcher", "..\FactionSwitcher\FactionSwitcher.csproj", "{A6AE1EAF-0D50-4E8F-B329-6981FD3419E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{45E78EDF-830E-4220-888A-888505778688}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45E78EDF-830E-4220-888A-888505778688}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45E78EDF-830E-4220-888A-888505778688}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6AE1EAF-0D50-4E8F-B329-6981FD3419E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6AE1EAF-0D50-4E8F-B329-6981FD3419E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6AE1EAF-0D50-4E8F-B329-6981FD3419E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6AE1EAF-0D50-4E8F-B329-6981FD3419E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

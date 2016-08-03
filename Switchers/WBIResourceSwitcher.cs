@@ -106,7 +106,7 @@ namespace WildBlueIndustries
 
         #region User Events & API
         [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Dump Resources", guiActiveUnfocused = true, unfocusedRange = 3.0f)]
-        public void DumpResources()
+        public virtual void DumpResources()
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
@@ -128,6 +128,12 @@ namespace WildBlueIndustries
 
             if (onResourcesDumped != null)
                 onResourcesDumped();
+        }
+
+        [KSPAction("Dump Resources")]
+        public void DumpResourcesAction(KSPActionParam param)
+        {
+            DumpResources();
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Toggle Decals")]
@@ -257,14 +263,10 @@ namespace WildBlueIndustries
         {
             WBIResourceSwitcher resourceSwitcher;
 
-            //Finally, load resources for symmetrical parts
-            if (HighLogic.LoadedSceneIsEditor)
+            foreach (Part symmetryPart in this.part.symmetryCounterparts)
             {
-                foreach (Part symmetryPart in this.part.symmetryCounterparts)
-                {
-                    resourceSwitcher = symmetryPart.GetComponent<WBIResourceSwitcher>();
-                    resourceSwitcher.UpdateContentsAndGui(templateIndex);
-                }
+                resourceSwitcher = symmetryPart.GetComponent<WBIResourceSwitcher>();
+                resourceSwitcher.UpdateContentsAndGui(templateIndex);
             }
 
             //Dirty the GUI

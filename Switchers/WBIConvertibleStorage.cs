@@ -21,6 +21,9 @@ namespace WildBlueIndustries
     [KSPModule("Convertible Storage")]
     public class WBIConvertibleStorage : WBIAffordableSwitcher, IOpsView
     {
+        [KSPField]
+        public bool fieldEVAConfigurable = true;
+
         protected ConvertibleStorageView storageView = new ConvertibleStorageView();
 
         [KSPEvent(guiActiveEditor = true, guiActive = true, guiActiveUnfocused = true, unfocusedRange = 5.0f, guiName = "Reconfigure Storage")]
@@ -36,6 +39,13 @@ namespace WildBlueIndustries
             base.OnStart(state);
             storageView.part = this.part;
             hideEditorButtons();
+            Events["ReconfigureStorage"].guiActiveUnfocused = fieldEVAConfigurable;
+            Events["ReconfigureStorage"].guiActive = fieldReconfigurable;
+        }
+
+        public void SetWindowTitle(string title)
+        {
+            storageView.WindowTitle = title;
         }
 
         public override void SetGUIVisible(bool isVisible)
@@ -44,8 +54,16 @@ namespace WildBlueIndustries
 
             hideEditorButtons();
 
-            Events["ReconfigureStorage"].guiActive = isVisible;
-            Events["ReconfigureStorage"].guiActiveUnfocused = isVisible;
+            if (isVisible)
+            {
+                Events["ReconfigureStorage"].guiActiveUnfocused = fieldEVAConfigurable;
+                Events["ReconfigureStorage"].guiActive = fieldReconfigurable;
+            }
+            else
+            {
+                Events["ReconfigureStorage"].guiActiveUnfocused = false;
+                Events["ReconfigureStorage"].guiActive = false;
+            }
         }
 
         protected override void hideEditorGUI(StartState state)
@@ -98,6 +116,13 @@ namespace WildBlueIndustries
         public void SwitchTemplateType(string templateName)
         {
             Log("SwitchTemplateType called.");
+
+            //Update symmetry parts
+            if ((HighLogic.LoadedSceneIsFlight && storageView.updateSymmetry) || HighLogic.LoadedSceneIsEditor)
+            {
+                int templateIndex = templateManager.FindIndexOfTemplate(templateName);
+                UpdateSymmetry(templateIndex);
+            }
 
             //Can we use the index?
             EInvalidTemplateReasons reasonCode = templateManager.CanUseTemplate(templateName);
@@ -272,15 +297,6 @@ namespace WildBlueIndustries
             if (storageView.IsVisible())
             {
                 storageView.DrawWindow();
-                /*
-                Debug.Log("FRED event: " + Event.current);
-                if (Event.current.type == EventType.mouseDown)
-                {
-                    Debug.Log("FRED mouseDown");
-//                    if (storageView.windowPos.Contains(Event.current.mousePosition))
-//                        Debug.Log("FRED mouse in window");
-                }
-                 */
             }
         }
 
@@ -293,8 +309,8 @@ namespace WildBlueIndustries
         public virtual void SetContextGUIVisible(bool isVisible)
         {
             SetGUIVisible(isVisible);
-            Events["ReconfigureStorage"].guiActive = true;
-            Events["ReconfigureStorage"].guiActiveUnfocused = true;
+            Events["ReconfigureStorage"].guiActive = fieldReconfigurable;
+            Events["ReconfigureStorage"].guiActiveUnfocused = fieldEVAConfigurable;
             Events["ReconfigureStorage"].guiActiveEditor = true;
         }
 

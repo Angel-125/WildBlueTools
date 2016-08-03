@@ -19,13 +19,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
-    internal class WBIKISInventoryWrapper
+    public class WBIKISInventoryWrapper
     {
         static Assembly kisAssembly;
         static Type typeModuleKISInventory;
         static FieldInfo fiPodSeat;
         static FieldInfo fiInvType;
         static FieldInfo fiMaxVolume;
+        static MethodInfo miRefreshMassAndVolume;
         static Type typeInventoryType;
 
         public enum InventoryType { Container, Pod, Eva }
@@ -52,12 +53,19 @@ namespace WildBlueIndustries
                 typeModuleKISInventory = kisAssembly.GetTypes().First(t => t.Name.Equals("ModuleKISInventory"));
                 typeInventoryType = typeModuleKISInventory.GetNestedTypes().First(t => t.Name.Equals("InventoryType"));
 
+                miRefreshMassAndVolume = typeModuleKISInventory.GetMethod("RefreshMassAndVolume");
+
                 fiPodSeat = typeModuleKISInventory.GetField("podSeat");
                 fiInvType = typeModuleKISInventory.GetField("invType");
                 fiMaxVolume = typeModuleKISInventory.GetField("maxVolume");
             }
 
             inventoryModule = pm;
+        }
+
+        public void RefreshMassAndVolume()
+        {
+            miRefreshMassAndVolume.Invoke(inventoryModule, null);
         }
 
         public int podSeat

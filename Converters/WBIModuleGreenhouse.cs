@@ -60,10 +60,13 @@ namespace WildBlueIndustries
         public override string GetInfo()
         {
             GetTotalCrewSkill();
-            string moduleInfo = base.GetInfo() + " Special";
+            string moduleInfo = base.GetInfo();
             StringBuilder cropInfo = new StringBuilder();
             double secondsPerCycle = GetSecondsPerCycle();
             double daysPerCycle = secondsPerCycle / 21600.0f;
+
+            if (outputList.Count == 0)
+                moduleInfo = moduleInfo.Replace("Outputs:", "Outputs: Special");
 
             cropInfo.Append(moduleInfo + "\r\n");
             cropInfo.Append("Specialist Needed: " + Specialty + "\r\n");
