@@ -234,7 +234,7 @@ namespace WildBlueIndustries
 
             if (!hasAtLeastOneCrew)
             {
-                ScreenMessages.PostScreenMessage(kInsufficientSkill, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(kInsufficientCrew, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return false;
             }
 

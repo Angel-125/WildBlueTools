@@ -85,7 +85,7 @@ namespace WildBlueIndustries
 
         public WBIModuleScienceExperiment[] GetExperimentSlots()
         {
-            if (experimentSlots != null)
+            if (experimentSlots.Length > 0)
                 return experimentSlots;
             WBIModuleScienceExperiment experiment;
             List<WBIModuleScienceExperiment> experiments = this.part.FindModulesImplementing<WBIModuleScienceExperiment>();

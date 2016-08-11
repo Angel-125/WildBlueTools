@@ -67,10 +67,15 @@
     <Compile Include="Converters\WBIModuleGreenhouse.cs" />
     <Compile Include="GUI\InfoView.cs" />
     <Compile Include="GUI\OpsManagerView.cs" />
+    <Compile Include="Parts\WBIModuleDisableDecoupler.cs" />
+    <Compile Include="Parts\WBIModuleMirroredSolarPanel.cs" />
+    <Compile Include="Parts\WBIModuleRCSTechCheck.cs" />
+    <Compile Include="Parts\WBIModuleSASUpgrade.cs" />
     <Compile Include="Science\LoadExperimentView.cs" />
     <Compile Include="Science\ExpManifestAdminView.cs" />
     <Compile Include="GUI\ConvertibleStorageView.cs" />
     <Compile Include="GUI\ScienceLabResultsView.cs" />
+    <Compile Include="Utilities\WBIModuleWetWorkshop.cs" />
     <Compile Include="Utilities\WBIKISInventoryWrapper.cs" />
     <Compile Include="Utilities\ButtonClickDelegate.cs" />
     <Compile Include="PropModules\InternalPlasmaScreen.cs" />
@@ -128,6 +133,8 @@
     <Compile Include="Utilities\WBIAsteroidSelector.cs" />
     <Compile Include="Utilities\WBISelfDestruct.cs" />
     <Compile Include="Utilities\WBIDivas.cs" />
+    <Compile Include="PropModules\WBIInternalButtonAnim.cs" />
+    <Compile Include="Parts\WBIFieldUpgrade.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

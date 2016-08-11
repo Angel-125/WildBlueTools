@@ -29,6 +29,9 @@ namespace WildBlueIndustries
     {
         protected Dictionary<string, string> propModuleProperties = new Dictionary<string, string>();
 
+        [KSPField]
+        public string animationName;
+
         #region KSPAPI
         public override void OnSave(ConfigNode node)
         {

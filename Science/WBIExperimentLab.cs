@@ -89,6 +89,7 @@ namespace WildBlueIndustries
             switcher = this.part.FindModuleImplementing<WBIResourceSwitcher>();
             manifestAdmin.SetupView(this.part, !HighLogic.LoadedSceneIsEditor, !HighLogic.LoadedSceneIsEditor, this);
             SetupGUI(isGUIVisible);
+            setupExperimentResources();
         }
 
         public override void OnUpdate()
@@ -237,6 +238,53 @@ namespace WildBlueIndustries
 
             experimentSlots = experiments.ToArray<WBIModuleScienceExperiment>();
             return experimentSlots;
+        }
+
+        protected void setupExperimentResources()
+        {
+            ConfigNode nodeResource = null;
+            PartResource resource = null;
+            string resourceName;
+            string[] mapKeys;
+            int index, experimentIndex;
+            int totalExperiments = experimentSlots.Length;
+            WBIModuleScienceExperiment experiment;
+            List<string> addedResources = new List<string>();
+
+            for (experimentIndex = 0; experimentIndex < totalExperiments; experimentIndex++)
+            {
+                experiment = experimentSlots[experimentIndex];
+                if (experiment.experimentID != experiment.defaultExperiment)
+                {
+                    mapKeys = experiment.resourceMap.Keys.ToArray<string>();
+                    for (index = 0; index < mapKeys.Length; index++)
+                    {
+                        resourceName = mapKeys[index];
+
+                        //Add the resource if needed
+                        if (this.part.Resources.Contains(resourceName) == false)
+                        {
+                            nodeResource = new ConfigNode("RESOURCE");
+                            nodeResource.AddValue("name", resourceName);
+                            nodeResource.AddValue("amount", "0");
+                            nodeResource.AddValue("maxAmount", experiment.resourceMap[resourceName].targetAmount.ToString());
+                            resource = this.part.Resources.Add(nodeResource);
+                            resource.isVisible = false;
+                            addedResources.Add(resourceName);
+                        }
+
+                        //Add to max amount to account for amount that the experiment needs
+                        else if (addedResources.Contains(resourceName))
+                        {
+                            this.part.Resources[resourceName].maxAmount += experiment.resourceMap[resourceName].targetAmount;
+                        }
+                    }
+                }
+            }
+
+            //Dirty the GUI
+            if (addedResources.Count > 0)
+                MonoUtilities.RefreshContextWindows(this.part);
         }
 
         protected void OnExperimentReceived(WBIModuleScienceExperiment transferRecipient)

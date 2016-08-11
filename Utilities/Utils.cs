@@ -117,6 +117,27 @@ namespace WildBlueIndustries
 
         public static bool IsModInstalled(string neededMod)
         {
+            //Now check for the required mod
+            string modToCheck = neededMod;
+            bool checkInverse = false;
+            if (neededMod.StartsWith("!"))
+            {
+                checkInverse = true;
+                modToCheck = neededMod.Substring(1, neededMod.Length - 1);
+            }
+
+            bool isInstalled = AssemblyLoader.loadedAssemblies.Any(a => a.name == modToCheck);
+
+            if (isInstalled && checkInverse == false)
+                return true;
+            else if (isInstalled && checkInverse)
+                return true;
+            else if (!isInstalled && checkInverse)
+                return false;
+            else
+                return false;
+
+/*
             string modToCheck = null;
             bool checkInverse = false;
             bool modFound = false;
@@ -158,6 +179,7 @@ namespace WildBlueIndustries
                 return false;
             else
                 return false;
+ */
         }
 
         #region refresh tweakable GUI

@@ -217,6 +217,14 @@ namespace WildBlueIndustries
             //Now run the base converter stuff
             base.PostProcess(result, deltaTime);
 
+            if (cycleStartTime == 0f)
+            {
+                cycleStartTime = Planetarium.GetUniversalTime();
+                lastUpdateTime = cycleStartTime;
+                elapsedTime = 0.0f;
+                return;
+            }
+
             //Calculate the crew skill and seconds of research per cycle.
             //Thes values can change if the player swaps out crew.
             totalCrewSkill = GetTotalCrewSkill();

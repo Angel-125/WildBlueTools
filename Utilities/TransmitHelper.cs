@@ -143,7 +143,6 @@ namespace WildBlueIndustries
 
         private bool transmit_data_rt(List<ScienceData> dataQueue)
         {
-            Debug.Log("FRED transmit_data_rt called");
             /*
             WBIRTWrapper bestRTAntenna = null;
             WBIRTWrapper rtAntenna = null;

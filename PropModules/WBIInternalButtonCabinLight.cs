@@ -27,6 +27,9 @@ namespace WildBlueIndustries
         public string lightName;
 
         [KSPField]
+        public string cockpitLampName;
+
+        [KSPField]
         public string buttonColorOn;
 
         [KSPField]
@@ -43,9 +46,16 @@ namespace WildBlueIndustries
         protected Color colorButtonOn;
         protected Color colorButtonOff;
         protected WBIPropStateHelper propStateHelper;
+        protected WBILight lightModule;
 
         public void Start()
         {
+            lightModule = this.part.FindModuleImplementing<WBILight>();
+            if (lightModule != null)
+            {
+                lightsOn = lightModule.isDeployed;
+            }
+
             propStateHelper = this.part.FindModuleImplementing<WBIPropStateHelper>();
             if (propStateHelper != null)
             {
@@ -105,6 +115,54 @@ namespace WildBlueIndustries
             SetButtonColor();
         }
 
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+
+            if (lightModule != null)
+            {
+                if (lightModule.isDeployed && lightsOn == false)
+                    SetupLights(true);
+                else if (lightModule.isDeployed == false && lightsOn)
+                    SetupLights(false);
+            }
+        }
+
+        public void SetupLights(bool lightsAreOn)
+        {
+            lightsOn = lightsAreOn;
+            SetButtonColor();
+
+            Light[] lights = internalModel.FindModelComponents<Light>();
+
+            if (lights != null && lights.Length > 0)
+            {
+                foreach (Light light in lights)
+                {
+                    if (light.name == lightName)
+                        light.enabled = lightsOn;
+                }
+            }
+
+            //Set the emissives for the lamps
+            if (string.IsNullOrEmpty(cockpitLampName) == false)
+            {
+                Transform lampTransform = internalModel.FindModelTransform(cockpitLampName);
+                Renderer rendererMaterial;
+                Color colorOn = new Color(1, 1, 1, 1);
+                Color colorOff = new Color(0, 0, 0, 0);
+
+                if (lampTransform != null)
+                {
+                    rendererMaterial = lampTransform.GetComponent<Renderer>();
+                    if (lightsOn)
+                        rendererMaterial.material.SetColor("_EmissiveColor", colorOn);
+                    else
+                        rendererMaterial.material.SetColor("_EmissiveColor", colorOff);
+                }
+            }
+        }
+
         public void SetupLights()
         {
             Light[] lights = internalModel.FindModelComponents<Light>();
@@ -116,6 +174,33 @@ namespace WildBlueIndustries
                     if (light.name == lightName)
                         light.enabled = lightsOn;
                 }
+            }
+
+            //Set the emissives for the lamps
+            if (string.IsNullOrEmpty(cockpitLampName) == false)
+            {
+                Transform lampTransform = internalModel.FindModelTransform(cockpitLampName);
+                Renderer rendererMaterial;
+                Color colorOn = new Color(1,1,1,1);
+                Color colorOff = new Color(0,0,0,0);
+
+                if (lampTransform != null)
+                {
+                    rendererMaterial = lampTransform.GetComponent<Renderer>();
+                    if (lightsOn)
+                        rendererMaterial.material.SetColor("_EmissiveColor", colorOn);
+                    else
+                        rendererMaterial.material.SetColor("_EmissiveColor", colorOff);
+                }
+            }
+
+            //External light
+            if (lightModule != null)
+            {
+                if (lightsOn && lightModule.isDeployed == false)
+                    lightModule.ToggleAnimation();
+                else if (lightsOn == false && lightModule.isDeployed)
+                    lightModule.ToggleAnimation();
             }
         }
 
