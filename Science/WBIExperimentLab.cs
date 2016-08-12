@@ -456,7 +456,7 @@ namespace WildBlueIndustries
         #region IPartMassModifier
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            float moduleMass = defaultMass;
+            float moduleMass = 0;
             int index;
             WBIModuleScienceExperiment experimentSlot;
 

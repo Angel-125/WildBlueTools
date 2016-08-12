@@ -41,8 +41,8 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public string overrideExperimentID = string.Empty;
 
-        [KSPField]
-        public string requiredParts = string.Empty;
+//        [KSPField]
+//        public string requiredParts = string.Empty;
 
         [KSPField]
         public int minCrew;
@@ -113,6 +113,7 @@ namespace WildBlueIndustries
         public Dictionary<string, SExperimentResource> resourceMap = null;
         public string[] resourceMapKeys;
 
+        protected string[] requiredParts = null;
         protected int currentPartCount;
         protected bool hasRequiredParts;
         protected ConfigNode nodeCompletionHandler = null;
@@ -186,8 +187,12 @@ namespace WildBlueIndustries
             if (maxAltitude > 0.001f)
                 requirements.Append(string.Format("<b>Max altitude: </b>{0:f2}m\r\n", maxAltitude));
             //Required parts
-            if (string.IsNullOrEmpty(requiredParts) == false)
-                requirements.Append("<b>Parts: </b>" + requiredParts + "\r\n");
+            if (requiredParts != null)
+            {
+                requirements.Append("<b>Parts (needs one): </b>\r\n");
+                for (int index = 0; index < requiredParts.Length; index++)
+                    requirements.Append(requiredParts + "\r\n");
+            }
             //Required resources
             if (string.IsNullOrEmpty(requiredResources) == false)
             {
@@ -310,7 +315,7 @@ namespace WildBlueIndustries
             }
 
             //Required parts
-            if (string.IsNullOrEmpty(requiredParts) == false)
+            if (requiredParts != null)
             {
                 int partCount = this.part.vessel.Parts.Count;
                 if (currentPartCount != partCount)
@@ -337,7 +342,7 @@ namespace WildBlueIndustries
 
                 else if (hasRequiredParts == false)
                 {
-                    status = "Needs " + requiredParts;
+                    status = "Needs a required part";
                     return false;
                 }
             }
@@ -618,8 +623,8 @@ namespace WildBlueIndustries
                 title = nodeDefinition.GetValue("title");
 
             //requiredParts
-            if (nodeDefinition.HasValue("requiredParts"))
-                requiredParts = nodeDefinition.GetValue("requiredParts");
+            if (nodeDefinition.HasValue("requiredPart"))
+                requiredParts = nodeDefinition.GetValues("requiredPart");
 
             //minCrew
             if (nodeDefinition.HasValue("minCrew"))

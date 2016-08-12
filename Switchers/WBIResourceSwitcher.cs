@@ -1300,7 +1300,7 @@ namespace WildBlueIndustries
             else if (partMass > 0.001f && isInflatable && isDeployed)
                 return partMass;
             else
-                return defaultMass;
+                return 0;
         }
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
