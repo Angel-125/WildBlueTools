@@ -41,9 +41,6 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public string overrideExperimentID = string.Empty;
 
-//        [KSPField]
-//        public string requiredParts = string.Empty;
-
         [KSPField]
         public int minCrew;
 
@@ -117,6 +114,7 @@ namespace WildBlueIndustries
         protected int currentPartCount;
         protected bool hasRequiredParts;
         protected ConfigNode nodeCompletionHandler = null;
+        protected string partsList = string.Empty;
 
         public override void OnLoad(ConfigNode node)
         {
@@ -187,11 +185,11 @@ namespace WildBlueIndustries
             if (maxAltitude > 0.001f)
                 requirements.Append(string.Format("<b>Max altitude: </b>{0:f2}m\r\n", maxAltitude));
             //Required parts
-            if (requiredParts != null)
+            if (string.IsNullOrEmpty(partsList) == false)
             {
                 requirements.Append("<b>Parts (needs one): </b>\r\n");
                 for (int index = 0; index < requiredParts.Length; index++)
-                    requirements.Append(requiredParts + "\r\n");
+                    requirements.Append(requiredParts[index] + "\r\n");
             }
             //Required resources
             if (string.IsNullOrEmpty(requiredResources) == false)
@@ -315,7 +313,7 @@ namespace WildBlueIndustries
             }
 
             //Required parts
-            if (requiredParts != null)
+            if (string.IsNullOrEmpty(partsList) == false)
             {
                 int partCount = this.part.vessel.Parts.Count;
                 if (currentPartCount != partCount)
@@ -326,23 +324,21 @@ namespace WildBlueIndustries
                     for (index = 0; index < totalCount; index++)
                     {
                         testPart = this.part.vessel.parts[index];
-                        if (requiredParts.Contains(testPart.partInfo.title))
+                        if (partsList.Contains(testPart.partInfo.title))
                         {
                             hasRequiredParts = true;
                             break;
                         }
                     }
-
-                    if (hasRequiredParts == false)
-                    {
-                        status = "Needs " + requiredParts;
-                        return false;
-                    }
                 }
 
-                else if (hasRequiredParts == false)
+                if (hasRequiredParts == false)
                 {
-                    status = "Needs a required part";
+                    StringBuilder requirements = new StringBuilder();
+                    requirements.Append("Needs one: ");
+                    for (index = 0; index < requiredParts.Length; index++)
+                        requirements.Append(requiredParts[index] + "\r\n");
+                    status = requirements.ToString();
                     return false;
                 }
             }
@@ -624,7 +620,15 @@ namespace WildBlueIndustries
 
             //requiredParts
             if (nodeDefinition.HasValue("requiredPart"))
+            {
                 requiredParts = nodeDefinition.GetValues("requiredPart");
+                StringBuilder builder = new StringBuilder();
+                for (index = 0; index < requiredParts.Length; index++)
+                {
+                    builder.Append(requiredParts[index] + ";");
+                }
+                partsList = builder.ToString();
+            }
 
             //minCrew
             if (nodeDefinition.HasValue("minCrew"))
