@@ -25,12 +25,18 @@ namespace WildBlueIndustries
         private static double DISTRIBUTION_TIMER = 1.0f;
 
         [KSPField]
+        public bool debugMode;
+
+        [KSPField]
         public string defaultExperiment = "WBIEmptyExperiment";
 
         [KSPField(isPersistant = true)]
         public bool isGUIVisible = true;
 
         WBIModuleScienceExperiment[] experimentSlots = null;
+
+        public Dictionary<string, double> shareAmounts = new Dictionary<string, double>();
+        public Dictionary<string, double> currentAmounts = new Dictionary<string, double>();
 
         private WBIResourceSwitcher switcher = null;
         private ExpManifestAdminView manifestAdmin = new ExpManifestAdminView();
@@ -175,8 +181,19 @@ namespace WildBlueIndustries
                     {
                         //Calculate share amount
                         shareAmount = resource.amount / requiredResourceMap[resource.resourceName].Count;
-                        if (shareAmount < 0.001f)
+                        if (shareAmount < 0.0001f)
                             continue;
+
+                        //Debugging: track the share amount
+                        if (debugMode)
+                        {
+                            if (shareAmounts.ContainsKey(resource.resourceName) == false)
+                                shareAmounts.Add(resource.resourceName, 0);
+                            if (currentAmounts.ContainsKey(resource.resourceName) == false)
+                                currentAmounts.Add(resource.resourceName, 0);
+                            currentAmounts[resource.resourceName] = resource.amount;
+                            shareAmounts[resource.resourceName] = shareAmount;
+                        }
 
                         //Get the experiments
                         experiments = requiredResourceMap[resource.resourceName];
@@ -189,7 +206,7 @@ namespace WildBlueIndustries
 
                         //Resource has been divied up.
                         resource.amount = remainder;
-                        if (resource.amount < 0.001f)
+                        if (resource.amount < 0.0001f)
                             resource.amount = 0f;
                     }
                 }
@@ -461,10 +478,7 @@ namespace WildBlueIndustries
             WBIModuleScienceExperiment experimentSlot;
 
             if (experimentSlots == null)
-                return defaultMass;
-
-            if (switcher != null)
-                moduleMass = switcher.CalculatePartMass(defaultMass, switcher.partMass);
+                return 0;
 
             for (index = 0; index < experimentSlots.Length; index++)
             {

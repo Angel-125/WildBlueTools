@@ -6,6 +6,9 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.5.0
+- Bug fixes and new ice cream flavors.
+
 1.4.2
 - Minor fixes to the science system.
 

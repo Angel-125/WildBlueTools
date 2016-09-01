@@ -28,7 +28,7 @@ namespace WildBlueIndustries
         private static string EMISSIVE_TEXTURE = "_Emissive";
 
         [KSPField(isPersistant = true)]
-        public int currentVolume;
+        public float currentVolume;
 
         //Name of the template nodes.
         [KSPField(isPersistant = true)]
@@ -36,10 +36,10 @@ namespace WildBlueIndustries
 
         //Base amount of volume the part stores, if any.
         [KSPField(isPersistant = true)]
-        public int baseStorage;
+        public float baseStorage;
 
         [KSPField(isPersistant = true)]
-        public int maxStorage;
+        public float maxStorage;
 
         [KSPField(isPersistant = true)]
         public bool decalsVisible;

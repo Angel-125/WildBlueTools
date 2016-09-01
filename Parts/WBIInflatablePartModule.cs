@@ -106,7 +106,7 @@ namespace WildBlueIndustries
 
             //Setup colliders and inventories
             setupColliders();
-            setupInventories();
+            //setupInventories();
 
             Log("Animation toggled new gui name: " + Events["ToggleInflation"].guiName);
         }
@@ -161,7 +161,7 @@ namespace WildBlueIndustries
 
             SetupAnimations();
             setupColliders();
-            setupInventories();
+            //setupInventories();
             if (isInflatable && isDeployed == false && HighLogic.LoadedSceneIsFlight)
                 this.part.DespawnIVA();
 

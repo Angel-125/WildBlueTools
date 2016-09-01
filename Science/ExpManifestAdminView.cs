@@ -103,11 +103,47 @@ namespace WildBlueIndustries
         protected void drawSynopsis()
         {
             scrollPosSynopsis = GUILayout.BeginScrollView(scrollPosSynopsis, synopsisOptions);
+            if (experimentLab.debugMode)
+                drawDebugInfo();
             if (string.IsNullOrEmpty(experimentSynopsis) == false)
                 GUILayout.Label(experimentSynopsis);
             else
                 GUILayout.Label(" ");
             GUILayout.EndScrollView();
+        }
+
+        protected void drawDebugInfo()
+        {
+            int totalResources = this.part.Resources.Count;
+            PartResource resource;
+            WBIModuleScienceExperiment experimentSlot;
+
+            GUILayout.Label("Part Resources");
+            for (int index = 0; index < totalResources; index++)
+            {
+                resource = this.part.Resources[index];
+                GUILayout.Label(resource.resourceName);
+
+                if (experimentLab.currentAmounts.ContainsKey(resource.resourceName))
+                    GUILayout.Label(string.Format("Made: {0:f5}", experimentLab.currentAmounts[resource.resourceName]));
+
+                if (experimentLab.shareAmounts.ContainsKey(resource.resourceName))
+                    GUILayout.Label(string.Format("Per Exp: {0:f5}", experimentLab.shareAmounts[resource.resourceName]));
+
+                GUILayout.Label(string.Format("Extra: {0:f3}/{1:f3}", resource.amount, resource.maxAmount));
+            }
+
+            if (experimentSlots == null)
+                return;
+
+            GUILayout.Label("Accumulated resources");
+            for (int index = 0; index < experimentSlots.Length; index++)
+            {
+                experimentSlot = experimentSlots[index];
+                if (string.IsNullOrEmpty(experimentSlot.accumulatedResources) == false)
+                    GUILayout.Label(experimentSlot.experimentID + "\r\n" + experimentSlot.accumulatedResources);
+            }
+            GUILayout.Label("-------");
         }
 
         protected void drawExperiments()
@@ -296,6 +332,7 @@ namespace WildBlueIndustries
                     return;
                 }
 
+                /*
                 //If the experiment has done its final transfer then we're done.
                 if (experimentSlot.finalTransfer)
                 {
@@ -311,6 +348,7 @@ namespace WildBlueIndustries
                     return;
                 }
                 confirmFinalTransfer = false;
+                 */
 
                 List<WBIExperimentManifest> manifests = this.part.vessel.FindPartModulesImplementing<WBIExperimentManifest>();
                 List<WBIExperimentLab> labs = this.part.vessel.FindPartModulesImplementing<WBIExperimentLab>();

@@ -78,6 +78,7 @@ namespace WildBlueIndustries
         {
             this.visible = newValue;
 
+            /*
             if (!newValue)
             {
                 if (HighLogic.LoadedSceneIsFlight)
@@ -85,6 +86,7 @@ namespace WildBlueIndustries
                 else if (HighLogic.LoadedSceneIsEditor)
                     EditorLogic.fetch.Unlock("WindowLock" + windowId);
             }
+             */
         }
 
         public void ToggleVisible()
@@ -263,10 +265,12 @@ namespace WildBlueIndustries
                     EditorTooltip.Instance.HideToolTip();
 
                 //Lock game controls
+                /*
                 if (HighLogic.LoadedSceneIsFlight)
                     InputLockManager.SetControlLock(ControlTypes.All, "WindowLock" + windowId);
                 else if (HighLogic.LoadedSceneIsEditor)
                     EditorLogic.fetch.Lock(true, true, true, "WindowLock" + windowId);
+                 */
             }
 
             else if (!mouseInWindow && lockedUI)

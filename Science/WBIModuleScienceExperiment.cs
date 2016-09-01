@@ -115,6 +115,7 @@ namespace WildBlueIndustries
         protected bool hasRequiredParts;
         protected ConfigNode nodeCompletionHandler = null;
         protected string partsList = string.Empty;
+        protected bool resultsSafetyCheck;
 
         public override void OnLoad(ConfigNode node)
         {
@@ -140,8 +141,6 @@ namespace WildBlueIndustries
             //Required resources
             rebuildResourceMap();
         }
-
-        protected bool resultsSafetyCheck;
 
         public override void OnUpdate()
         {
@@ -382,6 +381,8 @@ namespace WildBlueIndustries
                 status = "Completed";
             runCompletionHandler(resultRoll);
             sendResultsMessage();
+            if (Deployed == false)
+                DeployExperiment();
             return true;
         }
 
@@ -540,11 +541,14 @@ namespace WildBlueIndustries
             //Do a quick check for completion
             CheckCompletion();
 
-            //If this is the last transfer we can do then show experiment results
+            //If the experiment is completed then be sure to transfer its ScienceData.
             if (isCompleted)
             {
                 finalTransfer = true;
-                DeployExperiment();
+                ScienceData[] scienceData = sourceExperiment.GetData();
+                for (int index = 0; index < scienceData.Length; index++)
+                    ReturnData(scienceData[index]);
+                sourceExperiment.ResetExperiment();
             }
         }
 
