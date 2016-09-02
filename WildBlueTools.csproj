@@ -67,6 +67,7 @@
     <Compile Include="Converters\WBIModuleGreenhouse.cs" />
     <Compile Include="GUI\InfoView.cs" />
     <Compile Include="GUI\OpsManagerView.cs" />
+    <Compile Include="Parts\WBISolarPanelHelper.cs" />
     <Compile Include="Parts\WBIModuleDisableDecoupler.cs" />
     <Compile Include="Parts\WBIModuleMirroredSolarPanel.cs" />
     <Compile Include="Parts\WBIModuleRCSTechCheck.cs" />
@@ -96,7 +97,7 @@
     <Compile Include="Converters\WBIMultiConverter.cs" />
     <Compile Include="Parts\WBILight.cs" />
     <Compile Include="Switchers\WBITemplateConverter.cs" />
-    <Compile Include="Parts\WBModuleDockingNode.cs" />
+    <Compile Include="Parts\WBIModuleDockingNode.cs" />
     <Compile Include="Utilities\WBIAnimation.cs" />
     <Compile Include="Parts\WBIInflatablePartModule.cs" />
     <Compile Include="Utilities\WBIMeshHelper.cs" />
