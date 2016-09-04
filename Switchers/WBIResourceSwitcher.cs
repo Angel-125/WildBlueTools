@@ -1286,7 +1286,7 @@ namespace WildBlueIndustries
             return true;
         }
 
-        protected virtual bool canAffordReconfigure(string templateName)
+        protected virtual bool canAffordReconfigure(string templateName, bool deflatedModulesAutoPass = true)
         {
             return true;
         }        

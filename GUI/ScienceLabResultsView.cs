@@ -108,8 +108,7 @@ namespace WildBlueIndustries
         {
             //If Pathfinder is installed, see if WBISciLabOpsView is available somewhere on the vessel. If so, then MPL is available.
             //If not, MPL is not available.
-            string wbiFolder = KSPUtil.ApplicationRootPath.Replace("\\", "/") + "GameData/WildBlueIndustries/Pathfinder";
-            if (Directory.Exists(wbiFolder))
+            if (Utils.IsModInstalled("Pathfinder"))
             {
                 foreach (Part vesselPart in this.part.vessel.Parts)
                 {

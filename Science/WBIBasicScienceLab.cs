@@ -276,15 +276,19 @@ namespace WildBlueIndustries
 
         public virtual void TransferToScienceLab()
         {
-            ModuleScienceLab lab = null;
-            List<ModuleScienceLab> labs = this.part.vessel.FindPartModulesImplementing<ModuleScienceLab>();
+            ModuleScienceLab lab = this.part.FindModuleImplementing<ModuleScienceLab>();
 
-            foreach (ModuleScienceLab scienceLab in labs)
+            if (lab == null)
             {
-                if (scienceLab.isEnabled && scienceLab.enabled && scienceLab.part.protoModuleCrew.Count >= scienceLab.crewsRequired)
+                List<ModuleScienceLab> labs = this.part.vessel.FindPartModulesImplementing<ModuleScienceLab>();
+
+                foreach (ModuleScienceLab scienceLab in labs)
                 {
-                    lab = scienceLab;
-                    break;
+                    if (scienceLab.isEnabled && scienceLab.enabled && scienceLab.part.protoModuleCrew.Count >= scienceLab.crewsRequired)
+                    {
+                        lab = scienceLab;
+                        break;
+                    }
                 }
             }
 

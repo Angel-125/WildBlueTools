@@ -83,6 +83,9 @@ namespace WildBlueIndustries
         [KSPField]
         public float chanceOfSuccess;
 
+        [KSPField]
+        public float minimumAsteroidMass;
+
         [KSPField(isPersistant = true)]
         public string status = string.Empty;
 
@@ -183,6 +186,9 @@ namespace WildBlueIndustries
             //Max Altitude
             if (maxAltitude > 0.001f)
                 requirements.Append(string.Format("<b>Max altitude: </b>{0:f2}m\r\n", maxAltitude));
+            //Asteroid Mass
+            if (minimumAsteroidMass > 0.001f)
+                requirements.Append(string.Format("<b>Asteroid Mass: </b>{0:f2}m\r\n", minimumAsteroidMass));
             //Required parts
             if (string.IsNullOrEmpty(partsList) == false)
             {
@@ -307,6 +313,37 @@ namespace WildBlueIndustries
                 if (this.part.vessel.altitude > maxAltitude)
                 {
                     status = string.Format("Max acceptable altitude: {0:f2}m", maxAltitude);
+                    return false;
+                }
+            }
+
+            //Asteroid Mass
+            if (minimumAsteroidMass > 0.001f)
+            {
+                List<ModuleAsteroid> asteroidList = this.part.vessel.FindPartModulesImplementing<ModuleAsteroid>();
+                ModuleAsteroid[] asteroids = asteroidList.ToArray();
+                ModuleAsteroid asteroid;
+                float largestAsteroidMass = 0f;
+
+                //No asteroids? That's a problem!
+                if (asteroidList.Count == 0)
+                {
+                    status = string.Format("Needs Asteroid of {0:f2}mt", minimumAsteroidMass);
+                    return false;
+                }
+
+                //Find the most massive asteroid
+                for (index = 0; index < asteroids.Length; index++)
+                {
+                    asteroid = asteroids[index];
+                    if (asteroid.part.mass > largestAsteroidMass)
+                        largestAsteroidMass = asteroid.part.mass;
+                }
+
+                //Make sure we have an asteroid of sufficient mass.
+                if (largestAsteroidMass < minimumAsteroidMass)
+                {
+                    status = string.Format("Needs Asteroid of {0:f2}mt", minimumAsteroidMass);
                     return false;
                 }
             }

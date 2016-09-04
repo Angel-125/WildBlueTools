@@ -20,8 +20,8 @@ namespace WildBlueIndustries
 {
     public class WBIAffordableSwitcher : WBIModuleSwitcher
     {
-        private const string kInsufficientParts = "Insufficient resources to reconfigure the module. You need a total of {0:f2} {1:s} to reconfigure.";
-        private const string kInsufficientSkill = "Insufficient skill to reconfigure the module.";
+        private const string kInsufficientParts = "Insufficient resources to reconfigure/assemble the module. You need a total of {0:f2} {1:s} to reconfigure.";
+        private const string kInsufficientSkill = "Insufficient skill to reconfigure/assemble the module.";
         private const string kInsufficientCrew = "Cannot reconfigure. Either crew the module or perform an EVA.";
 
         [KSPField]
@@ -109,7 +109,7 @@ namespace WildBlueIndustries
             return remodelCost;
         }
 
-        protected override bool canAffordReconfigure(string templateName)
+        protected override bool canAffordReconfigure(string templateName, bool deflatedModulesAutoPass = true)
         {
             if (HighLogic.LoadedSceneIsFlight == false)
                 return true;
@@ -140,7 +140,7 @@ namespace WildBlueIndustries
             if (string.IsNullOrEmpty(requriredResource) == false)
             {
                 //An inflatable part that hasn't been inflated yet is an automatic pass.
-                if (isInflatable && !isDeployed)
+                if ((isInflatable && !isDeployed) && deflatedModulesAutoPass)
                     return true;
 
                 reconfigureCost = float.Parse(requriredResource) * materialModifier * reconfigureCostModifier;

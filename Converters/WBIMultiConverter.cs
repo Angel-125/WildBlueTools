@@ -88,6 +88,9 @@ namespace WildBlueIndustries
                 if (!isDeployed)
                 {
                     //Can we afford it?
+                    if (canAffordReconfigure(CurrentTemplateName, false) == false)
+                        return;
+                    /*
                     if (totalResources < adjustedPartCost)
                     {
                         notEnoughParts();
@@ -95,10 +98,11 @@ namespace WildBlueIndustries
                         ScreenMessages.PostScreenMessage(notEnoughPartsMsg, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                         return;
                     }
+                     */
 
                     //Yup, we can afford it
                     //Pay the reconfigure cost
-                    reconfigureCost = adjustedPartCost;
+                    //reconfigureCost = adjustedPartCost;
                     payPartsCost(CurrentTemplateIndex);
 
                     // Toggle after payment.

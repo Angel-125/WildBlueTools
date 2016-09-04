@@ -29,11 +29,16 @@ namespace WildBlueIndustries
         static Texture trashcanIcon;
         static Texture playIcon;
         static Texture pauseIcon;
+        static Texture transmitIcon;
 
         public WBIModuleScienceExperiment[] experimentSlots = null;
         public Part part = null;
         public WBIExperimentLab experimentLab = null;
         public LoadExperimentView loadExperimentView = new LoadExperimentView();
+        public bool canCreateExperiments;
+        public string experimentCreationSkill = string.Empty;
+        public int minimumCreationLevel;
+        public string creationTags;
 
         private WBIModuleScienceExperiment experimentToTransfer = null;
         private Vector2 scrollPos = new Vector2(0, 0);
@@ -47,8 +52,8 @@ namespace WildBlueIndustries
         private bool experimentStatusVisible;
         private bool labGUIVisible;
         private bool clearExperimentConfirmed;
-        private bool confirmFinalTransfer;
         private WBIModuleScienceExperiment lastExperimentSlot = null;
+        private bool hasCreationAbility;
 
         public ExpManifestAdminView() :
             base("Experiment Manifest", 600, 330)
@@ -103,8 +108,11 @@ namespace WildBlueIndustries
         protected void drawSynopsis()
         {
             scrollPosSynopsis = GUILayout.BeginScrollView(scrollPosSynopsis, synopsisOptions);
-            if (experimentLab.debugMode)
-                drawDebugInfo();
+            if (experimentLab != null)
+            {
+                if (experimentLab.debugMode)
+                    drawDebugInfo();
+            }
             if (string.IsNullOrEmpty(experimentSynopsis) == false)
                 GUILayout.Label(experimentSynopsis);
             else
@@ -157,6 +165,7 @@ namespace WildBlueIndustries
                 return;
             }
 
+            checkCreationAbility();
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             for (index = 0; index < experimentSlots.Length; index++)
             {
@@ -170,7 +179,9 @@ namespace WildBlueIndustries
 
                 //Transfer button
                 Texture xFerIcon;
-                if (HighLogic.LoadedSceneIsFlight)
+                if (canCreateExperiments && experimentSlot.experimentID == experimentSlot.defaultExperiment)
+                    xFerIcon = loadIcon;
+                else if (HighLogic.LoadedSceneIsFlight)
                     xFerIcon = transferIcon;
                 else
                     xFerIcon = loadIcon;
@@ -270,6 +281,11 @@ namespace WildBlueIndustries
             GUILayout.Label("<color=white><b>Status: </b>" + experimentLab.status + "</color>");
             GUILayout.Label("<color=white><b>Bonus Science Research: </b>" + experimentLab.lastAttempt + "</color>");
             GUILayout.Label(string.Format("<color=white><b>Bonus Science Gained (requires transmission): </b>{0:f2}</color>", experimentLab.scienceAdded));
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button(transmitIcon, iconOptions))
+                experimentLab.TransmitResults();
+            GUILayout.Label("<color=white>Transmit bonus science</color>");
+            GUILayout.EndHorizontal();
 
             int totalCount = experimentLab.outputList.Count;
             for (int index = 0; index < totalCount; index++)
@@ -286,6 +302,23 @@ namespace WildBlueIndustries
             else if (GUILayout.Button("Start"))
             {
                 experimentLab.StartConverter();
+            }
+        }
+
+        protected void checkCreationAbility()
+        {
+            hasCreationAbility = false;
+            if (this.canCreateExperiments)
+            {
+                ProtoCrewMember[] crewMembers = this.part.protoModuleCrew.ToArray();
+                for (int index = 0; index < crewMembers.Length; index++)
+                {
+                    if (crewMembers[index].experienceTrait.TypeName.Contains(experimentCreationSkill) && crewMembers[index].experienceLevel >= minimumCreationLevel)
+                    {
+                        hasCreationAbility = true;
+                        break;
+                    }
+                }
             }
         }
         
@@ -307,13 +340,34 @@ namespace WildBlueIndustries
                 playIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/PlayIcon", false);
             if (pauseIcon == null)
                 pauseIcon  = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/PauseIcon", false);
+            if (transmitIcon == null)
+                transmitIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/WBITransmitWhite", false);
         }
 
         protected void transferExperiment(WBIModuleScienceExperiment experimentSlot)
         {
-            //If we're in the editor then show the experiment to load screen
-            if (HighLogic.LoadedSceneIsEditor)
+            bool createNewExperiment = canCreateExperiments && experimentSlot.experimentID == experimentSlot.defaultExperiment && HighLogic.LoadedSceneIsFlight;
+
+            //Inform user if we are trying to create a new experiment but we don't have the ability.
+            if (createNewExperiment && !hasCreationAbility)
             {
+                ScreenMessages.PostScreenMessage("You need a " + minimumCreationLevel + "-star " + experimentCreationSkill + " and a connection to KSC in order to create experiments.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                return;
+            }
+
+            //If we're in the editor or we are creating a new experiment then show the load experiment screen.
+            else if (HighLogic.LoadedSceneIsEditor || (createNewExperiment && hasCreationAbility))
+            {
+                //If creating a new experiment then set the check resources flag and creation tags.
+                loadExperimentView.creationTags = string.Empty;
+                if (createNewExperiment && experimentLab != null)
+                {
+                    loadExperimentView.checkCreationResources = experimentLab.checkCreationResources;
+                    loadExperimentView.creationTags = experimentLab.creationTags;
+                    loadExperimentView.minimumCreationAmount = experimentLab.minimumCreationAmount;
+                    loadExperimentView.defaultCreationResource = experimentLab.defaultCreationResource;
+                }
+
                 loadExperimentView.defaultExperiment = experimentSlot.defaultExperiment;
                 loadExperimentView.transferRecipient = experimentSlot;
                 loadExperimentView.part = this.part;
@@ -331,24 +385,6 @@ namespace WildBlueIndustries
                     ScreenMessages.PostScreenMessage("No experiment to transfer, this slot is empty.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     return;
                 }
-
-                /*
-                //If the experiment has done its final transfer then we're done.
-                if (experimentSlot.finalTransfer)
-                {
-                    ScreenMessages.PostScreenMessage("This experiment is complete and cannot be transfered.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                    return;
-                }
-
-                //If the experiment is complete then ask user to confirm the final transfer.
-                if (experimentSlot.isCompleted && confirmFinalTransfer == false)
-                {
-                    confirmFinalTransfer = true;
-                    ScreenMessages.PostScreenMessage("This experiment is complete. Once transfered it cannot be transfered again. Click to confirm transfer.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                    return;
-                }
-                confirmFinalTransfer = false;
-                 */
 
                 List<WBIExperimentManifest> manifests = this.part.vessel.FindPartModulesImplementing<WBIExperimentManifest>();
                 List<WBIExperimentLab> labs = this.part.vessel.FindPartModulesImplementing<WBIExperimentLab>();
@@ -522,7 +558,6 @@ namespace WildBlueIndustries
 
                 //Clear the xperiment to transfer
                 experimentToTransfer = null;
-                confirmFinalTransfer = false;
 
                 //Remove input lock
                 InputLockManager.RemoveControlLock("ExperimentManifestLock");

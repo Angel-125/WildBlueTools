@@ -28,7 +28,31 @@ namespace WildBlueIndustries
         public bool debugMode;
 
         [KSPField]
+        public bool canCreateExperiments;
+
+        [KSPField]
+        public string experimentCreationSkill = string.Empty;
+
+        [KSPField]
+        public int minimumCreationLevel;
+
+        [KSPField]
         public string defaultExperiment = "WBIEmptyExperiment";
+
+        [KSPField]
+        public string opsButtonName = "Experiment Lab";
+
+        [KSPField]
+        public string creationTags = string.Empty;
+
+        [KSPField]
+        public string defaultCreationResource = string.Empty;
+
+        [KSPField]
+        public double minimumCreationAmount = 0f;
+
+        [KSPField]
+        public bool checkCreationResources;
 
         [KSPField(isPersistant = true)]
         public bool isGUIVisible = true;
@@ -45,8 +69,11 @@ namespace WildBlueIndustries
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Show Manifest")]
         public void ShowManifestGUI()
         {
+            //Setup the experiment slots
             GetExperimentSlots();
             manifestAdmin.experimentSlots = this.experimentSlots;
+
+            //Show the admin view.
             manifestAdmin.SetVisible(true);
         }
 
@@ -94,6 +121,10 @@ namespace WildBlueIndustries
             GetExperimentSlots();
             switcher = this.part.FindModuleImplementing<WBIResourceSwitcher>();
             manifestAdmin.SetupView(this.part, !HighLogic.LoadedSceneIsEditor, !HighLogic.LoadedSceneIsEditor, this);
+            manifestAdmin.canCreateExperiments = this.canCreateExperiments;
+            manifestAdmin.minimumCreationLevel = this.minimumCreationLevel;
+            manifestAdmin.experimentCreationSkill = this.experimentCreationSkill;
+            manifestAdmin.creationTags = this.creationTags;
             SetupGUI(isGUIVisible);
             setupExperimentResources();
         }
@@ -342,9 +373,6 @@ namespace WildBlueIndustries
                 //Dirty the GUI
                 MonoUtilities.RefreshContextWindows(this.part);
             }
-
-            //Setup the IVA props
-
         }
 
         protected void OnExperimentTransfered(WBIModuleScienceExperiment transferedExperiment)
@@ -413,25 +441,13 @@ namespace WildBlueIndustries
                 manifestAdmin.experimentSlots = this.experimentSlots;
             }
 
-            switch (buttonLabel)
-            {
-                case "Bonus Science":
-                    scienceLabView.DrawGUIControls();
-                    break;
-
-                //Let the manifest admin draw the GUI.
-                case "Experiment Lab":
-                default:
-                    manifestAdmin.DrawGUIControls();
-                    break;
-            }
+            manifestAdmin.DrawGUIControls();
         }
 
         public List<string> GetButtonLabels()
         {
             List<string> buttonLabels = new List<string>();
-            buttonLabels.Add("Experiment Lab");
-            buttonLabels.Add("Bonus Science");
+            buttonLabels.Add(opsButtonName);
             return buttonLabels;
         }
 
