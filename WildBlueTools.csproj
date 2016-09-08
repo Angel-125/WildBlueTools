@@ -136,7 +136,7 @@
     <Compile Include="Utilities\WBIDivas.cs" />
     <Compile Include="PropModules\WBIInternalButtonAnim.cs" />
     <Compile Include="Parts\WBIFieldUpgrade.cs" />
-    <Compile Include="WBIPowerMonitor.cs" />
+    <Compile Include="Utilities\WBIPowerMonitor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
