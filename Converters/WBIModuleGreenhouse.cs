@@ -20,7 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 namespace WildBlueIndustries
 {
     [KSPModule("Greenhouse")]
-    public class WBIModuleGreenhouse : WBIResourceConverter
+    public class WBIModuleGreenhouse : WBIResourceConverter, IOpsView
     {
         protected const string kCropFailed = "Your crops have failed! You gain no resources.";
         protected const string kCropYieldHigh = "Great crop yield! You gained {0:f2} ";
@@ -40,9 +40,6 @@ namespace WildBlueIndustries
         public float cropYield = 155.5f;
 
         [KSPField]
-        public float criticalSuccessBonus = 1.0f;
-
-        [KSPField]
         public float failureLoss = 0.5f;
 
         protected string biomeName;
@@ -50,6 +47,7 @@ namespace WildBlueIndustries
         protected HarvestTypes harvestID;
         protected InfoView infoView;
         protected WBIModuleSwitcher moduleSwitcher = null;
+        protected float originalCriticalSuccess;
 
         [KSPEvent(guiActive = true, guiName = "Greenhouse Info")]
         public void GetModuleInfo()
@@ -70,10 +68,6 @@ namespace WildBlueIndustries
 
             cropInfo.Append(moduleInfo + "\r\n");
             cropInfo.Append("Specialist Needed: " + Specialty + "\r\n");
-            if (totalCrewSkill > 0.0f)
-                cropInfo.Append("Current Crew Skill: " + totalCrewSkill + "\r\n");
-            else
-                cropInfo.Append("Current Crew Skill: None\r\n");
             cropInfo.Append("Crop Yield\r\n");
             cropInfo.Append("Growing Time: ");
             cropInfo.Append(string.Format("{0:f1} days\r\n", daysPerCycle));
@@ -103,6 +97,7 @@ namespace WildBlueIndustries
             GameEvents.onCrewTransferred.Add(this.onCrewTransfer);
             GameEvents.onCrewBoardVessel.Add(this.onCrewBoardVessel);
 
+            originalCriticalSuccess = criticalSuccess;
             setupModuleInfo();
         }
 
@@ -116,33 +111,29 @@ namespace WildBlueIndustries
         protected void onCrewBoardVessel(GameEvents.FromToAction<Part, Part> evnt)
         {
             totalCrewSkill = GetTotalCrewSkill();
+            criticalSuccess = originalCriticalSuccess - (100 * SpecialistBonusBase * totalCrewSkill);
         }
 
         protected void onCrewTransfer(GameEvents.HostedFromToAction<ProtoCrewMember, Part> evnt)
         {
             totalCrewSkill = GetTotalCrewSkill();
+            criticalSuccess = originalCriticalSuccess - (100 * SpecialistBonusBase * totalCrewSkill);
         }
 
         protected void onCrewEVA(GameEvents.FromToAction<Part, Part> evnt)
         {
             totalCrewSkill = GetTotalCrewSkill();
+            criticalSuccess = originalCriticalSuccess - (100 * SpecialistBonusBase * totalCrewSkill);
         }
 
         public override double GetSecondsPerCycle()
         {
-            if (totalCrewSkill == 0)
-                totalCrewSkill = GetTotalCrewSkill();
-            double crewSkillFactor = totalCrewSkill;
-            if (crewSkillFactor < 0f)
-                crewSkillFactor = 0f;
-
-            return (hoursPerCycle - (50f * crewSkillFactor)) * 3600;
+            return hoursPerCycle * 3600;
         }
 
         protected override void onSuccess()
         {
-            float harvestAmount = cropYield * (1.0f + (totalCrewSkill * SpecialistEfficiencyFactor)) * Efficiency;
-            string message = string.Format(kCropYield, harvestAmount) + cropResource;
+            string message = string.Format(kCropYield, cropYield) + cropResource;
 
             //normal yield
             harvestCrops(cropYield);
@@ -152,7 +143,7 @@ namespace WildBlueIndustries
 
         protected override void onCriticalSuccess()
         {
-            float harvestAmount = (cropYield * (1.0f + criticalSuccessBonus)) * (1.0f + (totalCrewSkill * SpecialistEfficiencyFactor)) * Efficiency;
+            float harvestAmount = (cropYield * (1.0f + (totalCrewSkill * SpecialistBonusBase)) * Efficiency);
             string message = string.Format(kCropYieldHigh, harvestAmount) + cropResource;
 
             //increased yield
@@ -217,6 +208,54 @@ namespace WildBlueIndustries
 
             infoView.ModuleInfo = description + "\r\n\r\n" + GetInfo();
         }
+
+        #region IOpsView
+        public string GetPartTitle()
+        {
+            return this.part.partInfo.title;
+        }
+
+        public virtual void SetContextGUIVisible(bool isVisible)
+        {
+            SetGuiVisible(isVisible);
+        }
+
+        public void SetParentView(IParentView parentView)
+        {
+        }
+
+        public virtual List<string> GetButtonLabels()
+        {
+            List<string> buttonLabels = new List<string>();
+            buttonLabels.Add(ConverterName);
+            return buttonLabels;
+        }
+
+        public virtual void DrawOpsWindow(string buttonLabel)
+        {
+            string timeRemaining = Utils.formatTime(secondsPerCycle - elapsedTime);
+            GUILayout.BeginVertical();
+
+            GUILayout.BeginScrollView(new Vector2(0, 0), new GUIStyle(GUI.skin.textArea), GUILayout.Height(140));
+            GUILayout.Label("<color=white><b>Status: </b>" + status + "</color>");
+            GUILayout.Label("<color=white><b>Growing Time Remaining: </b>" + timeRemaining + "</color>");
+            GUILayout.Label("<color=white><b>Last Attempt: </b>" + lastAttempt + "</color>");
+            GUILayout.EndScrollView();
+
+            if (ModuleIsActive())
+            {
+                if (GUILayout.Button(StopActionName))
+                    StopConverter();
+            }
+
+            else if (GUILayout.Button(StartActionName))
+            {
+                StartConverter();
+            }
+
+            GUILayout.EndVertical();
+        }        
+        #endregion
 
     }
 }
