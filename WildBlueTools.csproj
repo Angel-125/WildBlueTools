@@ -127,8 +127,15 @@
     <Compile Include="PropModules\WBIInternalButtonAnim.cs" />
     <Compile Include="Parts\WBIFieldUpgrade.cs" />
     <Compile Include="Utilities\WBIPowerMonitor.cs" />
+<<<<<<< HEAD
     <Compile Include="Parts\WBIDualAxisSolarArray.cs" />
     <Compile Include="Utilities\WBIAnimateRotate.cs" />
+=======
+<<<<<<< HEAD
+    <Compile Include="WBIDualAxisSolarArray.cs" />
+=======
+>>>>>>> origin/master
+>>>>>>> origin/master
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

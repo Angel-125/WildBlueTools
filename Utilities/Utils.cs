@@ -28,6 +28,7 @@ namespace WildBlueIndustries
         public const double secondsPerDayKerbin = 21600;
         public const double secondsPerDayEarth = 86400;
 
+<<<<<<< HEAD
         public static bool IsExperienceEnabled()
         {
             GameParameters.AdvancedParams advancedParams = HighLogic.CurrentGame.Parameters.CustomParams<GameParameters.AdvancedParams>();
@@ -53,6 +54,8 @@ namespace WildBlueIndustries
             return traits.ToArray();
         }
 
+=======
+>>>>>>> origin/master
         public static string formatTime(double timeSeconds)
         {
             string timeString;

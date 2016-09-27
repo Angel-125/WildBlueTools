@@ -67,7 +67,11 @@ namespace WildBlueIndustries
                 moduleInfo = moduleInfo.Replace("Outputs:", "Outputs: Special");
 
             cropInfo.Append(moduleInfo + "\r\n");
+<<<<<<< HEAD
             cropInfo.Append("Skill Needed: " + ExperienceEffect + "\r\n");
+=======
+            cropInfo.Append("Specialist Needed: " + Specialty + "\r\n");
+>>>>>>> origin/master
             cropInfo.Append("Crop Yield\r\n");
             cropInfo.Append("Growing Time: ");
             cropInfo.Append(string.Format("{0:f1} days\r\n", daysPerCycle));
