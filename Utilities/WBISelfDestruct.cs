@@ -23,9 +23,20 @@ namespace WildBlueIndustries
     [KSPModule("Self Destruct")]
     public class WBISelfDestruct : PartModule
     {
+        [KSPField()]
+        public bool poofNotBoom;
+
         [KSPField(guiName = "Self Destruct", isPersistant = true, guiActiveEditor = true, guiActive = true)]
         [UI_Toggle(enabledText = "Armed", disabledText = "Disarmed")]
         public bool isArmed;
+
+        WBIModuleDecouple decoupler;
+
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            decoupler = this.part.FindModuleImplementing<WBIModuleDecouple>();
+        }
 
         [KSPEvent(guiActive = true)]
         public void Detonate()
@@ -37,7 +48,11 @@ namespace WildBlueIndustries
             }
 
             this.part.decouple(10.0f);
-            this.part.explode();
+
+            if (!poofNotBoom)
+                this.part.explode();
+            else
+                this.part.Die();
         }
 
         [KSPAction("Detonate")]
@@ -50,6 +65,12 @@ namespace WildBlueIndustries
         {
             base.OnUpdate();
             Events["Detonate"].guiActive = isArmed;
+
+            if (decoupler != null)
+            {
+                if (decoupler.isDecoupled)
+                    Detonate();
+            }
         }
     }
 }

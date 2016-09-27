@@ -102,6 +102,8 @@ namespace WildBlueIndustries
                 return true;
             if (string.IsNullOrEmpty(upgradeSkill))
                 return true;
+            if (Utils.IsExperienceEnabled() == false)
+                return true;
             bool hasAtLeastOneCrew = false;
             string errorMessage = string.Format(kInsufficientSkill, this.part.partInfo.title);
 
@@ -110,9 +112,9 @@ namespace WildBlueIndustries
             if (FlightGlobals.ActiveVessel.isEVA)
             {
                 Vessel vessel = FlightGlobals.ActiveVessel;
-                Experience.ExperienceTrait experience = vessel.GetVesselCrew()[0].experienceTrait;
+                ProtoCrewMember astronaut = vessel.GetVesselCrew()[0];
 
-                if (experience.TypeName != upgradeSkill)
+                if (astronaut.HasEffect(upgradeSkill) == false)
                 {
                     ScreenMessages.PostScreenMessage(errorMessage, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     return false;
@@ -123,7 +125,7 @@ namespace WildBlueIndustries
             //Now check the vessel
             foreach (ProtoCrewMember protoCrew in this.part.vessel.GetVesselCrew())
             {
-                if (protoCrew.experienceTrait.TypeName == upgradeSkill)
+                if (protoCrew.HasEffect(upgradeSkill))
                 {
                     hasAtLeastOneCrew = true;
                     break;

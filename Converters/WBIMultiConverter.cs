@@ -120,16 +120,14 @@ namespace WildBlueIndustries
                     {
                         // The part came from the factory configured which represents an additional resource cost. If reconfigured in the field, the difference was paid at
                         // that time. Deflating doesn't remove any functionality, so no refund beyond the original adjusted part cost.
-                        float recycleAmount = adjustedPartCost;
+                        double recycleAmount = adjustedPartCost;
 
                         //Do we have sufficient space in the vessel to store the recycled parts?
-                        PartResourceDefinition definition = ResourceHelper.DefinitionForResource(requiredName);
-                        Vessel.ActiveResource resource = this.part.vessel.GetActiveResource(definition);
-                        float availableStorage = (float)(resource.maxAmount - resource.amount);
+                        double availableStorage = ResourceHelper.GetTotalResourceSpaceAvailable(requiredName, this.part.vessel);
 
                         if (availableStorage < recycleAmount)
                         {
-                            float amountLost = recycleAmount - availableStorage;
+                            double amountLost = recycleAmount - availableStorage;
                             ScreenMessages.PostScreenMessage(string.Format("Module deflated, {0:f2} {1:s} lost due to insufficient storage.", amountLost, requiredName), 5.0f, ScreenMessageStyle.UPPER_CENTER);
 
                             //We'll only recycle what we have room to store.

@@ -310,10 +310,21 @@ namespace WildBlueIndustries
             hasCreationAbility = false;
             if (this.canCreateExperiments)
             {
+                //Check valid connection
+                if (CommNet.CommNetScenario.CommNetEnabled && !this.part.vessel.connection.IsConnectedHome)
+                    return;
+
+                //Check crew skill.
+                if (Utils.IsExperienceEnabled() == false)
+                {
+                    hasCreationAbility = true;
+                    return;
+                }
+
                 ProtoCrewMember[] crewMembers = this.part.protoModuleCrew.ToArray();
                 for (int index = 0; index < crewMembers.Length; index++)
                 {
-                    if (crewMembers[index].experienceTrait.TypeName.Contains(experimentCreationSkill) && crewMembers[index].experienceLevel >= minimumCreationLevel)
+                    if (crewMembers[index].HasEffect(experimentCreationSkill) && crewMembers[index].experienceLevel >= minimumCreationLevel)
                     {
                         hasCreationAbility = true;
                         break;
@@ -408,13 +419,13 @@ namespace WildBlueIndustries
                     if (manifest != thisManifest && manifest.HasAvailableSlots())
                     {
                         foundAvailableSlot = true;
-                        manifest.part.highlighter.ConstantOn(destinationColor);
+                        manifest.part.Highlight(destinationColor);
                         manifest.part.AddOnMouseDown(onPartMouseDown);
                     }
 
                     else
                     {
-                        manifest.part.highlighter.ConstantOn(sourceColor);
+                        manifest.part.Highlight(sourceColor);
                     }
                 }
 
@@ -428,13 +439,13 @@ namespace WildBlueIndustries
                     if (lab != thisLab && lab.HasAvailableSlots())
                     {
                         foundAvailableSlot = true;
-                        lab.part.highlighter.ConstantOn(destinationColor);
+                        lab.part.Highlight(destinationColor);
                         lab.part.AddOnMouseDown(onPartMouseDown);
                     }
 
                     else
                     {
-                        lab.part.highlighter.ConstantOn(sourceColor);
+                        lab.part.Highlight(sourceColor);
                     }
                 }
 
@@ -453,9 +464,9 @@ namespace WildBlueIndustries
                 {
                     //Clear highlights
                     if (thisManifest != null)
-                        thisManifest.part.highlighter.Off();
+                        thisManifest.part.Highlight(false);
                     if (thisLab != null)
-                        thisLab.part.highlighter.Off();
+                        thisLab.part.Highlight(false);
                     ScreenMessages.PostScreenMessage("You need more experiment space.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
             }
@@ -480,7 +491,7 @@ namespace WildBlueIndustries
                 manifest = manifests[index];
 
                 //Highlighter off
-                manifest.part.highlighter.Off();
+                manifest.part.Highlight(false);
 
                 //Remove mouse down handler
                 if (manifest != thisManifest)
@@ -497,7 +508,7 @@ namespace WildBlueIndustries
                 lab = labs[index];
 
                 //Highlighter off
-                lab.part.highlighter.Off();
+                lab.part.Highlight(false);
 
                 //Remove mouse down handler
                 if (lab != thisLab)
@@ -536,7 +547,7 @@ namespace WildBlueIndustries
                     manifest = manifests[index];
 
                     //Highlighter off
-                    manifest.part.highlighter.Off();
+                    manifest.part.Highlight(false);
 
                     //Remove mouse down handler
                     if (manifest != thisManifest)
@@ -549,7 +560,7 @@ namespace WildBlueIndustries
                     lab = labs[index];
 
                     //Highlighter off
-                    lab.part.highlighter.Off();
+                    lab.part.Highlight(false);
 
                     //Remove mouse down handler
                     if (lab != thisLab)

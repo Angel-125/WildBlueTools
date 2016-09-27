@@ -43,6 +43,7 @@ namespace WildBlueIndustries
         private Vector2 _scrollPosTemplates;
         private bool confirmReconfigure;
         private GUILayoutOption[] buttonOption = new GUILayoutOption[] { GUILayout.Width(48), GUILayout.Height(48) };
+        private string requiredTraits = string.Empty;
 
         public ConvertibleStorageView() :
         base("Configure Storage", 640, 480)
@@ -61,6 +62,35 @@ namespace WildBlueIndustries
             DrawView();
         }
 
+        string prevRequiredSkill = string.Empty;
+
+        protected void getRequiredTraits()
+        {
+            if (requiredSkill == prevRequiredSkill)
+                return;
+
+            prevRequiredSkill = requiredSkill;
+
+            string[] traits = Utils.GetTraitsWithEffect(requiredSkill);
+
+            if (traits.Length == 1)
+            {
+                requiredTraits = traits[0];
+            }
+
+            else if (traits.Length > 1)
+            {
+                for (int index = 0; index < traits.Length - 1; index++)
+                    requiredTraits += traits[index] + ",";
+                requiredTraits += " or " + traits[traits.Length - 1];
+            }
+
+            else
+            {
+                requiredTraits = requiredSkill;
+            }
+        }
+
         public void DrawView()
         {
             if (templateCount == -1 && setupView != null)
@@ -68,6 +98,8 @@ namespace WildBlueIndustries
             string buttonLabel;
             string panelName;
             Texture buttonDecal;
+
+            getRequiredTraits();
 
             GUILayout.BeginHorizontal();
 
@@ -81,9 +113,9 @@ namespace WildBlueIndustries
                 GUILayout.Label("<color=white>Cost: NONE</color>");
 
             if (string.IsNullOrEmpty(requiredSkill) == false)
-                GUILayout.Label("<color=white>Reconfigure Skill: " + requiredSkill + "</color>");
+                GUILayout.Label("<color=white>Reconfigure Trait: " + requiredTraits + "</color>");
             else
-                GUILayout.Label("<color=white>Reconfigure Skill: NONE</color>");
+                GUILayout.Label("<color=white>Reconfigure Trait: Any</color>");
 
             //Templates
             _scrollPosTemplates = GUILayout.BeginScrollView(_scrollPosTemplates);

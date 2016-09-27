@@ -66,14 +66,11 @@ namespace WildBlueIndustries
             drawableViews.Clear();
 
             //Find all the loaded vessels in physics range
-            totalVessels = FlightGlobals.Vessels.Count;
+            totalVessels = FlightGlobals.VesselsLoaded.Count;
             for (int vesselIndex = 0; vesselIndex < totalVessels; vesselIndex++)
             {
-                vessel = FlightGlobals.Vessels[vesselIndex];
+                vessel = FlightGlobals.VesselsLoaded[vesselIndex];
                 if (vessel.mainBody != FlightGlobals.ActiveVessel.mainBody)
-                    continue;
-
-                if (vessel.loaded == false)
                     continue;
 
                 //Now find all part modules in the vessel that implement IOpsViews

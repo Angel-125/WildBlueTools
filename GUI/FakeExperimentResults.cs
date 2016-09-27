@@ -76,7 +76,7 @@ namespace WildBlueIndustries
 
             //Now show the dialog
             ScienceLabSearch labSearch = new ScienceLabSearch(this.part.vessel, data);
-            ExperimentResultDialogPage page = new ExperimentResultDialogPage(part, data, data.transmitValue, data.labBoost, false, "", true, labSearch, Reset, Keep, Transmit, Process);
+            ExperimentResultDialogPage page = new ExperimentResultDialogPage(part, data, data.baseTransmitValue, data.transmitBonus, false, "", true, labSearch, Reset, Keep, Transmit, Process);
             ExperimentsResultDialog dlg = ExperimentsResultDialog.DisplayResult(page);
         }
 

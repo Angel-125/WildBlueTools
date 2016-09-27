@@ -20,50 +20,26 @@ namespace WildBlueIndustries
 {
     public class WBIModuleRCSTechCheck : WBIMeshHelper
     {
-        protected string upgradeTech;
         protected bool upgradeChecked = false;
 
         protected void checkForUpgrade()
         {
-            //If the player hasn't unlocked the upgradeTech node yet, then hide the RCS functionality.
-            if (ResearchAndDevelopment.Instance != null && !upgradeChecked && !string.IsNullOrEmpty(upgradeTech))
-            {
-                ModuleRCS rcsModule;
+            ModuleRCSFX rcsModule = this.part.FindModuleImplementing<ModuleRCSFX>();
+            if (rcsModule == null)
+                return;
 
-                //Set the upgrade checked flag
-                upgradeChecked = true;
+            //Set the upgrade checked flag
+            upgradeChecked = true;
 
-                //If the tech node hasn't been researched yet then hide the RCS module and meshes
-                if (ResearchAndDevelopment.GetTechnologyState(upgradeTech) != RDTech.State.Available)
-                {
-                    //Hide the ModuleRCS
-                    rcsModule = this.part.FindModuleImplementing<ModuleRCS>();
-                    if (rcsModule != null)
-                    {
-                        rcsModule.enabled = false;
-                        rcsModule.isEnabled = false;
-                    }
+            //If the RCS module is enabled then show the RCS ports.
+            if (rcsModule.moduleIsEnabled)
+                setObject(0);
+            else
+                setObject(-1);
 
-                    //Hide the RCS meshes
-                    setObject(-1);
-                }
-
-                else
-                {
-                    setObject(0);
-                }
-
-                //Switch ourself off.
-                this.isEnabled = false;
-                this.enabled = false;
-            }
-        }
-
-        protected override void getProtoNodeValues(ConfigNode protoNode)
-        {
-            base.getProtoNodeValues(protoNode);
-
-            upgradeTech = protoNode.GetValue("upgradeTech");
+            //Switch ourself off.
+            this.isEnabled = false;
+            this.enabled = false;
         }
 
         public override void OnStart(StartState state)
@@ -76,14 +52,5 @@ namespace WildBlueIndustries
                 checkForUpgrade();
             }
         }
-
-        public override void  OnFixedUpdate()
-        {
-            base.OnFixedUpdate();
-
-            if (HighLogic.CurrentGame.Mode != Game.Modes.SANDBOX)
-                checkForUpgrade();
-        }
-
     }
 }

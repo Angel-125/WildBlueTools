@@ -412,7 +412,7 @@ namespace WildBlueIndustries
                 {
                     doomed = doomedResources[index];
 
-                    this.part.Resources.list.Remove(doomed);
+                    ResourceHelper.RemoveResource(doomed.resourceName, this.part);
                 }
 
                 //Dirty the GUI

@@ -35,7 +35,7 @@ namespace WildBlueIndustries
 
         protected float recycleBase = 0.7f;
         protected float baseSkillModifier = 0.05f;
-        protected float reconfigureCost;
+        protected double reconfigureCost;
         protected float reconfigureCostModifier;
         protected string requriredResource;
 
@@ -193,6 +193,8 @@ namespace WildBlueIndustries
             string skillRequired = templateManager[templateName].GetValue("reconfigureSkill");
             if (string.IsNullOrEmpty(skillRequired))
                 return true;
+            if (Utils.IsExperienceEnabled() == false)
+                return true;
             bool hasAtLeastOneCrew = false;
 
             //Tearing down the current configuration returns 70% of the current configuration's resource, plus 5% per skill point
@@ -210,9 +212,9 @@ namespace WildBlueIndustries
             if (FlightGlobals.ActiveVessel.isEVA)
             {
                 Vessel vessel = FlightGlobals.ActiveVessel;
-                Experience.ExperienceTrait experience = vessel.GetVesselCrew()[0].experienceTrait;
+                ProtoCrewMember astronaut = vessel.GetVesselCrew()[0];
 
-                if (experience.TypeName != skillRequired)
+                if (astronaut.HasEffect(skillRequired) == false)
                 {
                     ScreenMessages.PostScreenMessage(kInsufficientSkill, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     return false;
@@ -225,7 +227,7 @@ namespace WildBlueIndustries
             //Now check the vessel
             foreach (ProtoCrewMember protoCrew in this.part.vessel.GetVesselCrew())
             {
-                if (protoCrew.experienceTrait.TypeName == skillRequired)
+                if (protoCrew.HasEffect(skillRequired))
                 {
                     hasAtLeastOneCrew = true;
                     break;
@@ -243,7 +245,7 @@ namespace WildBlueIndustries
             return true;
         }
 
-        protected void calculateRemodelCostModifier(string skillRequired = "Engineer")
+        protected void calculateRemodelCostModifier(string skillRequired = "ConverterSkill")
         {
             int highestLevel = 0;
 
@@ -251,11 +253,11 @@ namespace WildBlueIndustries
             if (FlightGlobals.ActiveVessel.isEVA)
             {
                 Vessel vessel = FlightGlobals.ActiveVessel;
-                Experience.ExperienceTrait experience = vessel.GetVesselCrew()[0].experienceTrait;
+                ProtoCrewMember astronaut = vessel.GetVesselCrew()[0];
 
-                if (experience.TypeName == skillRequired)
+                if (astronaut.HasEffect(skillRequired))
                 {
-                    reconfigureCostModifier = 1 - (baseSkillModifier * experience.CrewMemberExperienceLevel());
+                    reconfigureCostModifier = 1 - (baseSkillModifier * astronaut.experienceTrait.CrewMemberExperienceLevel());
                     return;
                 }
             }
@@ -263,7 +265,7 @@ namespace WildBlueIndustries
             //No kerbal on EVA. Check the vessel for the highest ranking kerbal onboard with the required skill.
             foreach (ProtoCrewMember protoCrew in this.vessel.GetVesselCrew())
             {
-                if (protoCrew.experienceTrait.TypeName == skillRequired)
+                if (protoCrew.HasEffect(skillRequired))
                     if (protoCrew.experienceLevel > highestLevel)
                         highestLevel = protoCrew.experienceLevel;
             }

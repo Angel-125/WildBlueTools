@@ -35,20 +35,20 @@ namespace WildBlueIndustries
         public Vessel vessel = null;
         public LogDelegate logDelegate = null;
         public ConfigNode[] templateNodes;
-        private string _templateNodeName;
-        private string _allowedTags;
+        public string templateNodeName;
+        public string templateTags;
         private static List<string> partTokens;
         protected static Dictionary<string, string> techNodeTitles;
 
         #region API
-        public TemplateManager(Part part, Vessel vessel, LogDelegate logDelegate, string template = "nodeTemplate", string allowedTags = null)
+        public TemplateManager(Part part, Vessel vessel, LogDelegate logDelegate, string template = "nodeTemplate", string templateTags = null)
         {
             this.part = part;
             this.vessel = vessel;
             this.logDelegate = logDelegate;
 
-            _templateNodeName = template;
-            _allowedTags = allowedTags;
+            this.templateNodeName = template;
+            this.templateTags = templateTags;
 
             this.templateNodes = GameDatabase.Instance.GetConfigNodes(template);
             if (templateNodes == null)
@@ -58,36 +58,10 @@ namespace WildBlueIndustries
             }
         }
 
-        public string allowedTags
-        {
-            get
-            {
-                return _allowedTags;
-            }
-
-            set
-            {
-                _allowedTags = value;
-            }
-        }
-
-        public string templateNodeName
-        {
-            get
-            {
-                return _templateNodeName;
-            }
-
-            set
-            {
-                _templateNodeName = value;
-            }
-        }
-
         public void FilterTemplates()
         {
             List<ConfigNode> templates = new List<ConfigNode>();
-            string[] potentialTemplates = _templateNodeName.Split(new char[] { ';' });
+            string[] potentialTemplates = templateNodeName.Split(new char[] { ';' });
             ConfigNode[] templateConfigs;
 
             foreach (string potentialTemplate in potentialTemplates)
@@ -107,7 +81,7 @@ namespace WildBlueIndustries
 
             //Done
             this.templateNodes = templates.ToArray();
-            Log(_templateNodeName + " has " + templates.Count + " templates.");
+            Log(templateNodeName + " has " + templates.Count + " templates.");
             ConfigNode node;
             for (int index = 0; index < this.templateNodes.Length; index++)
             {
@@ -136,46 +110,21 @@ namespace WildBlueIndustries
 
         public static EInvalidTemplateReasons CheckNeeds(string neededMod)
         {
-            string modToCheck = null;
+            string modToCheck = neededMod;
             bool checkInverse = false;
-            bool modFound = false;
-            char[] delimiters = { '/' };
-            string[] tokens;
-
-            //Create the part tokens if needed
-            if (partTokens == null)
-            {
-                partTokens = new List<string>();
-                foreach (AssemblyLoader.LoadedAssembly loadedAssembly in AssemblyLoader.loadedAssemblies)
-                {
-                    //Name
-                    if (partTokens.Contains(loadedAssembly.name) == false)
-                        partTokens.Add(loadedAssembly.name);
-
-                    //URL tokens
-                    tokens = loadedAssembly.url.Split(delimiters);
-                    foreach (string token in tokens)
-                    {
-                        if (partTokens.Contains(token) == false)
-                            partTokens.Add(token);
-                    }
-                }
-            }
-
-            //Now check for the required mod
-            modToCheck = neededMod;
             if (neededMod.StartsWith("!"))
             {
                 checkInverse = true;
                 modToCheck = neededMod.Substring(1, neededMod.Length - 1);
             }
 
-            modFound = partTokens.Contains(modToCheck);
-            if (modFound && checkInverse == false)
+            bool isInstalled = AssemblyLoader.loadedAssemblies.Any(a => a.name == modToCheck);
+
+            if (isInstalled && checkInverse == false)
                 return EInvalidTemplateReasons.TemplateIsValid;
-            else if (modFound && checkInverse)
+            else if (isInstalled && checkInverse)
                 return EInvalidTemplateReasons.RequiredModuleNotFound;
-            else if (!modFound && checkInverse)
+            else if (!isInstalled && checkInverse)
                 return EInvalidTemplateReasons.TemplateIsValid;
             else
                 return EInvalidTemplateReasons.RequiredModuleNotFound;
@@ -216,16 +165,16 @@ namespace WildBlueIndustries
         {
             string value;
 
-            //If we are in career mode, make sure we have unlocked the tech node.
-            if (ResearchAndDevelopment.Instance != null)
-            {
-                value = nodeTemplate.GetValue("TechRequired");
-                if (string.IsNullOrEmpty(value))
-                    return true;
+            //If we are in sandbox mode, then we're done.
+            if (HighLogic.CurrentGame.Mode == Game.Modes.SANDBOX)
+                return true;
 
-                if (ResearchAndDevelopment.GetTechnologyState(value) != RDTech.State.Available)
-                    return false;
-            }
+            value = nodeTemplate.GetValue("TechRequired");
+            if (string.IsNullOrEmpty(value))
+                return true;
+
+            if (ResearchAndDevelopment.GetTechnologyState(value) != RDTech.State.Available)
+                return false;
 
             return true;
         }
@@ -239,19 +188,6 @@ namespace WildBlueIndustries
             //Make sure the vessel object is set
             if (this.vessel == null)
                 this.vessel = this.part.vessel;
-
-            /*
-            //If we are in career mode, make sure we have unlocked the tech node.
-            if (ResearchAndDevelopment.Instance != null)
-            {
-                value = nodeTemplate.GetValue("TechRequired");
-                if (string.IsNullOrEmpty(value))
-                    return EInvalidTemplateReasons.TemplateIsValid;
-
-                if (ResearchAndDevelopment.GetTechnologyState(value) != RDTech.State.Available)
-                    return EInvalidTemplateReasons.TechNotUnlocked;
-            }
-             */
 
             //If we need a specific mod then check for it.
             value = nodeTemplate.GetValue("needs");
@@ -276,7 +212,7 @@ namespace WildBlueIndustries
 
             //If we need a specific template type then check for it.
             //Only templates with the appropriate tag will be accepted.
-            if (string.IsNullOrEmpty(_allowedTags) == false)
+            if (string.IsNullOrEmpty(templateTags) == false)
             {
                 if (nodeTemplate.HasValue("templateTags") == false)
                     return EInvalidTemplateReasons.TagsNotFound;
@@ -285,7 +221,7 @@ namespace WildBlueIndustries
                 string[] tags = value.Split(new char[] { ';' });
                 foreach (string tag in tags)
                 {
-                    if (_allowedTags.Contains(tag))
+                    if (templateTags.Contains(tag))
                         return EInvalidTemplateReasons.TemplateIsValid;
                 }
                 return EInvalidTemplateReasons.TagsNotFound;

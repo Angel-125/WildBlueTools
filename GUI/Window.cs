@@ -260,10 +260,6 @@ namespace WildBlueIndustries
                 }
                  */
 
-                //Hide tooltip
-                if (EditorTooltip.Instance != null)
-                    EditorTooltip.Instance.HideToolTip();
-
                 //Lock game controls
                 /*
                 if (HighLogic.LoadedSceneIsFlight)

@@ -140,7 +140,7 @@ namespace WildBlueIndustries
 
         public override void OnStart(StartState state)
         {
-            UnityEngine.Random.seed = (int)System.DateTime.Now.Ticks;
+            UnityEngine.Random.InitState((int)System.DateTime.Now.Ticks);
             base.OnStart(state);
             if (HighLogic.LoadedSceneIsFlight == false)
                 return;
@@ -220,22 +220,24 @@ namespace WildBlueIndustries
         {
             if (repairsRequireResources == false)
                 return 0f;
+            if (!Utils.IsExperienceEnabled())
+                return 0f;
 
             double repairUnits = repairAmount;
             double totalAmount;
-            List<ProtoCrewMember> crewMembers = FlightGlobals.ActiveVessel.GetVesselCrew();
-            Experience.ExperienceTrait experience;
+            ProtoCrewMember[] crewMembers = FlightGlobals.ActiveVessel.GetVesselCrew().ToArray();
+            ProtoCrewMember crew;
             bool repairSkillFound = false;
 
             //Make sure we have the right skill to repair the lab.
             if (string.IsNullOrEmpty(repairSkill) == false)
             {
-                foreach (ProtoCrewMember crew in crewMembers)
+                for (int index = 0; index < crewMembers.Length; index++)
                 {
-                    experience = crew.experienceTrait;
-                    if (experience.TypeName == repairSkill || requireSkillCheck == false)
+                    crew = crewMembers[index];
+                    if (crew.HasEffect(repairSkill) || requireSkillCheck == false)
                     {
-                        repairUnits = repairUnits * (0.9f - (experience.CrewMemberExperienceLevel() * 0.1f));
+                        repairUnits = repairUnits * (0.9f - (crew.experienceTrait.CrewMemberExperienceLevel() * 0.1f));
                         repairSkillFound = true;
                         break;
                     }

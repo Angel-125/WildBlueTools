@@ -58,11 +58,13 @@ namespace WildBlueIndustries
             {
                 Events["ReconfigureStorage"].guiActiveUnfocused = fieldEVAConfigurable;
                 Events["ReconfigureStorage"].guiActive = fieldReconfigurable;
+                Events["ReconfigureStorage"].guiActiveEditor = fieldReconfigurable;
             }
             else
             {
                 Events["ReconfigureStorage"].guiActiveUnfocused = false;
                 Events["ReconfigureStorage"].guiActive = false;
+                Events["ReconfigureStorage"].guiActiveEditor = false;
             }
         }
 

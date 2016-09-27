@@ -76,12 +76,12 @@ namespace WildBlueIndustries
             List<ModuleAsteroid> asteroids = this.part.vessel.FindPartModulesImplementing<ModuleAsteroid>();
             foreach (ModuleAsteroid asteroid in asteroids)
             {
-                asteroid.part.highlighter.ConstantOn(sourceColor);
+                asteroid.part.Highlight(sourceColor);
                 asteroid.part.AddOnMouseDown(onPartMouseDown);
             }
 
             //Highlight the processor
-            this.part.highlighter.ConstantOn(destinationColor);
+            this.part.Highlight(destinationColor);
         }
 
         protected void onPartMouseDown(Part partClicked)
@@ -96,10 +96,10 @@ namespace WildBlueIndustries
                 List<ModuleAsteroid> asteroids = this.part.vessel.FindPartModulesImplementing<ModuleAsteroid>();
                 foreach (ModuleAsteroid asteroid in asteroids)
                 {
-                    asteroid.part.highlighter.ConstantOff();
+                    asteroid.part.Highlight(false);
                     asteroid.part.RemoveOnMouseDown(onPartMouseDown);
                 }
-                this.part.highlighter.ConstantOff();
+                this.part.Highlight(false);
 
                 //Get the clicked asteroid
                 this.asteroid = clickedAsteroid;
@@ -121,8 +121,8 @@ namespace WildBlueIndustries
                 //Clear the highlighting
                 List<ModuleAsteroid> asteroids = this.part.vessel.FindPartModulesImplementing<ModuleAsteroid>();
                 foreach (ModuleAsteroid asteroid in asteroids)
-                    asteroid.part.highlighter.ConstantOff();
-                this.part.highlighter.ConstantOff();
+                    asteroid.part.Highlight(false);
+                this.part.Highlight(false);
 
                 //Remove event handler
                 this.part.RemoveOnMouseDown(onPartMouseDown);

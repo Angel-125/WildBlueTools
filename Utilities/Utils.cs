@@ -23,6 +23,57 @@ namespace WildBlueIndustries
     {
         public const float CelsiusToKelvin = 272.15f;
         public const float StefanBoltzmann = 5.67e-8f;
+        public const double secondsPerMinute = 60;
+        public const double secondsPerHour = 3600;
+        public const double secondsPerDayKerbin = 21600;
+        public const double secondsPerDayEarth = 86400;
+
+        public static bool IsExperienceEnabled()
+        {
+            GameParameters.AdvancedParams advancedParams = HighLogic.CurrentGame.Parameters.CustomParams<GameParameters.AdvancedParams>();
+            if (advancedParams != null)
+            {
+                return advancedParams.KerbalExperienceEnabled(HighLogic.CurrentGame.Mode);
+            }
+            return false;
+        }
+
+        public static string[] GetTraitsWithEffect(string effectName)
+        {
+            List<string> traits;
+            Experience.ExperienceSystemConfig config = new Experience.ExperienceSystemConfig();
+            config.LoadTraitConfigs();
+            traits = config.GetTraitsWithEffect(effectName);
+
+            if (traits == null)
+            {
+                traits = new List<string>();
+            }
+
+            return traits.ToArray();
+        }
+
+        public static string formatTime(double timeSeconds)
+        {
+            string timeString;
+            double seconds = Math.Abs(timeSeconds);
+            double secondsPerDay = GameSettings.KERBIN_TIME ? secondsPerDayKerbin : secondsPerDayEarth;
+
+            double days = Math.Floor(seconds / secondsPerDay);
+            seconds -= days * secondsPerDay;
+
+            double hours = Math.Floor(seconds / secondsPerHour);
+            seconds -= hours * secondsPerHour;
+
+            double minutes = Math.Floor(seconds / secondsPerMinute);
+            seconds -= minutes * secondsPerMinute;
+
+            timeString = string.Format("{0:f0}d {1:f0}h {2:f0}m {3:f2}s", days, hours, minutes, seconds);
+            if (timeSeconds < 0f)
+                timeString = "-" + timeString;
+
+            return timeString;
+        }
 
         public static bool IsBiomeUnlocked(Vessel vessel)
         {

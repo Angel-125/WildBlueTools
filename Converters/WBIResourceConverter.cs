@@ -317,10 +317,16 @@ namespace WildBlueIndustries
 
             if (this.part.CrewCapacity == 0)
                 return 0f;
+            if (Utils.IsExperienceEnabled() == false)
+                return 0f;
 
-            foreach (ProtoCrewMember crewMember in this.part.protoModuleCrew)
+            ProtoCrewMember[] crewMembers = this.part.protoModuleCrew.ToArray();
+            ProtoCrewMember crewMember; 
+
+            for (int index = 0; index < crewMembers.Length; index++)
             {
-                if (crewMember.experienceTrait.TypeName == Specialty)
+                crewMember = crewMembers[index];
+                if (crewMember.HasEffect(ExperienceEffect))
                     totalSkillPoints += crewMember.experienceTrait.CrewMemberExperienceLevel();
             }
 

@@ -29,7 +29,7 @@ namespace WildBlueIndustries
             foreach (PartResource resource in resources)
             {
                 //Find definition
-                resourceDef = definitions[resource.name];
+                resourceDef = definitions[resource.resourceName];
 
                 if (resourceDef != null)
                     totalResourceMass += (float)(resourceDef.density * resource.amount);
@@ -59,87 +59,42 @@ namespace WildBlueIndustries
 
         public static void SetResourceValues(string resourceName, Part part, float amount, float maxAmout)
         {
-            PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
-            List<PartResource> resources;
-            int resourceID;
-
-            //First, does the resource definition exist?
-            if (definitions.Contains(resourceName))
+            if (part.Resources.Contains(resourceName))
             {
-                resources = new List<PartResource>();
-                resourceID = definitions[resourceName].id;
+                PartResource resource = part.Resources[resourceName];
 
-                //The definition exists, now see if the part has the resource
-                part.GetConnectedResources(resourceID, ResourceFlowMode.NULL, resources);
-
-                //Now go through and set the values
-                foreach (PartResource resource in resources)
-                {
-                    resource.amount = amount;
-                    resource.maxAmount = maxAmout;
-                }
+                resource.amount = amount;
+                resource.maxAmount = maxAmout;
             }
         }
 
         public static void RemoveResource(string resourceName, Part part)
         {
-            PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
-            List<PartResource> resources;
-            int resourceID;
-
-            //First, does the resource definition exist?
-            if (definitions.Contains(resourceName))
+            if (part.Resources.Contains(resourceName))
             {
-                resources = new List<PartResource>();
-                resourceID = definitions[resourceName].id;
+                PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
+                PartResource resource = part.Resources[resourceName];
+                int resourceID = definitions[resourceName].id;
 
-                //The definition exists, now see if the part has the resource
-                part.GetConnectedResources(resourceID, ResourceFlowMode.NULL, resources);
-
-                //Now go through and remove the resources
-                foreach (PartResource doomed in resources)
-                    part.Resources.list.Remove(doomed);
+                part.Resources.dict.Remove(resourceID);
             }
         }
 
         public static void AddResource(string resourceName, float amount, float maxAmount, Part part)
         {
             PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
-            PartResource newResource = new PartResource();
 
             //First, does the resource definition exist?
             if (definitions.Contains(resourceName))
             {
-                newResource.part = part;
-                newResource.SetInfo(definitions[resourceName]);
-                newResource.amount = amount;
-                newResource.maxAmount = maxAmount;
-
-                part.Resources.list.Add(newResource);
+                part.Resources.Add(resourceName, amount, maxAmount, true, true, false, true, PartResource.FlowMode.Both);
             }
         }
 
         public static void DepleteResource(string resourceName, Part part)
         {
-            PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
-            List<PartResource> resources;
-            int resourceID;
-
-            //First, does the resource definition exist?
-            if (definitions.Contains(resourceName))
-            {
-                resources = new List<PartResource>();
-                resourceID = definitions[resourceName].id;
-
-                //The definition exists, now see if the part has the resource
-                part.GetConnectedResources(resourceID, ResourceFlowMode.NULL, resources);
-
-                //Now go through and deplete the resources
-                foreach (PartResource resource in resources)
-                {
-                    resource.amount = 0f;
-                }
-            }
+            if (part.Resources.Contains(resourceName))
+                part.Resources[resourceName].amount = 0f;
         }
 
         public static double ConsumeResource(List<PartResource> resources, double amountRequested)
@@ -185,6 +140,39 @@ namespace WildBlueIndustries
             return null;
         }
 
+        public static double GetTotalResourceSpaceAvailable(string resourceName, Vessel vessel)
+        {
+            double amount = GetTotalResourceAmount(resourceName, vessel);
+            double maxAmount = GetTotalResourceMaxAmount(resourceName, vessel);
+
+            return maxAmount = amount;
+        }
+
+        public static double GetTotalResourceMaxAmount(string resourceName, Vessel vessel)
+        {
+            PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
+            List<Part> parts;
+            double totalResources = 0f;
+
+            //First, does the resource definition exist?
+            if (definitions.Contains(resourceName))
+            {
+                //The definition exists, now see if the vessel has the resource
+                parts = vessel.parts;
+                foreach (Part part in parts)
+                {
+                    if (part.Resources.Count > 0)
+                    {
+                        foreach (PartResource res in part.Resources)
+                            if (res.resourceName == resourceName)
+                                totalResources += res.maxAmount;
+                    }
+                }
+            }
+
+            return totalResources;
+        }
+
         public static double GetTotalResourceAmount(string resourceName, Vessel vessel)
         {
             PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
@@ -227,39 +215,12 @@ namespace WildBlueIndustries
                 parts = vessel.parts;
                 foreach (Part part in parts)
                 {
-                    part.GetConnectedResources(resourceID, ResourceFlowMode.NULL, resources);
-
-                    //If somebody has the resource, then we're good.
-                    if (resources.Count > 0)
+                    if (part.Resources.Contains(resourceName))
                         return true;
                 }
             }
 
             return false;
-        }
-
-        public static List<PartResource> GetConnectedResources(string resourceName, Part part)
-        {
-            PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
-            List<PartResource> resources = new List<PartResource>();
-            int resourceID;
-
-            if (definitions.Contains(resourceName))
-            {
-                resourceID = definitions[resourceName].id;
-                part.GetConnectedResources(resourceID, ResourceFlowMode.NULL, resources);
-            }
-
-            return resources;
-        }
-
-        public static List<PartResource> GetConnectedResources(int resourceID, Part part)
-        {
-            List<PartResource> resources = new List<PartResource>();
-
-            part.GetConnectedResources(resourceID, ResourceFlowMode.NULL, resources);
-
-            return resources;
         }
 
         public static float CapacityRemaining(List<PartResource> resources)
@@ -270,34 +231,6 @@ namespace WildBlueIndustries
                 capacityRemaining += (float)(resource.maxAmount - resource.amount);
 
             return capacityRemaining;
-        }
-
-        public static float DistributeResource(List<PartResource> resources, float amount)
-        {
-            float remainingAmount = amount;
-            float amountPerContainer = amount / resources.Count;
-
-            foreach (PartResource resource in resources)
-            {
-                //Does the resource container have enough room?
-                if ((resource.maxAmount - resource.amount) >= amountPerContainer)
-                {
-                    resource.amount += amountPerContainer;
-                    remainingAmount -= amountPerContainer;
-                }
-            }
-
-            return remainingAmount;
-        }
-
-        public static float DistributeResource(string resourceName, float amount, Part part)
-        {
-            List<PartResource> resources = GetConnectedResources(resourceName, part);
-
-            if (resources == null)
-                return amount;
-
-            return DistributeResource(resources, amount);
         }
     }
 }

@@ -248,7 +248,7 @@ namespace WildBlueIndustries
                 return;
 
             //Get the renderers
-            Renderer[] renderers = this.part.FindModelComponents<Renderer>();
+            Renderer[] renderers = this.part.FindModelComponents<Renderer>().ToArray();
             if (string.IsNullOrEmpty(colorPanelName))
                 return;
 

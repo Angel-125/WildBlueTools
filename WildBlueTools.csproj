@@ -41,12 +41,6 @@
     <Reference Include="KSPAssets">
       <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\KSPAssets.dll</HintPath>
     </Reference>
-    <Reference Include="KSPCore">
-      <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\KSPCore.dll</HintPath>
-    </Reference>
-    <Reference Include="KSPUtil">
-      <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\KSPUtil.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -58,9 +52,6 @@
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="Vectrosity">
-      <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\Vectrosity.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -110,7 +101,6 @@
     <Compile Include="Utilities\ResourceHelper.cs" />
     <Compile Include="GUI\Window.cs" />
     <Compile Include="Converters\WBIResourceConverter.cs" />
-    <Compile Include="Parts\WBIModuleRCS.cs" />
     <Compile Include="Parts\WBIActiveRadiatorToggle.cs" />
     <Compile Include="Science\WBIBasicScienceLab.cs" />
     <Compile Include="Utilities\WBIModuleAnimateGeneric.cs" />
@@ -136,7 +126,9 @@
     <Compile Include="Utilities\WBIDivas.cs" />
     <Compile Include="PropModules\WBIInternalButtonAnim.cs" />
     <Compile Include="Parts\WBIFieldUpgrade.cs" />
-    <Compile Include="WBIPowerMonitor.cs" />
+    <Compile Include="Utilities\WBIPowerMonitor.cs" />
+    <Compile Include="Parts\WBIDualAxisSolarArray.cs" />
+    <Compile Include="Utilities\WBIAnimateRotate.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -34,6 +34,18 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public string templateNodes = string.Empty;
 
+        //Name of the template types allowed
+        [KSPField()]
+        public string templateTags = string.Empty;
+
+        //List of resources that we must keep when performing a template switch.
+        [KSPField()]
+        public string resourcesToKeep = string.Empty;
+
+        //Used when, say, we're in the editor, and we don't get no game-saved values from perisistent.
+        [KSPField()]
+        public string defaultTemplate = string.Empty;
+
         //Base amount of volume the part stores, if any.
         [KSPField(isPersistant = true)]
         public float baseStorage;
@@ -72,17 +84,8 @@ namespace WildBlueIndustries
 
         //Name of the transform(s) for the colony decal.
         //These names come from the model itself.
-        protected string logoPanelTransforms;
-
-        //List of resources that we must keep when performing a template switch.
-        //If set to NONE, then all of the part's resources will be cleared.
-        private string _resourcesToKeep = "NONE";
-
-        //Name of the template types allowed
-        private string _allowedTags;
-
-        //Used when, say, we're in the editor, and we don't get no game-saved values from perisistent.
-        private string _defaultTemplate;
+        [KSPField()]
+        public string logoPanelTransforms = string.Empty;
 
         //Helper objects
         protected string techRequiredToReconfigure;
@@ -469,17 +472,16 @@ namespace WildBlueIndustries
             List<PartResource> doomedResources = new List<PartResource>();
             foreach (PartResource res in this.part.Resources)
             {
-                if (_resourcesToKeep == null)
+                if (resourcesToKeep == null)
                     doomedResources.Add(res);
 
-                else if (_resourcesToKeep.Contains(res.resourceName) == false)
+                else if (resourcesToKeep.Contains(res.resourceName) == false)
                     doomedResources.Add(res);
             }
 
             foreach (PartResource doomed in doomedResources)
             {
-                DestroyImmediate(doomed);
-                this.part.Resources.list.Remove(doomed);
+                ResourceHelper.RemoveResource(doomed.resourceName, this.part);
             }
             _templateResources.Clear();
         }
@@ -495,7 +497,7 @@ namespace WildBlueIndustries
         public override void ToggleInflation()
         {
             Log("ToggleInflation called.");
-            List<PartResource> resourceList = this.part.Resources.list;
+            DictionaryValueList<int, PartResource> resourceList = this.part.Resources.dict;
             PartModule inventory = this.part.Modules["ModuleKISInventory"];
 
             //If the module cannot be deflated then exit.
@@ -509,7 +511,7 @@ namespace WildBlueIndustries
 
             //If the module is now inflated, re-add the max resource amounts to the list of resources.
             //If it isn't inflated, set max amount to 1.
-            foreach (PartResource resource in resourceList)
+            foreach (PartResource resource in resourceList.Values)
             {
                 //If we are deployed then reset the max amounts.
                 if (isDeployed)
@@ -522,9 +524,9 @@ namespace WildBlueIndustries
                 }
 
                 //No longer deployed, should we preserve the resource?
-                else if (string.IsNullOrEmpty(_resourcesToKeep) == false)
+                else if (string.IsNullOrEmpty(resourcesToKeep) == false)
                 {
-                    if (_resourcesToKeep.Contains(resource.resourceName) == false)
+                    if (resourcesToKeep.Contains(resource.resourceName) == false)
                     {
                         resource.amount = 0;
                         resource.maxAmount = 1;
@@ -565,11 +567,11 @@ namespace WildBlueIndustries
 
         public virtual bool HasResources()
         {
-            List<PartResource> resourceList = this.part.Resources.list;
+            DictionaryValueList<int, PartResource> resourceList = this.part.Resources.dict;
 
             if (HighLogic.LoadedSceneIsEditor == false)
             {
-                foreach (PartResource res in resourceList)
+                foreach (PartResource res in resourceList.Values)
                 {
                     if (res.amount > 0)
                     {
@@ -583,8 +585,6 @@ namespace WildBlueIndustries
 
         public virtual bool CanBeDeflated()
         {
-            List<PartResource> resourceList = this.part.Resources.list;
-
             if (HighLogic.LoadedSceneIsEditor == false)
             {
                 //If the module is inflatable, deployed, and has kerbals inside, then don't allow the module to be deflated.
@@ -643,11 +643,11 @@ namespace WildBlueIndustries
                 templateNodes = protoNode.GetValue("templateNodes");
 
                 //Also get template types
-                _allowedTags = protoNode.GetValue("allowedTags");
+                templateTags = protoNode.GetValue("templateTags");
             }
 
             //Create the templateManager
-            templateManager = new TemplateManager(this.part, this.vessel, new LogDelegate(Log), templateNodes, _allowedTags);
+            templateManager = new TemplateManager(this.part, this.vessel, new LogDelegate(Log), templateNodes, templateTags);
 
             //If we have resources in our node then load them.
             if (resourceNodes != null)
@@ -782,7 +782,7 @@ namespace WildBlueIndustries
         #region Helpers
         protected virtual void updateResourcesFromTemplate(ConfigNode nodeTemplate)
         {
-            string allowedTags = nodeTemplate.GetValue("allowedTags");
+            string templateTags = nodeTemplate.GetValue("templateTags");
             PartResource resource = null;
             string value;
             float capacityModifier = capacityFactor;
@@ -793,8 +793,10 @@ namespace WildBlueIndustries
                 return;
             }
 
+            Log("updateResourcesFromTemplate called for template: " + nodeTemplate.GetValue("shortName"));
+            Log("template: " + nodeTemplate);
+            Log("capacityFactor: " + capacityFactor);
             Log("template resource count: " + templateResourceNodes.Length);
-            Log("capacityModifier: " + capacityModifier);
             foreach (ConfigNode resourceNode in templateResourceNodes)
             {
                 //If we kept the resource, then skip this template resource.
@@ -818,7 +820,7 @@ namespace WildBlueIndustries
                     resource.maxAmount *= capacityModifier;
 
                 //Next, if the capacityFactorTypes contains the template type then apply the capacity factor.
-                else if (capacityFactorTypes.Contains(allowedTags))
+                else if (capacityFactorTypes.Contains(templateTags))
                     resource.maxAmount *= capacityModifier;
 
                 //If we aren't deployed then set the current and max amounts
@@ -837,7 +839,7 @@ namespace WildBlueIndustries
         {
             PartResource resource = null;
             string value;
-            string allowedTags = nodeTemplate.GetValue("allowedTags");
+            string templateTags = nodeTemplate.GetValue("templateTags");
             float capacityModifier = capacityFactor;
 
             Log("loadResourcesFromTemplate called for template: " + nodeTemplate.GetValue("shortName"));
@@ -851,27 +853,22 @@ namespace WildBlueIndustries
             }
 
             //Clear the list
-            Log("Clearing resource list");
-            PartResource[] partResources = this.part.GetComponents<PartResource>();
-            if (partResources != null)
+            Log("Clearing resource list, should keep: " + resourcesToKeep);
+            List<PartResource> doomedResources = new List<PartResource>();
+            foreach (PartResource res in this.part.Resources)
             {
-                List<PartResource> doomedResources = new List<PartResource>();
-                foreach (PartResource res in partResources)
-                {
-                    if (_resourcesToKeep == null)
-                        doomedResources.Add(res);
+                if (resourcesToKeep == null)
+                    doomedResources.Add(res);
 
-                    else if (_resourcesToKeep.Contains(res.resourceName) == false)
-                        doomedResources.Add(res);
-                }
-
-                foreach (PartResource doomed in doomedResources)
-                {
-                    DestroyImmediate(doomed);
-                    this.part.Resources.list.Remove(doomed);
-                }
-                _templateResources.Clear();
+                else if (resourcesToKeep.Contains(res.resourceName) == false)
+                    doomedResources.Add(res);
             }
+
+            foreach (PartResource doomed in doomedResources)
+            {
+                ResourceHelper.RemoveResource(doomed.resourceName, this.part);
+            }
+            _templateResources.Clear();
             Log("Resources cleared");
 
             //Set capacityModifier if there is an override for the template
@@ -916,7 +913,7 @@ namespace WildBlueIndustries
                     resource.maxAmount *= capacityModifier;
 
                 //Next, if the capacityFactorTypes contains the template type then apply the capacity factor.
-                else if (capacityFactorTypes.Contains(allowedTags))
+                else if (capacityFactorTypes.Contains(templateTags))
                     resource.maxAmount *= capacityModifier;
 
                 //If we aren't deployed then set the current and max amounts
@@ -1117,15 +1114,15 @@ namespace WildBlueIndustries
                 templateNodes = protoNode.GetValue("templateNodes");
 
             //Also get template types
-            _allowedTags = protoNode.GetValue("allowedTags");
+            templateTags = protoNode.GetValue("templateTags");
 
             //Set the defaults. We'll need them when we're in the editor
             //because the persistent KSP field seems to only apply to savegames.
-            _defaultTemplate = protoNode.GetValue("defaultTemplate");
+            defaultTemplate = protoNode.GetValue("defaultTemplate");
 
             //Get the list of resources that must be kept when switching templates
             //If empty, then all of the part's resources will be cleared during a template switch.
-            _resourcesToKeep = protoNode.GetValue("resourcesToKeep");
+            resourcesToKeep = protoNode.GetValue("resourcesToKeep");
 
             value = protoNode.GetValue("confirmResourceSwitch");
             if (string.IsNullOrEmpty(value) == false)
@@ -1145,7 +1142,7 @@ namespace WildBlueIndustries
 
             //Get the list of transforms for the logo panels.
             if (logoPanelTransforms == null)
-                logoPanelTransforms = protoNode.GetValue("logoPanelTransform");
+                logoPanelTransforms = protoNode.GetValue("logoPanelTransforms");
         }
 
         protected virtual void hideEditorGUI(PartModule.StartState state)
@@ -1220,13 +1217,13 @@ namespace WildBlueIndustries
         
         public void initTemplates()
         {
-            Log("initTemplates called templateNodes: " + templateNodes + " allowedTags: " + _allowedTags);
+            Log("initTemplates called templateNodes: " + templateNodes + " templateTags: " + templateTags);
             //Create templates object if needed.
             //This can happen when the object is cloned in the editor (On Load won't be called).
             if (templateManager == null)
                 templateManager = new TemplateManager(this.part, this.vessel, new LogDelegate(Log));
             templateManager.templateNodeName = templateNodes;
-            templateManager.allowedTags = _allowedTags;
+            templateManager.templateTags = templateTags;
             templateManager.FilterTemplates();
 
             if (templateManager.templateNodes == null)
@@ -1238,7 +1235,7 @@ namespace WildBlueIndustries
             //Set default template if needed
             //This will happen when we're in the editor.
             if (string.IsNullOrEmpty(shortName))
-                shortName = _defaultTemplate;
+                shortName = defaultTemplate;
 
             //Set current template index
             CurrentTemplateIndex = templateManager.FindIndexOfTemplate(shortName);

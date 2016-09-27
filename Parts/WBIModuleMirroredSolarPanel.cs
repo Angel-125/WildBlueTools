@@ -74,14 +74,14 @@ namespace WildBlueIndustries
 
             if (HighLogic.LoadedSceneIsFlight == false)
                 return;
-            if (panelState != ModuleDeployableSolarPanel.panelStates.EXTENDED)
+            if (deployState != ModuleDeployablePart.DeployState.EXTENDED)
                 return;
             if (suncatcherTransformUpdated)
                 return;
 
             Transform transform = this.part.FindModelTransforms(suncatcherTransformNames[primaryPanelIndex]).First();
             panelRotationTransform = transform;
-            sunDotTransform = transform;
+            trackingDotTransform = transform;
 
             suncatcherTransformUpdated = true;
         }

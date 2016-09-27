@@ -149,7 +149,7 @@ namespace WildBlueIndustries
                 {
                     totalAbundance += abundance;
 //                    Debug.Log("FRED " + summary.ResourceName + " abundance: " + abundance + " Ratio: " + outputUnits);
-                    outputSource = new ResourceRatio { ResourceName = summary.ResourceName, Ratio = outputUnits, FlowMode = "ALL_VESSEL", DumpExcess = true };
+                    outputSource = new ResourceRatio { ResourceName = summary.ResourceName, Ratio = outputUnits, FlowMode = ResourceFlowMode.ALL_VESSEL_BALANCE, DumpExcess = true };
                     outputList.Add(outputSource);
                 }
             }
@@ -159,7 +159,7 @@ namespace WildBlueIndustries
             {
                 byproductMass += (1.0f - totalAbundance) * yieldMass;
                 outputUnits = byproductMass / byproductDef.density;
-                outputSource = new ResourceRatio { ResourceName = byproduct, Ratio = outputUnits, FlowMode = "ALL_VESSEL", DumpExcess = true };
+                outputSource = new ResourceRatio { ResourceName = byproduct, Ratio = outputUnits, FlowMode = ResourceFlowMode.ALL_VESSEL_BALANCE, DumpExcess = true };
                 outputList.Add(outputSource);
 //                Debug.Log("FRED added " + byproduct + " to output list");
             }
