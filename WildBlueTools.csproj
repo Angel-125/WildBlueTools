@@ -88,7 +88,7 @@
     <Compile Include="Converters\WBIMultiConverter.cs" />
     <Compile Include="Parts\WBILight.cs" />
     <Compile Include="Switchers\WBITemplateConverter.cs" />
-    <Compile Include="Parts\WBIModuleDockingNode.cs" />
+    <Compile Include="Parts\WBIDockingNodeHelper.cs" />
     <Compile Include="Utilities\WBIAnimation.cs" />
     <Compile Include="Parts\WBIInflatablePartModule.cs" />
     <Compile Include="Utilities\WBIMeshHelper.cs" />
@@ -129,6 +129,8 @@
     <Compile Include="Utilities\WBIPowerMonitor.cs" />
     <Compile Include="Parts\WBIDualAxisSolarArray.cs" />
     <Compile Include="Utilities\WBIAnimateRotate.cs" />
+    <Compile Include="Settings\WBIDockingParameters.cs" />
+    <Compile Include="Settings\WBIMainSettings.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

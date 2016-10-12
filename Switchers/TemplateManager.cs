@@ -37,7 +37,6 @@ namespace WildBlueIndustries
         public ConfigNode[] templateNodes;
         public string templateNodeName;
         public string templateTags;
-        private static List<string> partTokens;
         protected static Dictionary<string, string> techNodeTitles;
 
         #region API

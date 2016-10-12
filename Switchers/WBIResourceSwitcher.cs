@@ -225,6 +225,12 @@ namespace WildBlueIndustries
             ScreenMessages.PostScreenMessage("Unable to find a template to switch to.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
         }
 
+        public void MaxResources()
+        {
+            foreach (PartResource resource in this.part.Resources)
+                resource.amount = resource.maxAmount;
+        }
+
         public void ReloadTemplate()
         {
             if (CurrentTemplateIndex != -1)

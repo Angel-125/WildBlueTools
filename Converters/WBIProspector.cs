@@ -112,7 +112,7 @@ namespace WildBlueIndustries
         protected virtual void prepareOutputsByLocale()
         {
 //            Debug.Log("FRED prepareOutputsByLocale called");
-            ResourceRatio outputSource = null;
+            ResourceRatio outputSource;
             string biomeName = Utils.GetCurrentBiome(this.part.vessel).name;
             PartResourceDefinition outputDef = null;
             float totalAbundance = 0f;

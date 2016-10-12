@@ -30,11 +30,11 @@ namespace WildBlueIndustries
 
         [KSPField(guiName = "Animation", isPersistant = true, guiActiveEditor = true, guiActive = true)]
         [UI_Toggle(disabledText = "Normal", enabledText = "Partial")]
-        public bool enablePartialAnimation;
+        public bool enablePartialAnimation = false;
 
         [KSPField(guiName = "Close Limit", isPersistant = true, guiActive = true, guiActiveEditor = true)]
         [UI_FloatRange(minValue = 0, stepIncrement = 1, maxValue = 100)]
-        public float closePercent;
+        public float closePercent = 100;
 
         [KSPField(guiName = "Open Limit", isPersistant = true, guiActive = true, guiActiveEditor = true)]
         [UI_FloatRange(minValue = 0, stepIncrement = 1, maxValue = 100)]

@@ -311,8 +311,11 @@ namespace WildBlueIndustries
             if (this.canCreateExperiments)
             {
                 //Check valid connection
-                if (CommNet.CommNetScenario.CommNetEnabled && !this.part.vessel.connection.IsConnectedHome)
-                    return;
+                if (HighLogic.LoadedSceneIsFlight)
+                {
+                    if (CommNet.CommNetScenario.CommNetEnabled && !this.part.vessel.connection.IsConnectedHome)
+                        return;
+                }
 
                 //Check crew skill.
                 if (Utils.IsExperienceEnabled() == false)

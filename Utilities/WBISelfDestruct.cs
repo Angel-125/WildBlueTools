@@ -43,7 +43,7 @@ namespace WildBlueIndustries
         {
             if (!isArmed)
             {
-                ScreenMessages.PostScreenMessage("Explosive charges are currently disarmed, cannot detonate.", 3.0f, ScreenMessageStyle.UPPER_CENTER);
+                //ScreenMessages.PostScreenMessage("Explosive charges are currently disarmed, cannot detonate.", 3.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
 

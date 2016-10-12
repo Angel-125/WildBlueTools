@@ -21,13 +21,13 @@ namespace WildBlueIndustries
     class WBIInternalButtonAnim : InternalModule
     {
         [KSPField]
-        public string buttonName;
+        public string buttonName = string.Empty;
 
         [KSPField]
-        public string buttonColorOn;
+        public string buttonColorOn = string.Empty;
 
         [KSPField]
-        public string buttonColorOff;
+        public string buttonColorOff = string.Empty;
 
         protected Material colorShiftMaterial;
         protected Color colorButtonOn;

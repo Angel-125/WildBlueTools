@@ -201,15 +201,20 @@ namespace WildBlueIndustries
         protected virtual void updateProductivity()
         {
             //Find all the resource converters and set their productivity
-            List<ModuleResourceConverter> converters = this.part.FindModulesImplementing<ModuleResourceConverter>();
+            List<ModuleResourceConverter> resourceConverters = this.part.FindModulesImplementing<ModuleResourceConverter>();
+            ModuleResourceConverter[] converters = resourceConverters.ToArray();
+            ModuleResourceConverter converter;
+            ResourceRatio[] outputRatios;
 
-            foreach (ModuleResourceConverter converter in converters)
+            for (int index = 0; index < converters.Length; index++)
             {
+                converter = converters[index];
                 converter.Efficiency = efficiency;
 
                 //Now adjust the output.
-                foreach (ResourceRatio ratio in converter.outputList)
-                    ratio.Ratio *= productivity;
+                outputRatios = converter.outputList.ToArray();
+                for (int ratioIndex = 0; ratioIndex < outputRatios.Length; ratioIndex++)
+                    outputRatios[ratioIndex].Ratio *= productivity;
             }
         }
 

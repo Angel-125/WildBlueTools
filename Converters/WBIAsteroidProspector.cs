@@ -100,7 +100,7 @@ namespace WildBlueIndustries
 
         protected override void prepareOutputsByLocale()
         {
-            ResourceRatio outputSource = null;
+            ResourceRatio outputSource;
             string biomeName = Utils.GetCurrentBiome(this.part.vessel).name;
             PartResourceDefinition outputDef = null;
             float totalAbundance = 0f;
