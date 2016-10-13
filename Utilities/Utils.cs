@@ -30,6 +30,9 @@ namespace WildBlueIndustries
 
         public static bool IsExperienceEnabled()
         {
+            if (HighLogic.CurrentGame == null)
+                return false;
+
             GameParameters.AdvancedParams advancedParams = HighLogic.CurrentGame.Parameters.CustomParams<GameParameters.AdvancedParams>();
             if (advancedParams != null)
             {

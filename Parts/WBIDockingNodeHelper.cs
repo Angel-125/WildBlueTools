@@ -36,6 +36,7 @@ namespace WildBlueIndustries
 
         protected ModuleDockingNode dockingNode;
 
+        /*
         [KSPEvent(guiActive = true)]
         public void RotateShip()
         {
@@ -62,6 +63,7 @@ namespace WildBlueIndustries
             //this.part.vessel.vesselTransform.rotation = FlightGlobals.fetch.vesselTargetTransform.rotation;
             //this.part.vessel.vesselTransform.Rotate(0, 10f, 0);
         }
+         */
 
         //Based on code by Shadowmage. Thanks for showing how it's done, Shadowmage! :)
         [KSPEvent(guiName = "Weld Ports", guiActive = false, unfocusedRange = 3.0f)]
