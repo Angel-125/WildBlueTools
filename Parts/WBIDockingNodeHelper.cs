@@ -121,101 +121,6 @@ namespace WildBlueIndustries
             }
         }
 
-        protected bool getNodes(out AttachNode sourceNode, out AttachNode targetNode, out Part sourcePart, out Part targetPart)
-        {
-            sourceNode = findAttachNode(this.part);
-            targetNode = findAttachNode(dockingNode.otherNode.part);
-            sourcePart = sourceNode.attachedPart;
-            targetPart = targetNode.attachedPart;
-
-            if (sourceNode == null)
-            {
-                Debug.Log("No parent to weld");
-                return false;
-            }
-            if (targetNode == null)
-            {
-                Debug.Log("Docked port has no parent");
-                return false;
-            }
-            if (sourcePart == null)
-            {
-                Debug.Log("No source part found.");
-                return false;
-            }
-            if (targetPart == null)
-            {
-                Debug.Log("No target part found.");
-                return false;
-            }
-
-            Debug.Log("sourcePart: " + sourcePart.partInfo.title);
-            Debug.Log("targetPart:" + targetPart.partInfo.title);
-            return true;
-        }
-
-        protected void linkParts(AttachNode sourceNode, AttachNode targetNode, Part sourcePart, Part targetPart)
-        {
-            //Reparent the parts
-            if (targetPart.parent == dockingNode.otherNode.part && targetPart.parent != null)
-                targetPart.parent = sourcePart;
-            if (sourcePart.parent == this.part && sourcePart.parent != null)
-                sourcePart.parent = targetPart;
-
-            //Setup top nodes
-            sourcePart.topNode.attachedPart = targetPart;
-            targetPart.topNode.attachedPart = sourcePart;
-
-            //Destroy original joints
-            if (sourcePart.attachJoint != null)
-                sourcePart.attachJoint.DestroyJoint();
-            if (targetPart.attachJoint != null)
-                targetPart.attachJoint.DestroyJoint();
-
-            //Set attached parts
-            foreach (AttachNode attachNode in sourcePart.attachNodes)
-            {
-                if (attachNode.attachedPart == this.part)
-                    attachNode.attachedPart = targetPart;
-            }
-            foreach (AttachNode attachNode in targetPart.attachNodes)
-            {
-                if (attachNode.attachedPart == this.part)
-                    attachNode.attachedPart = sourcePart;
-            }
-
-            //Set child parts
-            if (sourcePart.children.Contains(this.part))
-            {
-                sourcePart.children.Remove(this.part);
-                sourcePart.addChild(targetPart);
-            }
-            if (targetPart.children.Contains(dockingNode.otherNode.part))
-            {
-                targetPart.children.Remove(dockingNode.otherNode.part);
-                targetPart.addChild(sourcePart);
-            }
-
-            //Set lookup targets
-            sourcePart.fuelLookupTargets.AddUnique(targetPart);
-            targetPart.fuelLookupTargets.AddUnique(sourcePart);
-
-            //Create new joint
-            PartJoint joint = PartJoint.Create(targetPart, sourcePart, targetNode, sourceNode, AttachModes.STACK);
-            targetPart.attachJoint = joint;
-        }
-
-        protected void clearAttachmentData(ModuleDockingNode node)
-        {
-            node.part.children.Clear();
-            node.part.topNode.attachedPart = null;
-            node.part.attachJoint.DestroyJoint();
-            node.part.parent = null;
-
-            for (int index = 0; index < node.part.attachNodes.Count; index++)
-                node.part.attachNodes[index].attachedPart = null;
-        }
-
         [KSPEvent(guiName = "Control from Here", guiActive = true)]
         public void ControlFromHere()
         {
@@ -231,8 +136,8 @@ namespace WildBlueIndustries
             watchForDocking = true;
 
             //GUI update
-            Events["UnsetNodeTarget"].guiActive = true;
-            Events["SetNodeTarget"].guiActive = false;
+            Events["UnsetNodeTarget"].guiActiveUnfocused = true;
+            Events["SetNodeTarget"].guiActiveUnfocused = false;
 
             //Turn off all the glowing docking ports.
             List<WBIDockingNodeHelper> dockingHelpers = this.part.vessel.FindPartModulesImplementing<WBIDockingNodeHelper>();
@@ -252,8 +157,8 @@ namespace WildBlueIndustries
             watchForDocking = false;
 
             //GUI update
-            Events["UnsetNodeTarget"].guiActive = false;
-            Events["SetNodeTarget"].guiActive = true; 
+            Events["UnsetNodeTarget"].guiActiveUnfocused = false;
+            Events["SetNodeTarget"].guiActiveUnfocused = true; 
             
             TurnAnimationOff();
 
@@ -313,8 +218,6 @@ namespace WildBlueIndustries
 
             //Update GUI
             UpdateWeldGUI();
-            Events["UnsetNodeTarget"].guiActive = false;
-            Events["SetNodeTarget"].guiActive = true;
 
             //If we have been welded and we should show the welded mesh then do so.
             if (string.IsNullOrEmpty(weldedMeshName) == false)
@@ -407,6 +310,8 @@ namespace WildBlueIndustries
                 dockingNode.moduleIsEnabled = false;
                 Events["WeldPorts"].guiActiveUnfocused = false;
                 Events["WeldPorts"].guiActive = false;
+                Events["UnsetNodeTarget"].guiActiveUnfocused = false;
+                Events["SetNodeTarget"].guiActiveUnfocused = false;
 
                 ModuleAnimateGeneric glowAnim = this.part.FindModuleImplementing<ModuleAnimateGeneric>();
                 if (glowAnim != null)
@@ -430,6 +335,12 @@ namespace WildBlueIndustries
                         dockingNode.otherNode.moduleIsEnabled = false;
                     }
                 }
+            }
+
+            else
+            {
+                Events["UnsetNodeTarget"].guiActiveUnfocused = false;
+                Events["SetNodeTarget"].guiActiveUnfocused = true;
             }
         }
 
@@ -542,8 +453,103 @@ namespace WildBlueIndustries
                 return searchPart.srfAttachNode;
             }
 
-            Debug.Log("FRED no attach node found");
+            Debug.Log("no attach node found");
             return null;
+        }
+
+        protected bool getNodes(out AttachNode sourceNode, out AttachNode targetNode, out Part sourcePart, out Part targetPart)
+        {
+            sourceNode = findAttachNode(this.part);
+            targetNode = findAttachNode(dockingNode.otherNode.part);
+            sourcePart = sourceNode.attachedPart;
+            targetPart = targetNode.attachedPart;
+
+            if (sourceNode == null)
+            {
+                Debug.Log("No parent to weld");
+                return false;
+            }
+            if (targetNode == null)
+            {
+                Debug.Log("Docked port has no parent");
+                return false;
+            }
+            if (sourcePart == null)
+            {
+                Debug.Log("No source part found.");
+                return false;
+            }
+            if (targetPart == null)
+            {
+                Debug.Log("No target part found.");
+                return false;
+            }
+
+            Debug.Log("sourcePart: " + sourcePart.partInfo.title);
+            Debug.Log("targetPart:" + targetPart.partInfo.title);
+            return true;
+        }
+
+        protected void linkParts(AttachNode sourceNode, AttachNode targetNode, Part sourcePart, Part targetPart)
+        {
+            //Reparent the parts
+            if (targetPart.parent == dockingNode.otherNode.part && targetPart.parent != null)
+                targetPart.parent = sourcePart;
+            if (sourcePart.parent == this.part && sourcePart.parent != null)
+                sourcePart.parent = targetPart;
+
+            //Setup top nodes
+            sourcePart.topNode.attachedPart = targetPart;
+            targetPart.topNode.attachedPart = sourcePart;
+
+            //Destroy original joints
+            if (sourcePart.attachJoint != null)
+                sourcePart.attachJoint.DestroyJoint();
+            if (targetPart.attachJoint != null)
+                targetPart.attachJoint.DestroyJoint();
+
+            //Set attached parts
+            foreach (AttachNode attachNode in sourcePart.attachNodes)
+            {
+                if (attachNode.attachedPart == this.part)
+                    attachNode.attachedPart = targetPart;
+            }
+            foreach (AttachNode attachNode in targetPart.attachNodes)
+            {
+                if (attachNode.attachedPart == this.part)
+                    attachNode.attachedPart = sourcePart;
+            }
+
+            //Set child parts
+            if (sourcePart.children.Contains(this.part))
+            {
+                sourcePart.children.Remove(this.part);
+                sourcePart.addChild(targetPart);
+            }
+            if (targetPart.children.Contains(dockingNode.otherNode.part))
+            {
+                targetPart.children.Remove(dockingNode.otherNode.part);
+                targetPart.addChild(sourcePart);
+            }
+
+            //Set lookup targets
+            sourcePart.fuelLookupTargets.AddUnique(targetPart);
+            targetPart.fuelLookupTargets.AddUnique(sourcePart);
+
+            //Create new joint
+            PartJoint joint = PartJoint.Create(targetPart, sourcePart, targetNode, sourceNode, AttachModes.STACK);
+            targetPart.attachJoint = joint;
+        }
+
+        protected void clearAttachmentData(ModuleDockingNode node)
+        {
+            node.part.children.Clear();
+            node.part.topNode.attachedPart = null;
+            node.part.attachJoint.DestroyJoint();
+            node.part.parent = null;
+
+            for (int index = 0; index < node.part.attachNodes.Count; index++)
+                node.part.attachNodes[index].attachedPart = null;
         }
     }
 }
