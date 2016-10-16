@@ -26,6 +26,9 @@ namespace WildBlueIndustries
         public bool keepDockingPorts = false;
 
         [KSPField]
+        public string dockingPortMeshName = string.Empty;
+
+        [KSPField]
         public string weldedMeshName = string.Empty;
 
         [KSPField]
@@ -46,65 +49,28 @@ namespace WildBlueIndustries
         [KSPEvent(guiName = "Weld Ports", guiActive = false, unfocusedRange = 3.0f)]
         public void WeldPorts()
         {
-            AttachNode sourceNode = findAttachNode(this.part);
-            AttachNode targetNode = findAttachNode(dockingNode.otherNode.part);
-            Part sourcePart = sourceNode.attachedPart;
-            Part targetPart = targetNode.attachedPart;
-
             //Check welding requirements
             if (!canWeldPorts())
                 return;
 
-            //Check for docking ports
-            if (dockingNode == null)
-            {
-                Debug.Log("Part does not contain a docking node.");
+            AttachNode sourceNode, targetNode;
+            Part sourcePart, targetPart, otherNodePart;
+            if (!getNodes(out sourceNode, out targetNode, out sourcePart, out targetPart))
                 return;
-            }
-
-            if (dockingNode.otherNode == null)
-            {
-                Debug.Log("There is no docked vessel to weld.");
-                return;
-            }
-
-            //Check for parent parts
-            if (sourceNode == null)
-            {
-                Debug.Log("No parent to weld");
-                return;
-            }
-            if (targetNode == null)
-            {
-                Debug.Log("Docked port has no parent");
-                return;
-            }
-            if (sourcePart == null)
-            {
-                Debug.Log("No source part found.");
-                return;
-            }
-            if (targetPart == null)
-            {
-                Debug.Log("No target part found.");
-                return;
-            }
-
-            Debug.Log("FRED sourcePart: " + sourcePart.partInfo.title);
-            Debug.Log("FRED targetPart:" + targetPart.partInfo.title);
+            otherNodePart = dockingNode.otherNode.part;
 
             //Sadly, decoupling is giving me odd errors in FlightIntegrator
-            //So let's play with linked lists...
+            //De-link the docking ports
             clearAttachmentData(dockingNode.otherNode);
             clearAttachmentData(dockingNode);
- 
-            //If we aren't keeping the docking ports then we need to move the parts together.
-            if (!keepDockingPorts)// && !keepPartAfterWeld)
-            {
-                //See if we can avoid collisions while moving.
-                this.part.SetCollisionIgnores();
-                dockingNode.otherNode.part.SetCollisionIgnores();
 
+            //See if we can avoid collisions while moving.
+            this.part.SetCollisionIgnores();
+            otherNodePart.SetCollisionIgnores();
+
+            //If we aren't keeping the docking ports then we need to move the parts together.
+            if (!keepDockingPorts && !keepPartAfterWeld)
+            {
                 //Calculate the distance between the docking ports
                 float distance = Mathf.Abs(Vector3.Distance(sourceNode.position, dockingNode.referenceNode.position));
                 distance += Mathf.Abs(Vector3.Distance(targetNode.position, dockingNode.otherNode.referenceNode.position));
@@ -113,15 +79,19 @@ namespace WildBlueIndustries
                 targetPart.transform.position = Vector3.MoveTowards(targetPart.transform.position, sourcePart.transform.position, distance);
             }
 
-            //Surface-attach the ports back to their parents.                
+            //Re-link the ports                
             else 
             {
-                this.part.attachMode = AttachModes.SRF_ATTACH;
-                sourcePart.Couple(this.part);
+                this.part.parent = sourcePart;
+                this.part.srfAttachNode.attachedPart = sourcePart;
+                this.part.attachJoint = PartJoint.Create(this.part, sourcePart, this.part.srfAttachNode, null, AttachModes.SRF_ATTACH);
 
-                //Show welded mesh if we have one
-//                if (string.IsNullOrEmpty(weldedMeshName) == false)
-//                    showWeldedMesh(true);
+                otherNodePart.parent = targetPart;
+                otherNodePart.srfAttachNode.attachedPart = targetPart;
+                otherNodePart.attachJoint = PartJoint.Create(otherNodePart, targetPart, otherNodePart.srfAttachNode, null, AttachModes.SRF_ATTACH);
+
+                //Show the welded mesh
+                ShowWeldedMesh(true);
             }
 
             //Link the parts together
@@ -144,11 +114,44 @@ namespace WildBlueIndustries
             GameEvents.onVesselWasModified.Fire(this.part.vessel);
 
             //We do this last because the part itself will be going away if we don't keep the ports.
-            if (!keepDockingPorts)
+            if (!keepDockingPorts && !keepPartAfterWeld)
             {
                 dockingNode.otherNode.part.Die();
                 this.part.Die();
             }
+        }
+
+        protected bool getNodes(out AttachNode sourceNode, out AttachNode targetNode, out Part sourcePart, out Part targetPart)
+        {
+            sourceNode = findAttachNode(this.part);
+            targetNode = findAttachNode(dockingNode.otherNode.part);
+            sourcePart = sourceNode.attachedPart;
+            targetPart = targetNode.attachedPart;
+
+            if (sourceNode == null)
+            {
+                Debug.Log("No parent to weld");
+                return false;
+            }
+            if (targetNode == null)
+            {
+                Debug.Log("Docked port has no parent");
+                return false;
+            }
+            if (sourcePart == null)
+            {
+                Debug.Log("No source part found.");
+                return false;
+            }
+            if (targetPart == null)
+            {
+                Debug.Log("No target part found.");
+                return false;
+            }
+
+            Debug.Log("sourcePart: " + sourcePart.partInfo.title);
+            Debug.Log("targetPart:" + targetPart.partInfo.title);
+            return true;
         }
 
         protected void linkParts(AttachNode sourceNode, AttachNode targetNode, Part sourcePart, Part targetPart)
@@ -162,10 +165,6 @@ namespace WildBlueIndustries
             //Setup top nodes
             sourcePart.topNode.attachedPart = targetPart;
             targetPart.topNode.attachedPart = sourcePart;
-
-            //Set attached parts
-//            sourceNode.attachedPart = targetPart;
-//            targetNode.attachedPart = sourcePart;
 
             //Destroy original joints
             if (sourcePart.attachJoint != null)
@@ -290,7 +289,7 @@ namespace WildBlueIndustries
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);
-            showWeldedMesh(false);
+            ShowWeldedMesh(false);
         }
 
         public override void OnStart(StartState st)
@@ -319,7 +318,7 @@ namespace WildBlueIndustries
 
             //If we have been welded and we should show the welded mesh then do so.
             if (string.IsNullOrEmpty(weldedMeshName) == false)
-                showWeldedMesh(hasBeenWelded);
+                ShowWeldedMesh(hasBeenWelded);
 
             //Update docking state
             if (dockingNode != null && dockingNode.vesselInfo != null)
@@ -380,6 +379,7 @@ namespace WildBlueIndustries
             onGameSettingsApplied();
             TurnAnimationOff();
             UpdateWeldGUI();
+            ShowWeldedMesh(hasBeenWelded);
         }
 
         public void UpdateWeldGUI()
@@ -433,17 +433,32 @@ namespace WildBlueIndustries
             }
         }
 
-        protected void showWeldedMesh(bool isVisible)
+        public void ShowWeldedMesh(bool isVisible)
+        {
+            if (string.IsNullOrEmpty(weldedMeshName) || string.IsNullOrEmpty(dockingPortMeshName))
+                return;
+
+            if (isVisible)
+            {
+                setMeshVisible(weldedMeshName, true);
+                setMeshVisible(dockingPortMeshName, false);
+            }
+
+            else
+            {
+                setMeshVisible(weldedMeshName, false);
+                setMeshVisible(dockingPortMeshName, true);
+            }
+        }
+
+        protected void setMeshVisible(string meshName, bool isVisible)
         {
             Transform[] targets;
 
             //Get the targets
-            targets = part.FindModelTransforms(weldedMeshName);
+            targets = part.FindModelTransforms(meshName);
             if (targets == null)
-            {
-                Debug.Log("No targets found for " + weldedMeshName);
                 return;
-            }
 
             foreach (Transform target in targets)
             {
@@ -457,6 +472,19 @@ namespace WildBlueIndustries
         protected bool canWeldPorts()
         {
             bool hasWeldEffect = false;
+
+            //Check for docking ports
+            if (dockingNode == null)
+            {
+                Debug.Log("Part does not contain a docking node.");
+                return false;
+            }
+
+            if (dockingNode.otherNode == null)
+            {
+                Debug.Log("There is no docked vessel to weld.");
+                return false;
+            }
 
             //Check EVA requirement
             if (requiresEVA && FlightGlobals.ActiveVessel.isEVA == false)
