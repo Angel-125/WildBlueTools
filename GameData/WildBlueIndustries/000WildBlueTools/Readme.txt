@@ -8,6 +8,7 @@ Copy the contents of the mod's GameData directory into your GameData folder.
 
 1.7.3
 - Fixed an issue where the greenhouse would freeze the game on load.
+- Removed dead code from the docking port helper.
 
 1.7.0
 Updated to KSP 1.2. Expect additional patches as KSP is fixed and mods are updated.

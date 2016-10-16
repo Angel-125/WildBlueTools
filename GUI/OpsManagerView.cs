@@ -267,7 +267,7 @@ namespace WildBlueIndustries
             }
 
             //Toggle Decals
-            if (switcher != null && switcher.decalsVisible)
+            if (switcher != null)
             {
                 if (GUILayout.Button("Toggle Decals"))
                     switcher.ToggleDecals();

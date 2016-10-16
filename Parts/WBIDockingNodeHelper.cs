@@ -26,6 +26,12 @@ namespace WildBlueIndustries
         public bool keepDockingPorts = false;
 
         [KSPField]
+        public string weldedMeshName = string.Empty;
+
+        [KSPField]
+        public bool keepPartAfterWeld;
+
+        [KSPField]
         public string weldEffect = "RepairSkill";
 
         [KSPField(isPersistant = true)]
@@ -35,35 +41,6 @@ namespace WildBlueIndustries
         public bool watchForDocking = false;
 
         protected ModuleDockingNode dockingNode;
-
-        /*
-        [KSPEvent(guiActive = true)]
-        public void RotateShip()
-        {
-            Vessel targetVessel = this.part.vessel.targetObject.GetVessel();
-            List<ModuleDockingNode> dockingNodes = targetVessel.FindPartModulesImplementing<ModuleDockingNode>();
-            ModuleDockingNode node = dockingNodes[0];
-
-            Vector3 thisEuler = this.part.vessel.vesselTransform.rotation.eulerAngles;
-            Vector3 dockEuler = node.part.transform.rotation.eulerAngles;
-
-            Vector3 diff = thisEuler - dockEuler;
-            ScreenMessages.PostScreenMessage("diff: " + diff);
-            Debug.Log("diff: " + diff);
-            this.part.vessel.vesselTransform.Rotate(0,diff.y,0);
-
-            ScreenMessages.PostScreenMessage("This Euler: " + thisEuler);
-            ScreenMessages.PostScreenMessage("dock Euler: " + dockEuler);
-            Debug.Log("FRED This Euler: " + thisEuler);
-            Debug.Log("FRED dock Euler: " + dockEuler);
-
-            //this.part.vessel.vesselTransform.rotation = node.part.transform.rotation;
-
-            //this.part.vessel.vesselTransform.rotation = this.part.vessel.targetObject.GetTransform().rotation;
-            //this.part.vessel.vesselTransform.rotation = FlightGlobals.fetch.vesselTargetTransform.rotation;
-            //this.part.vessel.vesselTransform.Rotate(0, 10f, 0);
-        }
-         */
 
         //Based on code by Shadowmage. Thanks for showing how it's done, Shadowmage! :)
         [KSPEvent(guiName = "Weld Ports", guiActive = false, unfocusedRange = 3.0f)]
@@ -113,12 +90,16 @@ namespace WildBlueIndustries
                 return;
             }
 
-            //Decouple the attached parts from the docking ports
-            sourcePart.decouple(0);
-            targetPart.decouple(0);
+            Debug.Log("FRED sourcePart: " + sourcePart.partInfo.title);
+            Debug.Log("FRED targetPart:" + targetPart.partInfo.title);
+
+            //Sadly, decoupling is giving me odd errors in FlightIntegrator
+            //So let's play with linked lists...
+            clearAttachmentData(dockingNode.otherNode);
+            clearAttachmentData(dockingNode);
  
             //If we aren't keeping the docking ports then we need to move the parts together.
-            if (!keepDockingPorts)
+            if (!keepDockingPorts)// && !keepPartAfterWeld)
             {
                 //See if we can avoid collisions while moving.
                 this.part.SetCollisionIgnores();
@@ -137,14 +118,14 @@ namespace WildBlueIndustries
             {
                 this.part.attachMode = AttachModes.SRF_ATTACH;
                 sourcePart.Couple(this.part);
+
+                //Show welded mesh if we have one
+//                if (string.IsNullOrEmpty(weldedMeshName) == false)
+//                    showWeldedMesh(true);
             }
 
-            //Weld the parts
-            sourcePart.Couple(targetPart);
-            sourceNode.attachedPart = targetPart;
-            targetNode.attachedPart = sourcePart;
-            sourcePart.fuelLookupTargets.AddUnique(targetPart);
-            targetPart.fuelLookupTargets.AddUnique(sourcePart);
+            //Link the parts together
+            linkParts(sourceNode, targetNode, sourcePart, targetPart);
 
             //Update the GUI
             hasBeenWelded = true;
@@ -168,6 +149,72 @@ namespace WildBlueIndustries
                 dockingNode.otherNode.part.Die();
                 this.part.Die();
             }
+        }
+
+        protected void linkParts(AttachNode sourceNode, AttachNode targetNode, Part sourcePart, Part targetPart)
+        {
+            //Reparent the parts
+            if (targetPart.parent == dockingNode.otherNode.part && targetPart.parent != null)
+                targetPart.parent = sourcePart;
+            if (sourcePart.parent == this.part && sourcePart.parent != null)
+                sourcePart.parent = targetPart;
+
+            //Setup top nodes
+            sourcePart.topNode.attachedPart = targetPart;
+            targetPart.topNode.attachedPart = sourcePart;
+
+            //Set attached parts
+//            sourceNode.attachedPart = targetPart;
+//            targetNode.attachedPart = sourcePart;
+
+            //Destroy original joints
+            if (sourcePart.attachJoint != null)
+                sourcePart.attachJoint.DestroyJoint();
+            if (targetPart.attachJoint != null)
+                targetPart.attachJoint.DestroyJoint();
+
+            //Set attached parts
+            foreach (AttachNode attachNode in sourcePart.attachNodes)
+            {
+                if (attachNode.attachedPart == this.part)
+                    attachNode.attachedPart = targetPart;
+            }
+            foreach (AttachNode attachNode in targetPart.attachNodes)
+            {
+                if (attachNode.attachedPart == this.part)
+                    attachNode.attachedPart = sourcePart;
+            }
+
+            //Set child parts
+            if (sourcePart.children.Contains(this.part))
+            {
+                sourcePart.children.Remove(this.part);
+                sourcePart.addChild(targetPart);
+            }
+            if (targetPart.children.Contains(dockingNode.otherNode.part))
+            {
+                targetPart.children.Remove(dockingNode.otherNode.part);
+                targetPart.addChild(sourcePart);
+            }
+
+            //Set lookup targets
+            sourcePart.fuelLookupTargets.AddUnique(targetPart);
+            targetPart.fuelLookupTargets.AddUnique(sourcePart);
+
+            //Create new joint
+            PartJoint joint = PartJoint.Create(targetPart, sourcePart, targetNode, sourceNode, AttachModes.STACK);
+            targetPart.attachJoint = joint;
+        }
+
+        protected void clearAttachmentData(ModuleDockingNode node)
+        {
+            node.part.children.Clear();
+            node.part.topNode.attachedPart = null;
+            node.part.attachJoint.DestroyJoint();
+            node.part.parent = null;
+
+            for (int index = 0; index < node.part.attachNodes.Count; index++)
+                node.part.attachNodes[index].attachedPart = null;
         }
 
         [KSPEvent(guiName = "Control from Here", guiActive = true)]
@@ -240,6 +287,12 @@ namespace WildBlueIndustries
                 glowAnim.Toggle();
         }
 
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+            showWeldedMesh(false);
+        }
+
         public override void OnStart(StartState st)
         {
             base.OnStart(st);
@@ -263,6 +316,14 @@ namespace WildBlueIndustries
             UpdateWeldGUI();
             Events["UnsetNodeTarget"].guiActive = false;
             Events["SetNodeTarget"].guiActive = true;
+
+            //If we have been welded and we should show the welded mesh then do so.
+            if (string.IsNullOrEmpty(weldedMeshName) == false)
+                showWeldedMesh(hasBeenWelded);
+
+            //Update docking state
+            if (dockingNode != null && dockingNode.vesselInfo != null)
+                OnDockingStateChanged();
         }
 
         public override void OnUpdate()
@@ -369,6 +430,27 @@ namespace WildBlueIndustries
                         dockingNode.otherNode.moduleIsEnabled = false;
                     }
                 }
+            }
+        }
+
+        protected void showWeldedMesh(bool isVisible)
+        {
+            Transform[] targets;
+
+            //Get the targets
+            targets = part.FindModelTransforms(weldedMeshName);
+            if (targets == null)
+            {
+                Debug.Log("No targets found for " + weldedMeshName);
+                return;
+            }
+
+            foreach (Transform target in targets)
+            {
+                target.gameObject.SetActive(isVisible);
+                Collider collider = target.gameObject.GetComponent<Collider>();
+                if (collider != null)
+                    collider.enabled = isVisible;
             }
         }
 
