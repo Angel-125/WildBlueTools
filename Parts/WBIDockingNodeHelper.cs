@@ -60,11 +60,11 @@ namespace WildBlueIndustries
             otherNodePart = dockingNode.otherNode.part;
 
             //Sadly, decoupling is giving me odd errors in FlightIntegrator
-            //De-link the docking ports
+            //Time for some linked list shenanigans. De-link the docking ports
             clearAttachmentData(dockingNode.otherNode);
             clearAttachmentData(dockingNode);
 
-            //See if we can avoid collisions while moving.
+            //See if we can avoid collisions while moving. Seems to help.
             this.part.SetCollisionIgnores();
             otherNodePart.SetCollisionIgnores();
 

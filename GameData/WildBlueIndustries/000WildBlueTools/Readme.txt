@@ -6,9 +6,11 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.8.0
+- Added WBIConvertibleMPL. Use this when you want science labs with stock Mobile Processing Lab functionality to be able to switch to a different configuration.
+
 1.7.3
 - Fixed an issue where the greenhouse would freeze the game on load.
-- Removed dead code from the docking port helper.
 
 1.7.0
 Updated to KSP 1.2. Expect additional patches as KSP is fixed and mods are updated.
