@@ -97,8 +97,9 @@ namespace WildBlueIndustries
         protected TemplateManager templateManager;
         protected Dictionary<string, ConfigNode> parameterOverrides = new Dictionary<string, ConfigNode>();
         protected Dictionary<string, double> resourceMaxAmounts = new Dictionary<string, double>();
-        private List<PartResource> _templateResources = new List<PartResource>();
+        protected List<PartResource> templateResources = new List<PartResource>();
         private bool _switchClickedOnce = false;
+        protected Dictionary<string, double> keptResources = null;
 
         #region Display Fields
         //We use this field to identify the template config node as well as have a GUI friendly name for the user.
@@ -443,11 +444,89 @@ namespace WildBlueIndustries
                 if (onModuleRedecorated != null)
                     onModuleRedecorated(nodeTemplate);
 
+                adjustKeptResources(nodeTemplate);
                 Log("Module redecorated.");
             }
             catch (Exception ex)
             {
                 Log("RedecorateModule encountered an ERROR: " + ex);
+            }
+        }
+
+        protected void findKeptResources()
+        {
+            //If we have resources to keep, keep track of them.
+            if (string.IsNullOrEmpty(resourcesToKeep) == false)
+            {
+                ConfigNode[] resourceNodes = this.part.partInfo.partConfig.GetNodes("RESOURCE");
+                string resourceName;
+                for (int index = 0; index < resourceNodes.Length; index++)
+                {
+                    resourceName = resourceNodes[index].GetValue("name");
+                    if (resourcesToKeep.Contains(resourceName))
+                    {
+                        if (keptResources == null)
+                            keptResources = new Dictionary<string, double>();
+
+                        if (keptResources.ContainsKey(resourceName) == false)
+                            keptResources.Add(resourceName, double.Parse(resourceNodes[index].GetValue("maxAmount")));
+                    }
+                }
+            }
+        }
+
+        protected virtual void adjustKeptResources(ConfigNode nodeTemplate)
+        {
+            double maxAmount = 0;
+            Dictionary<string, ConfigNode> configResources = new Dictionary<string, ConfigNode>();
+            ConfigNode[] nodeResources = null;
+            PartResource resource = null;
+
+            //Compile the list of resources added by the template
+            nodeResources = nodeTemplate.GetNodes("RESOURCE");
+            foreach (ConfigNode node in nodeResources)
+                configResources.Add(node.GetValue("name"), node);
+
+            //We've had a redecoration event. If we have kept resources and they've been modified
+            //(like we keep monopropellant and have switched to a template that has monopropellant)
+            //make sure to combine the totals. By the same token, make sure that the kept resources
+            //are at the proper levels.
+            if (string.IsNullOrEmpty(resourcesToKeep) == false)
+            {
+                foreach (string key in keptResources.Keys)
+                {
+                    maxAmount = keptResources[key];
+
+                    //If the template contains a kept resouce then increase max amount
+                    if (configResources.ContainsKey(key))
+                    {
+                        resource = this.part.Resources[key];
+                        resource.maxAmount = maxAmount + (double.Parse(configResources[key].GetValue("maxAmount")) * capacityFactor);
+                        resourceMaxAmounts[key] = resource.maxAmount;
+
+                        //Adjust for inflatables.
+                        if (isInflatable && isDeployed == false)
+                            resource.maxAmount = 0;
+
+                        else if (HighLogic.LoadedSceneIsEditor)
+                            resource.amount = resource.maxAmount;
+                    }
+
+                    //template does not contain a kept resource
+                    else
+                    {
+                        resource = this.part.Resources[key];
+                        resource.maxAmount = maxAmount;
+                        resourceMaxAmounts[key] = resource.maxAmount;
+
+                        //Adjust for inflatables.
+                        if (isInflatable && isDeployed == false)
+                            resource.maxAmount = 0;
+
+                        else if (resource.amount > resource.maxAmount)
+                            resource.amount = resource.maxAmount;
+                    }
+                }
             }
         }
 
@@ -489,7 +568,7 @@ namespace WildBlueIndustries
             {
                 ResourceHelper.RemoveResource(doomed.resourceName, this.part);
             }
-            _templateResources.Clear();
+            templateResources.Clear();
         }
 
         #endregion
@@ -659,7 +738,7 @@ namespace WildBlueIndustries
             if (resourceNodes != null)
             {
                 //Clear any existing resources. We shouldn't have any...
-                _templateResources.Clear();
+                templateResources.Clear();
 
                 foreach (ConfigNode resourceNode in resourceNodes)
                 {
@@ -685,7 +764,7 @@ namespace WildBlueIndustries
                         resource = this.part.AddResource(resourceNode);
                     }
 
-                    _templateResources.Add(resource);
+                    templateResources.Add(resource);
                 }
             }
         }
@@ -698,7 +777,7 @@ namespace WildBlueIndustries
             base.OnSave(node);
             bool resourceNotFound = true;
 
-            foreach (PartResource resource in _templateResources)
+            foreach (PartResource resource in templateResources)
             {
                 //See if the resource node already exists.
                 //If it doesn't then add the new node.
@@ -744,10 +823,11 @@ namespace WildBlueIndustries
 
         public override void OnStart(PartModule.StartState state)
         {
-            bool loadTemplateResources = _templateResources.Count<PartResource>() > 0 ? false : true;
+            bool loadTemplateResources = templateResources.Count<PartResource>() > 0 ? false : true;
             base.OnStart(state);
             Log("OnStart - State: " + state + "  Part: " + getMyPartName());
 
+            findKeptResources();
             if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
                 return;
 
@@ -836,7 +916,7 @@ namespace WildBlueIndustries
                     resource.amount = 0f;
                 }
 
-                _templateResources.Add(resource);
+                templateResources.Add(resource);
                 resource.isTweakable = true;
             }
         }
@@ -874,7 +954,7 @@ namespace WildBlueIndustries
             {
                 ResourceHelper.RemoveResource(doomed.resourceName, this.part);
             }
-            _templateResources.Clear();
+            templateResources.Clear();
             Log("Resources cleared");
 
             //Set capacityModifier if there is an override for the template
@@ -929,7 +1009,7 @@ namespace WildBlueIndustries
                     resource.amount = 0f;
                 }
 
-                _templateResources.Add(resource);
+                templateResources.Add(resource);
                 resource.isTweakable = true;
             }
 

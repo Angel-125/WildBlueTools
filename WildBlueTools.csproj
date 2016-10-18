@@ -132,6 +132,7 @@
     <Compile Include="Utilities\WBIAnimateRotate.cs" />
     <Compile Include="Settings\WBIDockingParameters.cs" />
     <Compile Include="Settings\WBIMainSettings.cs" />
+    <Compile Include="Utilities\WBILockedAnimation.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

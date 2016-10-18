@@ -21,10 +21,10 @@ namespace WildBlueIndustries
     public class WBIModuleRCSTechCheck : WBIMeshHelper
     {
         protected bool upgradeChecked = false;
+        protected ModuleRCSFX rcsModule;
 
         protected void checkForUpgrade()
         {
-            ModuleRCSFX rcsModule = this.part.FindModuleImplementing<ModuleRCSFX>();
             if (rcsModule == null)
                 return;
 
@@ -46,10 +46,22 @@ namespace WildBlueIndustries
         {
             base.OnStart(state);
 
-            if (HighLogic.CurrentGame.Mode != Game.Modes.SANDBOX)
+            rcsModule = this.part.FindModuleImplementing<ModuleRCSFX>();
+            if (rcsModule == null)
+                return;
+
+            if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
             {
                 setObject(-1);
                 checkForUpgrade();
+            }
+
+            else
+            {
+                rcsModule.moduleIsEnabled = true;
+                rcsModule.enabled = true;
+                rcsModule.isEnabled = true;
+                setObject(0);
             }
         }
     }

@@ -21,10 +21,6 @@ namespace WildBlueIndustries
     [KSPModule("Docking Node Helper")]
     public class WBIDockingNodeHelper : PartModule
     {
-        public bool requiresEVA = false;
-        public bool requiresRepairSkill = false;
-        public bool keepDockingPorts = false;
-
         [KSPField]
         public string dockingPortMeshName = string.Empty;
 
@@ -46,7 +42,7 @@ namespace WildBlueIndustries
         protected ModuleDockingNode dockingNode;
 
         //Based on code by Shadowmage. Thanks for showing how it's done, Shadowmage! :)
-        [KSPEvent(guiName = "Weld Ports", guiActive = false, unfocusedRange = 3.0f)]
+        [KSPEvent(guiName = "Weld Ports", guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void WeldPorts()
         {
             //Check welding requirements
@@ -69,7 +65,7 @@ namespace WildBlueIndustries
             otherNodePart.SetCollisionIgnores();
 
             //If we aren't keeping the docking ports then we need to move the parts together.
-            if (!keepDockingPorts && !keepPartAfterWeld)
+            if (!WBIDockingParameters.KeepDockingPorts && !keepPartAfterWeld)
             {
                 //Calculate the distance between the docking ports
                 float distance = Mathf.Abs(Vector3.Distance(sourceNode.position, dockingNode.referenceNode.position));
@@ -114,7 +110,7 @@ namespace WildBlueIndustries
             GameEvents.onVesselWasModified.Fire(this.part.vessel);
 
             //We do this last because the part itself will be going away if we don't keep the ports.
-            if (!keepDockingPorts && !keepPartAfterWeld)
+            if (!WBIDockingParameters.KeepDockingPorts && !keepPartAfterWeld)
             {
                 dockingNode.otherNode.part.Die();
                 this.part.Die();
@@ -264,10 +260,6 @@ namespace WildBlueIndustries
                 return;
             }
 
-            requiresEVA = dockingParameters.WeldRequiresEVA;
-            requiresRepairSkill = dockingParameters.WeldRequiresRepairSkill;
-            keepDockingPorts = dockingParameters.KeepDockingPorts;
-
             UpdateWeldGUI();
         }
 
@@ -298,8 +290,7 @@ namespace WildBlueIndustries
             //Welding GUI
             if (dockingNode.vesselInfo != null)
             {
-                Events["WeldPorts"].guiActive = !requiresEVA;
-                Events["WeldPorts"].guiActiveUnfocused = requiresEVA;
+                Events["WeldPorts"].guiActive = !WBIDockingParameters.WeldRequiresEVA;
             }
 
             //If we've already done the welding then disable the GUI.
@@ -398,14 +389,14 @@ namespace WildBlueIndustries
             }
 
             //Check EVA requirement
-            if (requiresEVA && FlightGlobals.ActiveVessel.isEVA == false)
+            if (WBIDockingParameters.WeldRequiresEVA && FlightGlobals.ActiveVessel.isEVA == false)
             {
                 ScreenMessages.PostScreenMessage("Welding requires a kerbal on EVA with the repair skill.");
                 return false;
             }
 
             //Check skill requirement
-            if (requiresRepairSkill && Utils.IsExperienceEnabled())
+            if (WBIDockingParameters.WeldRequiresRepairSkill && Utils.IsExperienceEnabled())
             {
                 List<ProtoCrewMember> crewMembers = FlightGlobals.ActiveVessel.GetVesselCrew();
 

@@ -41,6 +41,15 @@ namespace WildBlueIndustries
             hideEditorButtons();
             Events["ReconfigureStorage"].guiActiveUnfocused = fieldEVAConfigurable;
             Events["ReconfigureStorage"].guiActive = fieldReconfigurable;
+
+            //Kludge: make sure that if we're deflated then dump resources.
+            //This is to compensate for KIS.
+            if (isInflatable && isDeployed == false)
+            {
+                foreach (PartResource resource in this.part.Resources)
+                    resource.amount = 0;
+            }
+
         }
 
         public void SetWindowTitle(string title)
