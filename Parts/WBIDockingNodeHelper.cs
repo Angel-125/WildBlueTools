@@ -41,7 +41,7 @@ namespace WildBlueIndustries
 
         protected ModuleDockingNode dockingNode;
 
-        //Based on code by Shadowmage. Thanks for showing how it's done, Shadowmage! :)
+        //Based on code by Shadowmage & RoverDude. Thanks for showing how it's done guys! :)
         [KSPEvent(guiName = "Weld Ports", guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void WeldPorts()
         {
@@ -50,59 +50,63 @@ namespace WildBlueIndustries
                 return;
 
             AttachNode sourceNode, targetNode;
-            Part sourcePart, targetPart, otherNodePart;
+            Part sourcePart, targetPart, thisPart, parentPart, otherNodePart;
             if (!getNodes(out sourceNode, out targetNode, out sourcePart, out targetPart))
                 return;
+            parentPart = this.part.parent;
+            thisPart = this.part;
             otherNodePart = dockingNode.otherNode.part;
 
-            //Sadly, decoupling is giving me odd errors in FlightIntegrator
-            //Time for some linked list shenanigans. De-link the docking ports
-            clearAttachmentData(dockingNode.otherNode);
-            clearAttachmentData(dockingNode);
+            //Calculate the gap between the docking ports and the offset vector.
+            float distance = Mathf.Abs(Vector3.Distance(sourceNode.position, dockingNode.referenceNode.position));
+            distance += Mathf.Abs(Vector3.Distance(targetNode.position, dockingNode.otherNode.referenceNode.position));
+            Vector3 offset = calculateOffset(parentPart, thisPart, distance);
 
-            //See if we can avoid collisions while moving. Seems to help.
-            this.part.SetCollisionIgnores();
-            otherNodePart.SetCollisionIgnores();
+            //Clear attachment links. This seems to work better than decoupling (as far as FlightIntegrator is concerned)
+            clearAttachmentData(thisPart);
+            clearAttachmentData(parentPart);
 
-            //If we aren't keeping the docking ports then we need to move the parts together.
+            //Create new links
+            linkParts(sourceNode, targetNode, sourcePart, targetPart);
+
+            //Ignore collisions while we shift things around.
+            thisPart.SetCollisionIgnores();
+            parentPart.SetCollisionIgnores();
+
+            //If we aren't keeping the part then reposition the stuff attached to the docking ports
             if (!WBIDockingParameters.KeepDockingPorts && !keepPartAfterWeld)
             {
-                //Calculate the distance between the docking ports
-                float distance = Mathf.Abs(Vector3.Distance(sourceNode.position, dockingNode.referenceNode.position));
-                distance += Mathf.Abs(Vector3.Distance(targetNode.position, dockingNode.otherNode.referenceNode.position));
-
-                //Now move the target part next to the source part
-                targetPart.transform.position = Vector3.MoveTowards(targetPart.transform.position, sourcePart.transform.position, distance);
+                shiftPart(sourcePart, offset);
             }
 
-            //Re-link the ports                
-            else 
+            //We're keeping the ports, so surface-attach them.
+            else
             {
-                this.part.parent = sourcePart;
-                this.part.srfAttachNode.attachedPart = sourcePart;
-                this.part.attachJoint = PartJoint.Create(this.part, sourcePart, this.part.srfAttachNode, null, AttachModes.SRF_ATTACH);
+                parentPart = sourcePart;
+                thisPart.srfAttachNode.attachedPart = sourcePart;
+                thisPart.attachRules.allowSrfAttach = true;
+                thisPart.attachJoint = PartJoint.Create(thisPart, sourcePart, thisPart.srfAttachNode, null, AttachModes.SRF_ATTACH);
 
                 otherNodePart.parent = targetPart;
                 otherNodePart.srfAttachNode.attachedPart = targetPart;
+                otherNodePart.attachRules.allowSrfAttach = true;
                 otherNodePart.attachJoint = PartJoint.Create(otherNodePart, targetPart, otherNodePart.srfAttachNode, null, AttachModes.SRF_ATTACH);
 
                 //Show the welded mesh
                 ShowWeldedMesh(true);
             }
 
-            //Link the parts together
-            linkParts(sourceNode, targetNode, sourcePart, targetPart);
-
-            //Update the GUI
-            hasBeenWelded = true;
-            UpdateWeldGUI();
-            WBIDockingNodeHelper otherNodeHelper = dockingNode.otherNode.part.FindModuleImplementing<WBIDockingNodeHelper>();
-            if (otherNodeHelper != null)
+            //Create the new joint
+            if (thisPart.attachMode == AttachModes.STACK)
             {
-                otherNodeHelper.hasBeenWelded = true;
-                otherNodeHelper.OnDockingStateChanged();
+                sourcePart.attachJoint = PartJoint.Create(sourcePart, parentPart, targetNode, sourceNode, AttachModes.STACK);
             }
- 
+            else
+            {
+                sourcePart.attachRules.srfAttach = true;
+                sourcePart.attachJoint = PartJoint.Create(sourcePart, parentPart, targetNode, null, AttachModes.SRF_ATTACH);
+            }
+
             //Cleanup
             FlightGlobals.ForceSetActiveVessel(sourcePart.vessel);
             UIPartActionController.Instance.Deactivate();
@@ -353,6 +357,38 @@ namespace WildBlueIndustries
             }
         }
 
+        //Based on code by RoverDude. Thanks for showing how it's done. :)
+        private Vector3 calculateOffset(Part sourcePart, Part targetPart, float distance)
+        {
+            var objA = new GameObject();
+            var objB = new GameObject();
+
+            Transform targetTransform = objA.transform;
+            Transform sourceTransform = objB.transform;
+
+            targetTransform.localPosition = this.part.parent.transform.localPosition;
+            sourceTransform.localPosition = this.part.transform.localPosition;
+
+            Vector3 offset = targetTransform.localPosition - sourceTransform.localPosition;
+            offset.Normalize();
+
+            offset *= distance;
+
+            return offset;
+        }
+
+        //Based on code by RoverDude. Thanks for showing how it's done. :)
+        protected void shiftPart(Part movingPart, Vector3 offset)
+        {
+            if (movingPart.Rigidbody != null && movingPart.physicalSignificance == Part.PhysicalSignificance.FULL)
+                movingPart.transform.position += offset;
+
+            movingPart.UpdateOrgPosAndRot(movingPart.vessel.rootPart);
+
+            foreach (Part childPart in movingPart.children)
+                shiftPart(childPart, offset);
+        }
+        
         protected void setMeshVisible(string meshName, bool isVisible)
         {
             Transform[] targets;
@@ -500,16 +536,8 @@ namespace WildBlueIndustries
                 targetPart.attachJoint.DestroyJoint();
 
             //Set attached parts
-            foreach (AttachNode attachNode in sourcePart.attachNodes)
-            {
-                if (attachNode.attachedPart == this.part)
-                    attachNode.attachedPart = targetPart;
-            }
-            foreach (AttachNode attachNode in targetPart.attachNodes)
-            {
-                if (attachNode.attachedPart == this.part)
-                    attachNode.attachedPart = sourcePart;
-            }
+            sourceNode.attachedPart = targetPart;
+            targetNode.attachedPart = sourcePart;
 
             //Set child parts
             if (sourcePart.children.Contains(this.part))
@@ -527,20 +555,17 @@ namespace WildBlueIndustries
             sourcePart.fuelLookupTargets.AddUnique(targetPart);
             targetPart.fuelLookupTargets.AddUnique(sourcePart);
 
-            //Create new joint
-            PartJoint joint = PartJoint.Create(targetPart, sourcePart, targetNode, sourceNode, AttachModes.STACK);
-            targetPart.attachJoint = joint;
         }
 
-        protected void clearAttachmentData(ModuleDockingNode node)
+        protected void clearAttachmentData(Part doomed)
         {
-            node.part.children.Clear();
-            node.part.topNode.attachedPart = null;
-            node.part.attachJoint.DestroyJoint();
-            node.part.parent = null;
+            doomed.children.Clear();
+            doomed.topNode.attachedPart = null;
+            doomed.attachJoint.DestroyJoint();
+            doomed.parent = null;
 
-            for (int index = 0; index < node.part.attachNodes.Count; index++)
-                node.part.attachNodes[index].attachedPart = null;
+            for (int index = 0; index < doomed.attachNodes.Count; index++)
+                doomed.attachNodes[index].attachedPart = null;
         }
     }
 }

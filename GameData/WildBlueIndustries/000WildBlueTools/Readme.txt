@@ -6,6 +6,10 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.8.2
+- Fixed some welding issues.
+- Greenhouses won't harvest crops if you run out of resources.
+
 1.8.1
 - You can now weld ports during eva.
 
