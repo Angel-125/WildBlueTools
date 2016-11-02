@@ -283,7 +283,19 @@ namespace WildBlueIndustries
             GUILayout.Label(string.Format("<color=white><b>Bonus Science Gained (requires transmission): </b>{0:f2}</color>", experimentLab.scienceAdded));
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(transmitIcon, iconOptions))
-                experimentLab.TransmitResults();
+            {
+                if (CommNet.CommNetScenario.CommNetEnabled)
+                {
+                    if (this.part.vessel.connection.IsConnectedHome)
+                        experimentLab.TransmitResults();
+                    else
+                        ScreenMessages.PostScreenMessage("Unable to transmit bonus research, there's no connection back home!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                }
+                else
+                {
+                    experimentLab.TransmitResults();
+                }
+            }
             GUILayout.Label("<color=white>Transmit bonus science</color>");
             GUILayout.EndHorizontal();
 

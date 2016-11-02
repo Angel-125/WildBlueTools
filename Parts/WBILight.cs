@@ -175,19 +175,25 @@ namespace WildBlueIndustries
             }
 
             //Play animation for current state
-            PlayAnimation(isDeployed);
-            isDeployed = true;
-            Events["ToggleAnimation"].guiName = endEventGUIName;
-            setupLights();
+            if (!isDeployed)
+            {
+                PlayAnimation(false);
+                isDeployed = true;
+                Events["ToggleAnimation"].guiName = endEventGUIName;
+                setupLights();
+            }
         }
 
         public void TurnOffLights()
         {
             //Play animation for current state
-            PlayAnimation(isDeployed);
-            isDeployed = false;
-            Events["ToggleAnimation"].guiName = startEventGUIName;
-            setupLights();
+            if (isDeployed)
+            {
+                PlayAnimation(true);
+                isDeployed = false;
+                Events["ToggleAnimation"].guiName = startEventGUIName;
+                setupLights();
+            }
         }
 
         public override void ToggleAnimation()

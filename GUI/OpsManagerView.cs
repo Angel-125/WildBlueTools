@@ -240,6 +240,8 @@ namespace WildBlueIndustries
                 switcher.Events["DumpResources"].guiActive = false;
                 switcher.Events["DumpResources"].guiActiveUnfocused = false;
             }
+
+            lightModule = this.part.FindModuleImplementing<WBILight>();
         }
 
         protected void drawCommandView()
@@ -283,8 +285,17 @@ namespace WildBlueIndustries
             //Toggle Lights
             if (lightModule != null)
             {
-                if (GUILayout.Button("Toggle Lights"))
-                    lightModule.ToggleAnimation();
+                if (lightModule.isDeployed)
+                {
+                    if (GUILayout.Button(lightModule.endEventGUIName))
+                        lightModule.TurnOffLights();
+                }
+
+                else
+                {
+                    if (GUILayout.Button(lightModule.startEventGUIName))
+                        lightModule.TurnOnLights();
+                }
             }
 
             GUILayout.EndScrollView();
