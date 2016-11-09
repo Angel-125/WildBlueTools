@@ -50,6 +50,12 @@ namespace WildBlueIndustries
             updateGui();
         }
 
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+            updateGui();
+        }
+
         protected void updateGui()
         {            
             if (meshesVisible)

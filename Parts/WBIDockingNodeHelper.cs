@@ -41,6 +41,14 @@ namespace WildBlueIndustries
 
         protected ModuleDockingNode dockingNode;
 
+        [KSPField(guiName = "Use Angle Snap", isPersistant = true, guiActiveEditor = true, guiActive = true)]
+        [UI_Toggle(enabledText = "On", disabledText = "Off")]
+        public bool angleSnapOn;
+
+        [KSPField(guiName = "Snap Angle", isPersistant = true, guiActive = true, guiActiveEditor = false)]
+        [UI_FloatRange(stepIncrement = 30f, maxValue = 180f, minValue = 0f)]
+        public float snapAngle = 0f;
+
         //Based on code by Shadowmage & RoverDude. Thanks for showing how it's done guys! :)
         [KSPEvent(guiName = "Weld Ports", guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void WeldPorts()
@@ -231,6 +239,42 @@ namespace WildBlueIndustries
         public override void OnUpdate()
         {
             base.OnUpdate();
+
+            //Setup angle snap
+            dockingNode.snapRotation = angleSnapOn;
+            dockingNode.snapOffset = snapAngle;
+            if (angleSnapOn)
+                dockingNode.captureMinRollDot = 0.999f;
+            else
+                dockingNode.captureMinRollDot = float.MinValue;
+
+            //If the other port doesn't have angle snap on, then turn off ours.
+            //Seems to only apply when we're the port that was targeted (the passive port)
+            if (watchForDocking && dockingNode.vesselInfo != null)
+            {
+                if (dockingNode.otherNode.snapRotation == false)
+                {
+                    dockingNode.snapRotation = false;
+                    dockingNode.snapOffset = 0f;
+                    angleSnapOn = false;
+                    dockingNode.captureMinRollDot = float.MinValue;
+                }
+            }
+
+            //We might be the active docking port.
+            //See if the target part is a docking port, and if so, check to see if angle snap is on.
+            //If not, tun off our angle snap.
+            else if (this.part.vessel.targetObject != null && this.part.vessel.targetObject is ModuleDockingNode)
+            {
+                ModuleDockingNode targetNode = (ModuleDockingNode)this.part.vessel.targetObject;
+                if (targetNode.snapRotation == false)
+                {
+                    dockingNode.snapRotation = false;
+                    dockingNode.snapOffset = 0f;
+                    angleSnapOn = false;
+                    dockingNode.captureMinRollDot = float.MinValue;
+                }
+            }
 
             //Workaround: Watch to see when we dock. When we do, update the GUI.
             if (watchForDocking)
