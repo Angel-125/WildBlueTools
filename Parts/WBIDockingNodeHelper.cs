@@ -250,7 +250,7 @@ namespace WildBlueIndustries
 
             //If the other port doesn't have angle snap on, then turn off ours.
             //Seems to only apply when we're the port that was targeted (the passive port)
-            if (watchForDocking && dockingNode.vesselInfo != null)
+            if (watchForDocking && dockingNode.otherNode != null)
             {
                 if (dockingNode.otherNode.snapRotation == false)
                 {
@@ -267,12 +267,23 @@ namespace WildBlueIndustries
             else if (this.part.vessel.targetObject != null && this.part.vessel.targetObject is ModuleDockingNode)
             {
                 ModuleDockingNode targetNode = (ModuleDockingNode)this.part.vessel.targetObject;
-                if (targetNode.snapRotation == false)
+                WBIDockingNodeHelper dockingHelper = targetNode.part.FindModuleImplementing<WBIDockingNodeHelper>();
+
+                if (targetNode.snapRotation == false && dockingHelper == null)
                 {
                     dockingNode.snapRotation = false;
                     dockingNode.snapOffset = 0f;
                     angleSnapOn = false;
                     dockingNode.captureMinRollDot = float.MinValue;
+                }
+
+                //If we're docking with a WBI port and its snap rotation is off and our angle snap is on then turn on the WBI port's angle snap.
+                else if (targetNode.snapRotation == false && dockingHelper != null && angleSnapOn)
+                {
+                    dockingHelper.angleSnapOn = true;
+                    targetNode.snapRotation = true;
+                    targetNode.snapOffset = dockingHelper.snapAngle;
+                    targetNode.captureMinRollDot = 0.999f;
                 }
             }
 
