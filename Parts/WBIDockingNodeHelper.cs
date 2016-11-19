@@ -41,9 +41,9 @@ namespace WildBlueIndustries
 
         protected ModuleDockingNode dockingNode;
 
-        [KSPField(guiName = "Use Angle Snap", isPersistant = true, guiActiveEditor = true, guiActive = true)]
+        [KSPField(guiName = "Use Angle Snap", isPersistant = true)]//, guiActiveEditor = true, guiActive = true)]
         [UI_Toggle(enabledText = "On", disabledText = "Off")]
-        public bool angleSnapOn;
+        public bool angleSnapOn = false;
 
         [KSPField(guiName = "Snap Angle", isPersistant = true, guiActive = true, guiActiveEditor = false)]
         [UI_FloatRange(stepIncrement = 30f, maxValue = 180f, minValue = 0f)]
@@ -231,15 +231,16 @@ namespace WildBlueIndustries
             if (string.IsNullOrEmpty(weldedMeshName) == false)
                 ShowWeldedMesh(hasBeenWelded);
 
+            //TEMPORARY disable anglesnap
+            angleSnapOn = false;
+
             //Update docking state
             if (dockingNode != null && dockingNode.vesselInfo != null)
                 OnDockingStateChanged();
         }
 
-        public override void OnUpdate()
+        protected void updateAngleSnap()
         {
-            base.OnUpdate();
-
             //Setup angle snap
             dockingNode.snapRotation = angleSnapOn;
             dockingNode.snapOffset = snapAngle;
@@ -285,7 +286,24 @@ namespace WildBlueIndustries
                     targetNode.snapOffset = dockingHelper.snapAngle;
                     targetNode.captureMinRollDot = 0.999f;
                 }
+
+                //Turn off other port's angle snap
+                else if (dockingHelper != null)
+                {
+                    dockingHelper.angleSnapOn = false;
+                    targetNode.snapRotation = false;
+                    targetNode.snapOffset = 0f;
+                    targetNode.captureMinRollDot = float.MinValue;
+                }
             }
+        }
+
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+
+            //Update angle snap
+            updateAngleSnap();
 
             //Workaround: Watch to see when we dock. When we do, update the GUI.
             if (watchForDocking)
