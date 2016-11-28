@@ -55,6 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Animation\ModuleAnimateGenericSFX.cs" />
     <Compile Include="Switchers\WBIConvertibleMPL.cs" />
     <Compile Include="Converters\WBIModuleGreenhouse.cs" />
     <Compile Include="GUI\InfoView.cs" />
@@ -69,10 +70,11 @@
     <Compile Include="GUI\ConvertibleStorageView.cs" />
     <Compile Include="GUI\ScienceLabResultsView.cs" />
     <Compile Include="Utilities\WBIModuleWetWorkshop.cs" />
-    <Compile Include="Utilities\WBIKISInventoryWrapper.cs" />
-    <Compile Include="Utilities\ButtonClickDelegate.cs" />
+    <Compile Include="Science\WBIBiomeMultiExperiment.cs" />
+    <Compile Include="Wrappers\WBIKISInventoryWrapper.cs" />
+    <Compile Include="IVAUtils\ButtonClickDelegate.cs" />
     <Compile Include="PropModules\InternalPlasmaScreen.cs" />
-    <Compile Include="Utilities\ExternalCamera.cs" />
+    <Compile Include="IVAUtils\ExternalCamera.cs" />
     <Compile Include="GUI\ExternalCameraView.cs" />
     <Compile Include="GUI\WBIResultsDialogSwizzler.cs">
       <SubType>Code</SubType>
@@ -81,42 +83,42 @@
     <Compile Include="Parts\WBICamera.cs" />
     <Compile Include="Utilities\ExtendedPartModule.cs" />
     <Compile Include="GUI\FakeExperimentResults.cs" />
-    <Compile Include="Utilities\FixedUpdateHelper.cs" />
+    <Compile Include="Helpers\FixedUpdateHelper.cs" />
     <Compile Include="Utilities\ModCategorizer.cs" />
     <Compile Include="Switchers\WBIAffordableSwitcher.cs" />
-    <Compile Include="Utilities\TransmitHelper.cs" />
+    <Compile Include="Helpers\TransmitHelper.cs" />
     <Compile Include="Utilities\WBIMeshToggle.cs" />
     <Compile Include="Converters\WBIMultiConverter.cs" />
     <Compile Include="Parts\WBILight.cs" />
     <Compile Include="Switchers\WBITemplateConverter.cs" />
     <Compile Include="Parts\WBIDockingNodeHelper.cs" />
-    <Compile Include="Utilities\WBIAnimation.cs" />
+    <Compile Include="Animation\WBIAnimation.cs" />
     <Compile Include="Parts\WBIInflatablePartModule.cs" />
-    <Compile Include="Utilities\WBIMeshHelper.cs" />
+    <Compile Include="Helpers\WBIMeshHelper.cs" />
     <Compile Include="Switchers\WBIModuleSwitcher.cs" />
     <Compile Include="Switchers\WBIResourceSwitcher.cs" />
     <Compile Include="Switchers\TemplateManager.cs" />
     <Compile Include="GUI\WindowUtils.cs" />
     <Compile Include="Utilities\Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilities\ResourceHelper.cs" />
+    <Compile Include="Helpers\ResourceHelper.cs" />
     <Compile Include="GUI\Window.cs" />
     <Compile Include="Converters\WBIResourceConverter.cs" />
     <Compile Include="Parts\WBIActiveRadiatorToggle.cs" />
     <Compile Include="Science\WBIBasicScienceLab.cs" />
-    <Compile Include="Utilities\WBIModuleAnimateGeneric.cs" />
+    <Compile Include="Animation\WBIModuleAnimateGeneric.cs" />
     <Compile Include="Parts\WBIPlasmaTV.cs" />
-    <Compile Include="Utilities\WBIParachuteHelper.cs" />
+    <Compile Include="Helpers\WBIParachuteHelper.cs" />
     <Compile Include="PropModules\WBIInternalButtonCabinLight.cs" />
     <Compile Include="PropModules\WBIPropStateHelper.cs" />
     <Compile Include="Switchers\WBIConvertibleStorage.cs" />
-    <Compile Include="Utilities\WBIKISSeatInventoryConfig.cs" />
-    <Compile Include="Utilities\WBISeatInventoryHelper.CS" />
+    <Compile Include="Wrappers\WBIKISSeatInventoryConfig.cs" />
+    <Compile Include="Wrappers\WBISeatInventoryHelper.CS" />
     <Compile Include="Science\WBIExperimentLab.cs" />
     <Compile Include="Science\WBIModuleScienceExperiment.cs" />
     <Compile Include="Science\WBIExperimentManifest.cs" />
     <Compile Include="Utilities\WBINodeMover.cs" />
-    <Compile Include="Utilities\WBIRTWrapper.cs" />
+    <Compile Include="Wrappers\WBIRTWrapper.cs" />
     <Compile Include="Parts\WBIModuleDecouple.cs" />
     <Compile Include="Switchers\WBIOpsManager.cs" />
     <Compile Include="GUI\LocalOpsManager.cs" />
@@ -129,10 +131,11 @@
     <Compile Include="Parts\WBIFieldUpgrade.cs" />
     <Compile Include="Utilities\WBIPowerMonitor.cs" />
     <Compile Include="Parts\WBIDualAxisSolarArray.cs" />
-    <Compile Include="Utilities\WBIAnimateRotate.cs" />
+    <Compile Include="Animation\WBIAnimateRotate.cs" />
     <Compile Include="Settings\WBIDockingParameters.cs" />
     <Compile Include="Settings\WBIMainSettings.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

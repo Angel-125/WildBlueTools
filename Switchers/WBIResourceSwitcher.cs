@@ -103,9 +103,14 @@ namespace WildBlueIndustries
 
         #region Display Fields
         //We use this field to identify the template config node as well as have a GUI friendly name for the user.
-        //When the module starts, we'll use the shortName to find the template and get the info we need.
+        //When the module starts, we'll use the templateName to find the template and get the info we need.
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Configuration")]
+        public string templateName;
+
+        //Backwards compatibility
+        [KSPField(isPersistant = true)]
         public string shortName;
+
         #endregion
 
         #region User Events & API
@@ -179,8 +184,8 @@ namespace WildBlueIndustries
 
             if (templateIndex != -1)
             {
-                string shortName = templateManager[templateIndex].GetValue("shortName");
-                if (canAffordReconfigure(shortName) && hasSufficientSkill(shortName))
+                string nextName = templateManager[templateIndex].GetValue("name");
+                if (canAffordReconfigure(nextName) && hasSufficientSkill(nextName))
                     payPartsCost(templateIndex);
                 else
                     return;
@@ -212,8 +217,8 @@ namespace WildBlueIndustries
 
             if (templateIndex != -1)
             {
-                string shortName = templateManager[templateIndex].GetValue("shortName");
-                if (canAffordReconfigure(shortName) && hasSufficientSkill(shortName))
+                string prevName = templateManager[templateIndex].GetValue("name");
+                if (canAffordReconfigure(prevName) && hasSufficientSkill(prevName))
                     payPartsCost(templateIndex);
                 else
                     return;
@@ -248,7 +253,7 @@ namespace WildBlueIndustries
                 ConfigNode currentTemplate = templateManager[CurrentTemplateIndex];
 
                 if (currentTemplate != null)
-                    return currentTemplate.GetValue("shortName");
+                    return currentTemplate.GetValue("name");
                 else
                     return "Unknown";
             }
@@ -300,22 +305,22 @@ namespace WildBlueIndustries
             CurrentTemplateIndex = templateIndex;
 
             //Set the current template name
-            shortName = templateManager[templateIndex].GetValue("shortName");
-            if (string.IsNullOrEmpty(shortName))
+            templateName = templateManager[templateIndex].GetValue("name");
+            if (string.IsNullOrEmpty(templateName))
                 return;
 
             //Change the toggle buttons' names
             templateIndex = templateManager.GetNextUsableIndex(CurrentTemplateIndex);
             if (templateIndex != -1 && templateIndex != CurrentTemplateIndex)
             {
-                name = templateManager[templateIndex].GetValue("shortName");
+                name = templateManager[templateIndex].GetValue("name");
                 Events["NextType"].guiName = "Next: " + name;
             }
 
             templateIndex = templateManager.GetPrevUsableIndex(CurrentTemplateIndex);
             if (templateIndex != -1 && templateIndex != CurrentTemplateIndex)
             {
-                name = templateManager[templateIndex].GetValue("shortName");
+                name = templateManager[templateIndex].GetValue("name");
                 Events["PrevType"].guiName = "Prev: " + name;
             }
 
@@ -823,6 +828,10 @@ namespace WildBlueIndustries
 
         public override void OnStart(PartModule.StartState state)
         {
+            //Backwards compatibility
+            if (string.IsNullOrEmpty(shortName) == false)
+                templateName = shortName;
+
             bool loadTemplateResources = templateResources.Count<PartResource>() > 0 ? false : true;
             base.OnStart(state);
             Log("OnStart - State: " + state + "  Part: " + getMyPartName());
@@ -875,11 +884,11 @@ namespace WildBlueIndustries
             ConfigNode[] templateResourceNodes = nodeTemplate.GetNodes("RESOURCE");
             if (templateResourceNodes == null)
             {
-                Log(nodeTemplate.GetValue("shortName") + " has no resources.");
+                Log(nodeTemplate.GetValue("name") + " has no resources.");
                 return;
             }
 
-            Log("updateResourcesFromTemplate called for template: " + nodeTemplate.GetValue("shortName"));
+            Log("updateResourcesFromTemplate called for template: " + nodeTemplate.GetValue("name"));
             Log("template: " + nodeTemplate);
             Log("capacityFactor: " + capacityFactor);
             Log("template resource count: " + templateResourceNodes.Length);
@@ -928,13 +937,13 @@ namespace WildBlueIndustries
             string templateTags = nodeTemplate.GetValue("templateTags");
             float capacityModifier = capacityFactor;
 
-            Log("loadResourcesFromTemplate called for template: " + nodeTemplate.GetValue("shortName"));
+            Log("loadResourcesFromTemplate called for template: " + nodeTemplate.GetValue("name"));
             Log("template: " + nodeTemplate);
             Log("capacityFactor: " + capacityFactor);
             ConfigNode[] templateResourceNodes = nodeTemplate.GetNodes("RESOURCE");
             if (templateResourceNodes == null)
             {
-                Log(nodeTemplate.GetValue("shortName") + " has no resources.");
+                Log(nodeTemplate.GetValue("name") + " has no resources.");
                 return;
             }
 
@@ -961,7 +970,7 @@ namespace WildBlueIndustries
             if (nodeTemplate.HasValue("capacityFactor"))
                 capacityModifier = float.Parse(nodeTemplate.GetValue("capacityFactor"));
 
-            value = nodeTemplate.GetValue("shortName");
+            value = nodeTemplate.GetValue("name");
             if (parameterOverrides.ContainsKey(value))
             {
                 ConfigNode templateOverride = parameterOverrides[value];
@@ -1044,17 +1053,17 @@ namespace WildBlueIndustries
         {
             string value;
 
-            value = nodeTemplate.GetValue("shortName");
-            if (!string.IsNullOrEmpty(shortName))
+            value = nodeTemplate.GetValue("name");
+            if (!string.IsNullOrEmpty(templateName))
             {
-                //Set shortName
-                shortName = value;
-                Log("New shortName: " + shortName);
+                //Set templateName
+                templateName = value;
+                Log("New name: " + templateName);
 
                 //Logo panel
-                if (parameterOverrides.ContainsKey(shortName))
+                if (parameterOverrides.ContainsKey(templateName))
                 {
-                    value = parameterOverrides[shortName].GetValue("logoPanel");
+                    value = parameterOverrides[templateName].GetValue("logoPanel");
 
                     if (!string.IsNullOrEmpty(value))
                         logoPanelName = value;
@@ -1067,9 +1076,9 @@ namespace WildBlueIndustries
                 }
 
                 //Glow panel
-                if (parameterOverrides.ContainsKey(shortName))
+                if (parameterOverrides.ContainsKey(templateName))
                 {
-                    value = parameterOverrides[shortName].GetValue("glowPanel");
+                    value = parameterOverrides[templateName].GetValue("glowPanel");
 
                     if (!string.IsNullOrEmpty(value))
                         glowPanelName = value;
@@ -1085,7 +1094,7 @@ namespace WildBlueIndustries
                 changeDecals();
             }
             else
-                Log("shortName is null");
+                Log("name is null");
         }
 
         public void ShowDecals(bool isVisible)
@@ -1218,7 +1227,7 @@ namespace WildBlueIndustries
             overrideNodes = protoNode.GetNodes("OVERRIDE");
             foreach (ConfigNode decalNode in overrideNodes)
             {
-                value = decalNode.GetValue("shortName");
+                value = decalNode.GetValue("name");
                 if (string.IsNullOrEmpty(value) == false)
                 {
                     if (parameterOverrides.ContainsKey(value) == false)
@@ -1258,8 +1267,8 @@ namespace WildBlueIndustries
             Events["NextType"].active = isVisible;
             Events["PrevType"].active = isVisible;
             Events["DumpResources"].active = isVisible;
-            Fields["shortName"].guiActive = isVisible;
-            Fields["shortName"].guiActiveEditor = isVisible;            
+            Fields["templateName"].guiActive = isVisible;
+            Fields["templateName"].guiActiveEditor = isVisible;            
 
             if (string.IsNullOrEmpty(logoPanelTransforms))
             {
@@ -1289,14 +1298,14 @@ namespace WildBlueIndustries
             index = templateManager.GetNextUsableIndex(CurrentTemplateIndex);
             if (index != -1 && index != CurrentTemplateIndex)
             {
-                value = templateManager.templateNodes[index].GetValue("shortName");
+                value = templateManager.templateNodes[index].GetValue("name");
                 Events["NextType"].guiName = "Next: " + value;
             }
 
             index = templateManager.GetPrevUsableIndex(CurrentTemplateIndex);
             if (index != -1 && index != CurrentTemplateIndex)
             {
-                value = templateManager.templateNodes[index].GetValue("shortName");
+                value = templateManager.templateNodes[index].GetValue("name");
                 Events["PrevType"].guiName = "Prev: " + value;
             }
         }
@@ -1320,15 +1329,15 @@ namespace WildBlueIndustries
 
             //Set default template if needed
             //This will happen when we're in the editor.
-            if (string.IsNullOrEmpty(shortName))
-                shortName = defaultTemplate;
+            if (string.IsNullOrEmpty(templateName))
+                templateName = defaultTemplate;
 
             //Set current template index
-            CurrentTemplateIndex = templateManager.FindIndexOfTemplate(shortName);
+            CurrentTemplateIndex = templateManager.FindIndexOfTemplate(templateName);
             if (CurrentTemplateIndex == -1)
             {
                 CurrentTemplateIndex = 0;
-                shortName = templateManager[CurrentTemplateIndex].GetValue("shortName");
+                templateName = templateManager[CurrentTemplateIndex].GetValue("name");
             }
 
             //If we have only one template then hide the next/prev buttons

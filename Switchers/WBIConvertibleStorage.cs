@@ -185,7 +185,7 @@ namespace WildBlueIndustries
             storageView.templateCount = templateManager.templateNodes.Length;
 
             //Template name
-            storageView.templateName = templateManager[templateIndex].GetValue("shortName");
+            storageView.templateName = templateManager[templateIndex].GetValue("name");
 
             //Required resource
             if (templateManager[templateIndex].HasValue("requiredResource"))

@@ -206,7 +206,7 @@ namespace WildBlueIndustries
 
         protected virtual void loadModulesFromTemplate(ConfigNode templateNode)
         {
-            Log("loadModulesFromTemplate called for template: " + templateNode.GetValue("shortName"));
+            Log("loadModulesFromTemplate called for template: " + templateNode.GetValue("name"));
             ConfigNode[] moduleNodes;
             string moduleName;
             PartModule module;

@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
-    public class WBIAnimateRotate : ModuleAnimateGeneric
+    public class WBIAnimateRotate : ModuleAnimateGenericSFX
     {
         [KSPField()]
         public string rotationTransform = string.Empty;
@@ -31,13 +31,22 @@ namespace WildBlueIndustries
         public string rotationAxis = string.Empty;
 
         [KSPField()]
+        public string rotationSoundURL = string.Empty;
+
+        [KSPField()]
+        public float rotationSoundPitch = 1.0f;
+
+        [KSPField(isPersistant = true)]
+        public bool isDeployed;
+
+        [KSPField()]
         public bool showGUI = true;
 
         protected float rotationPerFrame;
-        protected bool isDeployed;
         protected float currentAngle;
         protected Transform rotator;
         protected Vector3 axisRate = new Vector3(0,0,1);
+        protected AudioSource rotationSound = null;
 
         public override void OnStart(StartState state)
         {
@@ -71,6 +80,16 @@ namespace WildBlueIndustries
                 axisRate.z = 1 * rotationPerFrame;
             }
 
+            //Sound effect
+            if (!string.IsNullOrEmpty(rotationSoundURL))
+            {
+                rotationSound = gameObject.AddComponent<AudioSource>();
+                rotationSound.clip = GameDatabase.Instance.GetAudioClip(rotationSoundURL);
+                rotationSound.loop = true;
+                rotationSound.pitch = rotationSoundPitch;
+                rotationSound.volume = GameSettings.SHIP_VOLUME;
+            }
+
             //GUI
             Events["Toggle"].guiActive = showGUI;
         }
@@ -85,7 +104,13 @@ namespace WildBlueIndustries
                 isDeployed = false;
 
             if (isDeployed && rotator != null)
+            {
                 rotator.Rotate(axisRate.x, axisRate.y, axisRate.z);
+                if (rotationSound != null && rotationSound.isPlaying == false)
+                    rotationSound.Play();
+            }
+            else if (isDeployed == false && rotator != null && rotationSound != null && rotationSound.isPlaying)
+                rotationSound.Stop();
         }
     }
 }

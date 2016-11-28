@@ -124,8 +124,6 @@ namespace WildBlueIndustries
                 //Button label
                 if (nodeTemplate.HasValue("title"))
                     buttonLabel = nodeTemplate.GetValue("title");
-                else if (nodeTemplate.HasValue("shortName"))
-                    buttonLabel = nodeTemplate.GetValue("shortName");
                 else
                     buttonLabel = nodeTemplate.GetValue("name");
 
@@ -140,7 +138,7 @@ namespace WildBlueIndustries
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button(buttonDecal, buttonOption))
                 {
-                    previewTemplate(nodeTemplate.GetValue("shortName"));
+                    previewTemplate(nodeTemplate.GetValue("name"));
                 }
                 if (TemplateManager.TemplateTechResearched(nodeTemplate))
                     GUILayout.Label("<color=white>" + buttonLabel + "</color>");

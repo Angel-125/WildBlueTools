@@ -85,7 +85,7 @@ namespace WildBlueIndustries
             for (int index = 0; index < this.templateNodes.Length; index++)
             {
                 node = this.templateNodes[index];
-                Log("Template " + index + ": " + node.GetValue("shortName") + ", " + node.GetValue("name"));
+                Log("Template " + index + ": " + node.GetValue("name"));
             }
         }
 
@@ -251,7 +251,7 @@ namespace WildBlueIndustries
         {
             int templateIndex = -1;
             int totalTemplates = -1;
-            string shortName;
+            string nameOfTemplate;
 
             //Get total template count
             if (this.templateNodes == null)
@@ -259,13 +259,13 @@ namespace WildBlueIndustries
             totalTemplates = this.templateNodes.Count<ConfigNode>();
 
             //Loop through the templates and find the one matching the desired template name
-            //the GUI friendly shortName
+            //the GUI friendly nameOfTemplate
             for (templateIndex = 0; templateIndex < totalTemplates; templateIndex++)
             {
-                shortName = this.templateNodes[templateIndex].GetValue("shortName");
-                if (!string.IsNullOrEmpty(shortName))
+                nameOfTemplate = this.templateNodes[templateIndex].GetValue("name");
+                if (!string.IsNullOrEmpty(nameOfTemplate))
                 {
-                    if (shortName == templateName)
+                    if (nameOfTemplate == templateName)
                         return templateIndex;
                 }
             }
