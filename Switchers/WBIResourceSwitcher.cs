@@ -601,33 +601,36 @@ namespace WildBlueIndustries
 
             //If the module is now inflated, re-add the max resource amounts to the list of resources.
             //If it isn't inflated, set max amount to 1.
-            foreach (PartResource resource in resourceList.Values)
+            if (HighLogic.LoadedSceneIsFlight)
             {
-                //If we are deployed then reset the max amounts.
-                if (isDeployed)
+                foreach (PartResource resource in resourceList.Values)
                 {
-                    if (resourceMaxAmounts.ContainsKey(resource.resourceName))
+                    //If we are deployed then reset the max amounts.
+                    if (isDeployed)
                     {
-                        resource.amount = 0;
-                        resource.maxAmount = resourceMaxAmounts[resource.resourceName];
+                        if (resourceMaxAmounts.ContainsKey(resource.resourceName))
+                        {
+                            resource.amount = 0;
+                            resource.maxAmount = resourceMaxAmounts[resource.resourceName];
+                        }
                     }
-                }
 
-                //No longer deployed, should we preserve the resource?
-                else if (string.IsNullOrEmpty(resourcesToKeep) == false)
-                {
-                    if (resourcesToKeep.Contains(resource.resourceName) == false)
+                    //No longer deployed, should we preserve the resource?
+                    else if (string.IsNullOrEmpty(resourcesToKeep) == false)
+                    {
+                        if (resourcesToKeep.Contains(resource.resourceName) == false)
+                        {
+                            resource.amount = 0;
+                            resource.maxAmount = 1;
+                        }
+                    }
+
+                    //No longer deployed
+                    else
                     {
                         resource.amount = 0;
                         resource.maxAmount = 1;
                     }
-                }
-
-                //No longer deployed
-                else
-                {
-                    resource.amount = 0;
-                    resource.maxAmount = 1;
                 }
             }
 

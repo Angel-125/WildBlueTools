@@ -73,7 +73,7 @@ namespace WildBlueIndustries
         protected float totalCrewSkill = -1.0f;
         protected double secondsPerCycle = 0f;
 
-        public string GetMissingResource()
+        public string GetMissingRequiredResource()
         {
             PartResourceDefinition definition;
             Dictionary<string, PartResource> resourceMap = new Dictionary<string, PartResource>();
@@ -115,7 +115,7 @@ namespace WildBlueIndustries
         [KSPEvent(guiName = "Start Converter", guiActive = true)]
         public virtual void StartConverter()
         {
-            string absentResource = GetMissingResource();
+            string absentResource = GetMissingRequiredResource();
 
             //Do we have enough crew?
             if (hasMinimumCrew() == false)
@@ -202,7 +202,9 @@ namespace WildBlueIndustries
             if (HighLogic.LoadedSceneIsFlight == false)
                 return;
             if (ModuleIsActive() == false)
+            {
                 return;
+            }
             if (this.part.vessel.IsControllable == false)
             {
                 StopConverter();
@@ -210,6 +212,15 @@ namespace WildBlueIndustries
             }
             if (hoursPerCycle == 0f)
                 return;
+
+            //If w're missing required resources, then we're done
+            string missingRequiredResource = GetMissingRequiredResource();
+            if (!string.IsNullOrEmpty(missingRequiredResource))
+            {
+                status = requiredResource + missingRequiredResource;
+                StopConverter();
+                return;
+            }
 
             //Make sure we have the minimum crew
             if (hasMinimumCrew() == false)
@@ -231,20 +242,21 @@ namespace WildBlueIndustries
             totalCrewSkill = GetTotalCrewSkill();
             secondsPerCycle = GetSecondsPerCycle();
 
+            //If we're missing resources then we're done.
+            if (result.Status.ToLower().Contains("missing"))
+            {
+                status = result.Status;
+                missingResources = true;
+                return;
+            }
+
             //Calculate elapsed time
             elapsedTime = Planetarium.GetUniversalTime() - cycleStartTime;
 
             //Calculate progress
             CalculateProgress();
 
-            //If we're missing resources then update status
-            if (result.Status.ToLower().Contains("missing"))
-            {
-                status = result.Status;
-                missingResources = true;
-            }
-
-            //If we've completed our research cycle then perform the analyis.
+            //If we've elapsed time cycle then perform the analyis.
             float completionRatio = (float)(elapsedTime / secondsPerCycle);
             if (completionRatio > 1.0f && !missingResources)
             {

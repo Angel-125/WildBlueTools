@@ -29,6 +29,7 @@ namespace WildBlueIndustries
         public string requiredResource = string.Empty;
         public float resourceCost = 100f;
         public string templateName;
+        public string templateTitle;
         public int templateCount = -1;
         public string requiredSkill = string.Empty;
         public TemplateManager templateManager;
@@ -105,7 +106,10 @@ namespace WildBlueIndustries
 
             GUILayout.BeginVertical(new GUILayoutOption[] { GUILayout.Width(250) });
 
-            GUILayout.Label("<color=white>Configuration: " + templateName + "</color>");
+            if (string.IsNullOrEmpty(templateTitle) == false)
+                GUILayout.Label("<color=white>Configuration: " + templateTitle + "</color>");
+            else
+                GUILayout.Label("<color=white>Configuration: " + templateName + "</color>");
 
             if (string.IsNullOrEmpty(requiredResource) == false && resourceCost != 0f)
                 GUILayout.Label(string.Format("<color=white>Cost: {0:s} ({1:f2})</color>", requiredResource, resourceCost));

@@ -59,7 +59,7 @@ namespace WildBlueIndustries
 
         public override void ToggleInflation()
         {
-            if (CurrentTemplate.HasValue("requiredResource") == false)
+            if (CurrentTemplate.HasValue("requiredResource") == false || HighLogic.LoadedSceneIsEditor)
             {
                 base.ToggleInflation();
                 return;

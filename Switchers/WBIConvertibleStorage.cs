@@ -186,6 +186,8 @@ namespace WildBlueIndustries
 
             //Template name
             storageView.templateName = templateManager[templateIndex].GetValue("name");
+            if (templateManager[templateIndex].HasValue("title"))
+                storageView.templateTitle = templateManager[templateIndex].GetValue("title");
 
             //Required resource
             if (templateManager[templateIndex].HasValue("requiredResource"))
