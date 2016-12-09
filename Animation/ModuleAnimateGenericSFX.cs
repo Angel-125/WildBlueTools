@@ -104,6 +104,9 @@ namespace WildBlueIndustries
         {
             base.OnUpdate();
 
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
+
             //Play start
             if (aniState == animationStates.MOVING && isMoving == false)
             {
@@ -112,7 +115,7 @@ namespace WildBlueIndustries
             }
 
             //Play end
-            else if (aniState == animationStates.LOCKED && isMoving)
+            else if ((aniState == animationStates.LOCKED || aniState == animationStates.CLAMPED) && isMoving)
             {
                 isMoving = false;
                 playEnd();

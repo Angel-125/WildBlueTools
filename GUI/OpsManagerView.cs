@@ -360,9 +360,16 @@ namespace WildBlueIndustries
 
                 GUILayout.BeginVertical();
 
+                GUILayout.Label("EfficiencyModifiers");
+                GUILayout.Label("Count: " + converter.EfficiencyModifiers.Count);
+                foreach (string key in converter.EfficiencyModifiers.Keys)
+                {
+                    GUILayout.Label(key + ": " + converter.EfficiencyModifiers[key]);
+                }
+
                 //Toggle, name and status message
                 if (!HighLogic.LoadedSceneIsEditor)
-                    isActivated = GUILayout.Toggle(isActivated, string.Format(converterName + " ({0:f1}%): ", converter.Efficiency * converter.EfficiencyBonus * 100f) + converterStatus);
+                    isActivated = GUILayout.Toggle(isActivated, string.Format(converterName + " ({0:f1}%): ", converter.EfficiencyBonus * 100f) + converterStatus);
                 else
                     isActivated = GUILayout.Toggle(isActivated, converterName);
 

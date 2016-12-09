@@ -209,9 +209,6 @@ namespace WildBlueIndustries
             for (int index = 0; index < converters.Length; index++)
             {
                 converter = converters[index];
-                converter.Efficiency = efficiency;
-
-                //Now adjust the output.
                 outputRatios = converter.outputList.ToArray();
                 for (int ratioIndex = 0; ratioIndex < outputRatios.Length; ratioIndex++)
                     outputRatios[ratioIndex].Ratio *= productivity;

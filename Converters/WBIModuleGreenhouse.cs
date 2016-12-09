@@ -143,7 +143,7 @@ namespace WildBlueIndustries
 
         protected override void onCriticalSuccess()
         {
-            float harvestAmount = (cropYield * (1.0f + (totalCrewSkill * SpecialistBonusBase)) * Efficiency);
+            float harvestAmount = (cropYield * (1.0f + (totalCrewSkill * SpecialistBonusBase)) * EfficiencyBonus);
             string message = string.Format(kCropYieldHigh, harvestAmount) + cropResource;
 
             //increased yield
@@ -154,7 +154,7 @@ namespace WildBlueIndustries
 
         protected override void onFailure()
         {
-            float harvestAmount = (cropYield * failureLoss) * (1.0f + (totalCrewSkill * SpecialistEfficiencyFactor)) * Efficiency;
+            float harvestAmount = (cropYield * failureLoss) * (1.0f + (totalCrewSkill * SpecialistEfficiencyFactor) * EfficiencyBonus);
             string message = string.Format(kCropYieldLow, harvestAmount) + cropResource;
 
             //decreased yield
