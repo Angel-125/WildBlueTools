@@ -118,7 +118,7 @@ namespace WildBlueIndustries
             //string value;
             bool canAffordCost = false;
             string requiredName = templateManager[templateName].GetValue("requiredResource");
-            string requiredSkill = "Engineer";
+            string requiredSkill = "ConverterSkill";
             float materialModifier = materialCostModifier;
 
             if (templateManager[templateName].HasValue("requiredSkill"))

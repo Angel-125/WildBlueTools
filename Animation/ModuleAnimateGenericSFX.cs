@@ -74,6 +74,10 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
+
             if (!string.IsNullOrEmpty(startSoundURL))
             {
                 startSound = gameObject.AddComponent<AudioSource>();

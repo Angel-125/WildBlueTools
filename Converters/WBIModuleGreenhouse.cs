@@ -45,7 +45,7 @@ namespace WildBlueIndustries
         protected string biomeName;
         protected int planetID = -1;
         protected HarvestTypes harvestID;
-        protected InfoView infoView;
+        protected InfoView infoView = new InfoView();
         protected WBIModuleSwitcher moduleSwitcher = null;
         protected float originalCriticalSuccess;
 
@@ -53,6 +53,16 @@ namespace WildBlueIndustries
         public void GetModuleInfo()
         {
             infoView.SetVisible(true);
+        }
+
+        public void OnGUI()
+        {
+            try
+            {
+                if (infoView.IsVisible())
+                    infoView.DrawWindow();
+            }
+            catch { }
         }
 
         public override string GetInfo()
@@ -190,8 +200,6 @@ namespace WildBlueIndustries
             string panelName;
 
             totalCrewSkill = GetTotalCrewSkill();
-
-            infoView = new InfoView();
 
             if (moduleSwitcher != null)
             {

@@ -56,6 +56,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animation\ModuleAnimateGenericSFX.cs" />
+    <Compile Include="Science\GeoLabView.cs" />
+    <Compile Include="Science\WBIGeoLab.cs" />
     <Compile Include="Switchers\WBIConvertibleMPL.cs" />
     <Compile Include="Converters\WBIModuleGreenhouse.cs" />
     <Compile Include="GUI\InfoView.cs" />
@@ -71,6 +73,13 @@
     <Compile Include="GUI\ScienceLabResultsView.cs" />
     <Compile Include="Utilities\WBIModuleWetWorkshop.cs" />
     <Compile Include="Science\WBIBiomeMultiExperiment.cs" />
+    <Compile Include="Utilities\WBINameTag.cs" />
+    <Compile Include="Utilities\WBIDockingPortToggle.cs" />
+    <Compile Include="Utilities\WBIDeployableEngine.cs" />
+    <Compile Include="Science\WBIDataTransferUtility.cs" />
+    <Compile Include="WBIFlexibleDockingPort.cs" />
+    <Compile Include="Utilities\WBIForceDock.cs" />
+    <Compile Include="Utilities\WBIGroundStabilizer.cs" />
     <Compile Include="Wrappers\WBIKISInventoryWrapper.cs" />
     <Compile Include="IVAUtils\ButtonClickDelegate.cs" />
     <Compile Include="PropModules\InternalPlasmaScreen.cs" />
