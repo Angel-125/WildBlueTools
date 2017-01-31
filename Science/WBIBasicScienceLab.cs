@@ -367,10 +367,11 @@ namespace WildBlueIndustries
         protected virtual void addCurrency()
         {
             float successFactor = successBonus * (1.0f + (totalCrewSkill / 10.0f));
+            float scienceMultiplier = HighLogic.CurrentGame.Parameters.Career.ScienceGainMultiplier;
 
             //Add science to the resource pool
             if (sciencePerCycle > 0.0f)
-                scienceAdded += sciencePerCycle * successFactor;
+                scienceAdded += sciencePerCycle * successFactor * scienceMultiplier;
 
             //Reputation
             if (reputationPerCycle > 0.0f)

@@ -20,9 +20,6 @@ namespace WildBlueIndustries
 {
     public class WBIInternalModule : InternalModule
     {
-        public virtual void OnFixedTimeTick()
-        {
-        }
     }
 
     public class WBIPropStateHelper : ExtendedPartModule

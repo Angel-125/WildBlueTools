@@ -27,11 +27,21 @@ namespace WildBlueIndustries
         public bool isVisible;
 
         [KSPField()]
+        public string toggleTagName = "Toggle Name Tag";
+
+        [KSPField()]
+        public string changeTagName = "Change Name Tag";
+
+        [KSPField()]
         public string nameTagTransforms = string.Empty;
 
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+
+            Events["ToggleNameTag"].guiName = toggleTagName;
+            Events["GetNameTag"].guiName = changeTagName;
+
             changeNameTag();
         }
 

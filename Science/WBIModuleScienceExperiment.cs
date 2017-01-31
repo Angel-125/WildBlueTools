@@ -25,7 +25,7 @@ namespace WildBlueIndustries
 
     public interface IWBIExperimentResults
     {
-        void ExperimentRequirementsMet(float resultRoll);
+        void ExperimentRequirementsMet(string experimentID, float chanceOfSuccess, float resultRoll);
     }
 
     public struct SExperimentResource
@@ -404,7 +404,7 @@ namespace WildBlueIndustries
                 {
                     experimentFailed = true;
                     status = "Failed to yield results";
-                    runCompletionHandler(resultRoll);
+                    runCompletionHandler(experimentID, chanceOfSuccess, resultRoll);
                     sendResultsMessage();
                     return false;
                 }
@@ -416,7 +416,7 @@ namespace WildBlueIndustries
                 status = "Completed, send home for science";
             else
                 status = "Completed";
-            runCompletionHandler(resultRoll);
+            runCompletionHandler(experimentID, chanceOfSuccess, resultRoll);
             sendResultsMessage();
             if (Deployed == false)
                 DeployExperiment();
@@ -499,7 +499,7 @@ namespace WildBlueIndustries
             MessageSystem.Instance.AddMessage(msg);
         }
 
-        protected void runCompletionHandler(float resultRoll)
+        protected void runCompletionHandler(string experimentID, float chanceOfSuccess, float resultRoll)
         {
             if (nodeCompletionHandler == null)
                 return;
@@ -512,7 +512,7 @@ namespace WildBlueIndustries
                 if (moduleHandler is IWBIExperimentResults)
                 {
                     IWBIExperimentResults resultsHandler = (IWBIExperimentResults)moduleHandler;
-                    resultsHandler.ExperimentRequirementsMet(resultRoll);
+                    resultsHandler.ExperimentRequirementsMet(experimentID, chanceOfSuccess, resultRoll);
                 }
 
                 this.part.RemoveModule(moduleHandler);

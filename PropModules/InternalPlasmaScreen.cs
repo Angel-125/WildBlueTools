@@ -28,6 +28,12 @@ namespace WildBlueIndustries
         [KSPField]
         public string screenTransform = "Screen";
 
+        [KSPField]
+        public bool showAlphaControl;
+
+        [KSPField]
+        public string alphaTransforms = string.Empty;
+
         public string imagePath;
 
         protected PlasmaScreenView screenView = new PlasmaScreenView();
@@ -35,6 +41,9 @@ namespace WildBlueIndustries
         protected bool enableRandomImages;
         protected double cycleStartTime;
         protected double elapsedTime;
+        protected Texture defaultTexture;
+        protected Renderer rendererMaterial;
+        protected bool screenIsVisible = true;
 
         protected void OnGUI()
         {
@@ -53,6 +62,8 @@ namespace WildBlueIndustries
         {
             if (HighLogic.LoadedSceneIsFlight == false)
                 return;
+
+            getDefaultTexture();
 
             propStateHelper = this.part.FindModuleImplementing<WBIPropStateHelper>();
             if (propStateHelper != null)
@@ -77,6 +88,10 @@ namespace WildBlueIndustries
                 value = propStateHelper.LoadProperty(internalProp.propID, "screenSwitchTime");
                 if (string.IsNullOrEmpty(value) == false)
                     screenSwitchTime = float.Parse(value);
+
+                value = propStateHelper.LoadProperty(internalProp.propID, "screenIsVisible");
+                if (string.IsNullOrEmpty(value) == false)
+                    screenIsVisible = bool.Parse(value);
             }
 
             Transform trans = internalProp.FindModelTransform("ScreenTrigger");
@@ -94,7 +109,20 @@ namespace WildBlueIndustries
                 }
             }
 
+            //Get the screen's render material
+            Transform target = internalProp.FindModelTransform(screenTransform);
+            if (target == null)
+                return;
+            rendererMaterial = target.GetComponent<Renderer>();
+            if (showAlphaControl)
+                SetScreenVisible(screenIsVisible);
+
+            //Get the transforms for other objects affected by alpha
+            
+            //Setup screen view
             screenView.showImageDelegate = ShowImage;
+            screenView.toggleScreenDelegate = SetScreenVisible;
+            screenView.showAlphaControl = this.showAlphaControl;
         }
 
         public void FixedUpdate()
@@ -117,33 +145,40 @@ namespace WildBlueIndustries
             screenView.part = this.part;
             screenView.enableRandomImages = enableRandomImages;
             screenView.screenSwitchTime = screenSwitchTime;
+            screenView.screenIsVisible = this.screenIsVisible;
             screenView.SetVisible(true);
+        }
+
+        public void SetScreenVisible(bool isVisible)
+        {
+            if (string.IsNullOrEmpty(alphaTransforms))
+                return;
+
+            string[] transforms = alphaTransforms.Split(new char[] { ';' });
+            Transform target = null;
+
+            foreach (string transform in transforms)
+            {
+                target = internalProp.FindModelTransform(transform);
+                if (target !=  null)
+                    target.gameObject.SetActive(isVisible);
+            }
+
+            screenIsVisible = isVisible;
+            if (propStateHelper != null)
+                propStateHelper.SaveProperty(internalProp.propID, "screenIsVisible", screenIsVisible.ToString());
         }
 
         public void ShowImage(Texture texture, string textureFilePath)
         {
-            Transform[] targets;
-            Renderer rendererMaterial;
-
             //Save the image path
             imagePath = textureFilePath;
             if (propStateHelper != null)
                 propStateHelper.SaveProperty(internalProp.propID, "imagePath", imagePath);
 
-            //Get the targets
-            targets = internalProp.FindModelTransforms(screenTransform);
-            if (targets == null)
-            {
-                return;
-            }
-
             //Now, replace the textures in each target
-            foreach (Transform target in targets)
-            {
-                rendererMaterial = target.GetComponent<Renderer>();
-                rendererMaterial.material.SetTexture("_MainTex", texture);
-                rendererMaterial.material.SetTexture("_Emissive", texture);
-            }
+            rendererMaterial.material.SetTexture("_MainTex", texture);
+            rendererMaterial.material.SetTexture("_Emissive", texture);
 
             //Finally, record the random screen switch state
             enableRandomImages = screenView.enableRandomImages;
@@ -160,6 +195,23 @@ namespace WildBlueIndustries
                     cycleStartTime = Planetarium.GetUniversalTime();
             }
 
+        }
+
+        protected void getDefaultTexture()
+        {
+            Transform target;
+            Renderer rendererMaterial;
+
+            //Get the target
+            target = internalProp.FindModelTransform(screenTransform);
+            if (target == null)
+            {
+                return;
+            }
+
+            rendererMaterial = target.GetComponent<Renderer>();
+            defaultTexture = rendererMaterial.material.GetTexture("_MainTex");
+            screenView.defaultTexture = defaultTexture;
         }
 
     }

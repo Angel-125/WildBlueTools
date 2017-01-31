@@ -29,11 +29,13 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool objectsHidden;
 
+        WBIResourceSwitcher switcher = null;
+
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
 
-            WBIResourceSwitcher switcher = this.part.FindModuleImplementing<WBIResourceSwitcher>();
+            switcher = this.part.FindModuleImplementing<WBIResourceSwitcher>();
             if (switcher != null)
             {
                 switcher.onModuleRedecorated += new ModuleRedecoratedEvent(OnModuleRedecorated);
@@ -53,8 +55,11 @@ namespace WildBlueIndustries
 
             //See if we should hide or show the hideObjects for the current template.
             objectsHidden = hideObjectsForTemplates.Contains(nodeTemplate.GetValue("shortName"));
-
             showObjects(!objectsHidden);
+
+            //Dump kept resources if we're in wet workshop mode (objectsHidden = false)
+            if (!objectsHidden && switcher != null)
+                switcher.DumpResourcesToKeep();
         }
 
         public void showObjects(bool isVisible)

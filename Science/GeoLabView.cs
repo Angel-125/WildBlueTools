@@ -7,14 +7,16 @@ using UnityEngine;
 
 namespace WildBlueIndustries
 {
-    internal delegate void PerformAnalysisDelegate();
+    public delegate bool PerformAnalysisDelegate();
+    public delegate void DrawViewDelegate();
 
-    internal class GeoLabView : Window<GeoLabView>
+    public class GeoLabView : Window<GeoLabView>
     {
         public Part part;
         public ModuleGPS gps;
         public List<PlanetaryResource> resourceList;
         public PerformAnalysisDelegate performBiomAnalysisDelegate;
+        public DrawViewDelegate drawView;
 
         Vector2 scrollPosResources = new Vector2(0, 0);
 
@@ -24,7 +26,7 @@ namespace WildBlueIndustries
             Resizable = false;
         }
 
-        protected override void DrawWindowContents(int windowId)
+        public void DrawView()
         {
             bool biomeUnlocked = Utils.IsBiomeUnlocked(this.part.vessel);
             GUILayout.BeginVertical();
@@ -39,7 +41,16 @@ namespace WildBlueIndustries
             //Abundance
             drawAbundanceGUI(biomeUnlocked);
 
+            //Extra stuff
+            if (drawView != null)
+                drawView();
+
             GUILayout.EndVertical();
+        }
+
+        protected override void DrawWindowContents(int windowId)
+        {
+            DrawView();
         }
 
         protected void drawAbundanceGUI(bool biomeUnlocked)

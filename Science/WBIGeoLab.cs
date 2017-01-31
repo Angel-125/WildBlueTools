@@ -8,7 +8,7 @@ using KSP.IO;
 namespace WildBlueIndustries
 {
     [KSPModule("Geology Lab")]
-    public class WBIGeoLab : PartModule
+    public class WBIGeoLab : PartModule, IOpsView
     {
         const string kNoCrew = "At least one cremember must staff the lab in order to perform the analysis.";
         const string kScienceGenerated = "You gained {0:f2} Bonus Science!";
@@ -18,10 +18,10 @@ namespace WildBlueIndustries
         [KSPField]
         public string researchSkill = "ScienceSkill";
 
-        ModuleBiomeScanner biomeScanner = null;
-        ModuleGPS gps;
-        List<PlanetaryResource> resourceList;
-        GeoLabView geoLabView = new GeoLabView();
+        protected ModuleBiomeScanner biomeScanner = null;
+        protected ModuleGPS gps;
+        protected List<PlanetaryResource> resourceList;
+        protected GeoLabView geoLabView = new GeoLabView();
 
         public override void OnStart(StartState state)
         {
@@ -35,24 +35,24 @@ namespace WildBlueIndustries
         }
 
         [KSPEvent(guiActive = true, guiName = "Toggle Abundance Report")]
-        public void ToggleLabGUI()
+        public virtual void ToggleLabGUI()
         {
             geoLabView.SetVisible(!geoLabView.IsVisible());
         }
 
-        public void OnGUI()
+        public virtual void OnGUI()
         {
             if (geoLabView.IsVisible())
                 geoLabView.DrawWindow();
         }
 
-        protected void perfomBiomeAnalysys()
+        protected virtual bool perfomBiomeAnalysys()
         {
             //We need at least one crewmember in the lab.
             if (this.part.protoModuleCrew.Count == 0)
             {
                 ScreenMessages.PostScreenMessage(kNoCrew, kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
-                return;
+                return false;
             }
 
             //We need at least one scientist in the lab.
@@ -72,9 +72,10 @@ namespace WildBlueIndustries
             biomeScanner.RunAnalysis();
             resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
             geoLabView.resourceList = this.resourceList;
+            return true;
         }
 
-        protected float getBiomeAnalysisBonus()
+        protected virtual float getBiomeAnalysisBonus()
         {
             float bonus = 0f;
 
@@ -91,7 +92,7 @@ namespace WildBlueIndustries
             return bonus * kBiomeAnalysisFactor;
         }
 
-        protected void setupPartModules()
+        protected virtual void setupPartModules()
         {
             //GPS
             if (gps == null)
@@ -117,6 +118,34 @@ namespace WildBlueIndustries
             geoLabView.gps = this.gps;
             geoLabView.resourceList = this.resourceList;
             geoLabView.part = this.part;
+        }
+
+        public virtual List<string> GetButtonLabels()
+        {
+            List<string> labels = new List<string>();
+
+            labels.Add("Geology Lab");
+
+            return labels;
+        }
+
+        public virtual void DrawOpsWindow(string buttonLabel)
+        {
+            geoLabView.DrawView();
+        }
+
+        public virtual void SetParentView(IParentView parentView)
+        {
+        }
+
+        public virtual void SetContextGUIVisible(bool isVisible)
+        {
+            Events["ToggleLabGUI"].guiActive = isVisible;
+        }
+
+        public virtual string GetPartTitle()
+        {
+            return this.part.partInfo.title;
         }
     }
 }

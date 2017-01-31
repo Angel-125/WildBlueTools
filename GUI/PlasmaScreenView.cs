@@ -9,10 +9,14 @@ using KSP.IO;
 namespace WildBlueIndustries
 {
     public delegate void ShowImageDelegate(Texture selectedImage, string textureFilePath);
+    public delegate void SetScreenAlphaDelegate(float alpha);
+    public delegate void ToggleScreenDelegate(bool isVisble);
 
     public class PlasmaScreenView : Window<PlasmaScreenView>
     {
+        public Texture defaultTexture;
         public ShowImageDelegate showImageDelegate;
+        public ToggleScreenDelegate toggleScreenDelegate;
         public Texture2D previewImage;
         public string screeshotFolderPath;
         public Transform cameraTransform;
@@ -21,6 +25,8 @@ namespace WildBlueIndustries
         public bool enableRandomImages;
         public float screenSwitchTime;
         public string aspectRatio;
+        public bool showAlphaControl;
+        public bool screenIsVisible;
 
         protected ExternalCamera externalCamera;
         protected string[] imagePaths;
@@ -49,6 +55,7 @@ namespace WildBlueIndustries
 
             imagePaths = Directory.GetFiles(screeshotFolderPath);
             List<string> names = new List<string>();
+            names.Add("Default");
             foreach (string pictureName in imagePaths)
             {
                 names.Add(pictureName.Replace(screeshotFolderPath, ""));
@@ -69,7 +76,7 @@ namespace WildBlueIndustries
 
         public void GetRandomImage()
         {
-            int imageIndex = UnityEngine.Random.Range(0, imagePaths.Length);
+            int imageIndex = UnityEngine.Random.Range(1, imagePaths.Length);
             Texture2D randomImage = new Texture2D(1, 1);
             WWW www = new WWW("file://" + imagePaths[imageIndex]);
 
@@ -86,6 +93,13 @@ namespace WildBlueIndustries
             GUILayout.BeginVertical();
 
 //            drawCameraSelectors();
+
+            //Toggle holoscreen
+            if (GUILayout.Button("Show/Hide Screen") && toggleScreenDelegate != null)
+            {
+                screenIsVisible = !screenIsVisible;
+                toggleScreenDelegate(screenIsVisible);
+            }
 
             if (string.IsNullOrEmpty(aspectRatio) == false)
                 GUILayout.Label("Aspect Ratio: " + aspectRatio);
@@ -128,11 +142,17 @@ namespace WildBlueIndustries
 
         protected void drawScreenshotPreview()
         {
-            if (selectedIndex != prevSelectedIndex)
+            //Default image is always the first
+            if (selectedIndex == 0)
+            {
+                previewImage = (Texture2D)defaultTexture;
+            }
+
+            else if (selectedIndex != prevSelectedIndex)
             {
                 prevSelectedIndex = selectedIndex;
                 previewImage = new Texture2D(1, 1);
-                WWW www = new WWW("file://" + imagePaths[selectedIndex]);
+                WWW www = new WWW("file://" + imagePaths[selectedIndex - 1]);
 
                 www.LoadImageIntoTexture(previewImage);
             }
@@ -159,7 +179,12 @@ namespace WildBlueIndustries
             if (GUILayout.Button("OK"))
             {
                 if (showImageDelegate != null)
-                    showImageDelegate(previewImage, imagePaths[selectedIndex]);
+                {
+                    if (selectedIndex > 0)
+                        showImageDelegate(previewImage, imagePaths[selectedIndex - 1]);
+                    else
+                        showImageDelegate(previewImage, "Default");
+                }
                 SetVisible(false);
             }
 

@@ -231,6 +231,15 @@ namespace WildBlueIndustries
             ScreenMessages.PostScreenMessage("Unable to find a template to switch to.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
         }
 
+        public void DumpResourcesToKeep()
+        {            
+            foreach (PartResource resource in this.part.Resources)
+            {
+                if (resource.resourceName == "ElectricCharge" || resourcesToKeep.Contains(resource.resourceName))
+                    resource.amount = 0;
+            }
+        }
+
         public void MaxResources()
         {
             foreach (PartResource resource in this.part.Resources)

@@ -37,9 +37,41 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool guiIsVisible = true;
 
+        [KSPField]
+        public string startSoundURL = string.Empty;
+
+        [KSPField]
+        public float startSoundPitch = 1.0f;
+
+        [KSPField]
+        public float startSoundVolume = 0.5f;
+
+        [KSPField]
+        public string loopSoundURL = string.Empty;
+
+        [KSPField]
+        public float loopSoundPitch = 1.0f;
+
+        [KSPField]
+        public float loopSoundVolume = 0.5f;
+
+        [KSPField]
+        public string stopSoundURL = string.Empty;
+
+        [KSPField]
+        public float stopSoundPitch = 1.0f;
+
+        [KSPField]
+        public float stopSoundVolume = 0.5f;
+
         //Helper objects
         public bool isDeployed = false;
+        public bool isMoving = false;
+        public Animation animation = null;
         protected AnimationState animationState;
+        protected AudioSource loopSound = null;
+        protected AudioSource startSound = null;
+        protected AudioSource stopSound = null;
 
         #region User Events & API
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "ToggleAnimation", active = true, externalToEVAOnly = false, unfocusedRange = 3.0f, guiActiveUnfocused = true)]
@@ -92,6 +124,32 @@ namespace WildBlueIndustries
         #endregion
 
         #region Overrides
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
+            if (animation == null)
+                return;
+
+            //Play start
+            /*
+            if (animation.isPlaying && isMoving == false)
+            {
+                isMoving = true;
+                playStart();
+            }
+             */
+
+            //Play end
+            else if (animation.isPlaying == false && isMoving)
+            {
+                isMoving = false;
+                playEnd();
+            }
+        }
+
         public override void OnLoad(ConfigNode node)
         {
             string value;
@@ -124,6 +182,7 @@ namespace WildBlueIndustries
             base.OnStart(state);
 
             SetupAnimations();
+            setupSounds();
         }
 
         protected override void getProtoNodeValues(ConfigNode protoNode)
@@ -137,9 +196,55 @@ namespace WildBlueIndustries
             startEventGUIName = protoNode.GetValue("startEventGUIName");
         }
 
+        public void playStart()
+        {
+            if (startSound != null)
+                startSound.Play();
+
+            if (loopSound != null)
+                loopSound.Play();
+        }
+
+        public void playEnd()
+        {
+            if (stopSound != null)
+                stopSound.Play();
+
+            if (loopSound != null)
+                loopSound.Stop();
+        }
+
         #endregion
 
         #region Helpers
+        protected virtual void setupSounds()
+        {
+            if (!string.IsNullOrEmpty(startSoundURL))
+            {
+                startSound = gameObject.AddComponent<AudioSource>();
+                startSound.clip = GameDatabase.Instance.GetAudioClip(startSoundURL);
+                startSound.pitch = startSoundPitch;
+                startSound.volume = GameSettings.SHIP_VOLUME * startSoundVolume;
+            }
+
+            if (!string.IsNullOrEmpty(loopSoundURL))
+            {
+                loopSound = gameObject.AddComponent<AudioSource>();
+                loopSound.clip = GameDatabase.Instance.GetAudioClip(loopSoundURL);
+                loopSound.loop = true;
+                loopSound.pitch = loopSoundPitch;
+                loopSound.volume = GameSettings.SHIP_VOLUME * loopSoundVolume;
+            }
+
+            if (!string.IsNullOrEmpty(stopSoundURL))
+            {
+                stopSound = gameObject.AddComponent<AudioSource>();
+                stopSound.clip = GameDatabase.Instance.GetAudioClip(stopSoundURL);
+                stopSound.pitch = stopSoundPitch;
+                stopSound.volume = GameSettings.SHIP_VOLUME * stopSoundVolume;
+            }
+        }
+
         public virtual void SetupAnimations()
         {
             Log("SetupAnimations called.");
@@ -156,13 +261,13 @@ namespace WildBlueIndustries
                 return;
             }
 
-            Animation anim = animations[0];
-            if (anim == null)
+            animation = animations[0];
+            if (animation == null)
                 return;
 
             //Set layer
-            animationState = anim[animationName];
-            anim[animationName].layer = animationLayer;
+            animationState = animation[animationName];
+            animation[animationName].layer = animationLayer;
 
             //Set toggle button
             Events["ToggleAnimation"].guiActive = guiIsVisible;
@@ -172,17 +277,17 @@ namespace WildBlueIndustries
             {
                 Events["ToggleAnimation"].guiName = endEventGUIName;
 
-                anim[animationName].normalizedTime = 1.0f;
-                anim[animationName].speed = 10000f;
+                animation[animationName].normalizedTime = 1.0f;
+                animation[animationName].speed = 10000f;
             }
             else
             {
                 Events["ToggleAnimation"].guiName = startEventGUIName;
 
-                anim[animationName].normalizedTime = 0f;
-                anim[animationName].speed = -10000f;
+                animation[animationName].normalizedTime = 0f;
+                animation[animationName].speed = -10000f;
             }
-            anim.Play(animationName);
+            animation.Play(animationName);
         }
 
         public virtual void PlayAnimation(bool playInReverse = false)
@@ -196,15 +301,24 @@ namespace WildBlueIndustries
             if (playInReverse)
             {
                 anim[animationName].time = anim[animationName].length;
-                anim[animationName].speed = animationSpeed;
+                if (HighLogic.LoadedSceneIsFlight)
+                    anim[animationName].speed = animationSpeed;
+                else
+                    anim[animationName].speed = animationSpeed * 100;
                 anim.Play(animationName);
             }
 
             else
             {
-                anim[animationName].speed = animationSpeed;
+                if (HighLogic.LoadedSceneIsFlight)
+                    anim[animationName].speed = animationSpeed;
+                else
+                    anim[animationName].speed = animationSpeed * 100;
                 anim.Play(animationName);
             }
+
+            isMoving = true;
+            playStart();
         }
 
         #endregion

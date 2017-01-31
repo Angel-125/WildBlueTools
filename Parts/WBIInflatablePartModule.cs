@@ -85,14 +85,16 @@ namespace WildBlueIndustries
             {
                 this.part.CrewCapacity = inflatedCrewCapacity;
                 this.part.crewTransferAvailable = true;
-                this.part.SpawnIVA();
+                if (HighLogic.LoadedSceneIsFlight)
+                    this.part.SpawnIVA();
                 Events["ToggleInflation"].guiName = endEventGUIName;
             }
             else
             {
                 this.part.CrewCapacity = 0;
                 this.part.crewTransferAvailable = false;
-                this.part.DespawnIVA();
+                if (HighLogic.LoadedSceneIsFlight)
+                    this.part.DespawnIVA();
                 Events["ToggleInflation"].guiName = startEventGUIName;
 
                 //Turn off the lights if deflating the module.

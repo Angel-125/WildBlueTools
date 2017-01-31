@@ -57,6 +57,12 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool isGUIVisible = true;
 
+        [KSPField]
+        public bool isAvailable = true;
+
+        [KSPField]
+        public string unavailableMessage = "The lab is currently unavailable. Check back later.";
+
         WBIModuleScienceExperiment[] experimentSlots = null;
 
         public Dictionary<string, double> shareAmounts = new Dictionary<string, double>();
@@ -434,6 +440,14 @@ namespace WildBlueIndustries
 
         public void DrawOpsWindow(string buttonLabel)
         {
+            if (isAvailable == false)
+            {
+                GUILayout.BeginVertical();
+                GUILayout.Label("<color=yellow>" + unavailableMessage + "</color>");
+                GUILayout.EndVertical();
+                return;
+            }
+
             //If we're in the editor or the manifest has no experiment slots then hook em up!
             if (HighLogic.LoadedSceneIsEditor || manifestAdmin.experimentSlots == null)
             {
