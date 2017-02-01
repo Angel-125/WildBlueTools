@@ -58,7 +58,7 @@ namespace WildBlueIndustries
             showObjects(!objectsHidden);
 
             //Dump kept resources if we're in wet workshop mode (objectsHidden = false)
-            if (!objectsHidden && switcher != null)
+            if (objectsHidden && switcher != null)
                 switcher.DumpResourcesToKeep();
         }
 
