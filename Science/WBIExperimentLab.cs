@@ -31,6 +31,9 @@ namespace WildBlueIndustries
         public bool canCreateExperiments;
 
         [KSPField]
+        public bool needsConnectionToKSC = true;
+
+        [KSPField]
         public string experimentCreationSkill = string.Empty;
 
         [KSPField]
@@ -128,6 +131,7 @@ namespace WildBlueIndustries
             switcher = this.part.FindModuleImplementing<WBIResourceSwitcher>();
             manifestAdmin.SetupView(this.part, !HighLogic.LoadedSceneIsEditor, !HighLogic.LoadedSceneIsEditor, this);
             manifestAdmin.canCreateExperiments = this.canCreateExperiments;
+            manifestAdmin.needsConnectionToKSC = this.needsConnectionToKSC;
             manifestAdmin.minimumCreationLevel = this.minimumCreationLevel;
             manifestAdmin.experimentCreationSkill = this.experimentCreationSkill;
             manifestAdmin.creationTags = this.creationTags;
