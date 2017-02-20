@@ -39,15 +39,28 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool watchForDocking = false;
 
-        protected ModuleDockingNode dockingNode;
-
-        [KSPField(guiName = "Use Angle Snap", isPersistant = true)]//, guiActiveEditor = true, guiActive = true)]
-        [UI_Toggle(enabledText = "On", disabledText = "Off")]
+        [KSPField(isPersistant = true)]
         public bool angleSnapOn = false;
 
-        [KSPField(guiName = "Snap Angle", isPersistant = true, guiActive = true, guiActiveEditor = false)]
-        [UI_FloatRange(stepIncrement = 30f, maxValue = 180f, minValue = 0f)]
-        public float snapAngle = 0f;
+        [KSPField]
+        public float snapOffset = 0;
+
+        [KSPField]
+		public float portRoll = 30;
+
+        [KSPField]
+		public float portTorque = 30;
+
+        [KSPField]
+		public float acquireTorque = 10;
+
+        [KSPField]
+        public float acquireTorqueRoll = 10;
+
+        protected ModuleDockingNode dockingNode;
+        protected float originalAcquireTorque;
+        protected float originalAcquireTorqueRoll;
+        protected float originalsnapOffset;
 
         //Based on code by Shadowmage & RoverDude. Thanks for showing how it's done guys! :)
         [KSPEvent(guiName = "Weld Ports", guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
@@ -137,6 +150,14 @@ namespace WildBlueIndustries
             TurnAnimationOn();
         }
 
+        [KSPEvent(guiName = "Toggle Angle Snap", guiActiveUnfocused = true, externalToEVAOnly = false, guiActive = true, unfocusedRange = 200f)]
+        public void ToggleAngleSnap()
+        {
+            angleSnapOn = !angleSnapOn;
+
+            updateAngleSnap();
+        }
+
         [KSPEvent(guiName = "Set as Target", guiActiveUnfocused = true, externalToEVAOnly = false, guiActive = false, unfocusedRange = 200f)]
         public void SetNodeTarget()
         {
@@ -222,17 +243,18 @@ namespace WildBlueIndustries
                 dockingNode.Events["SetAsTarget"].guiActiveUnfocused = false;
                 dockingNode.Events["UnsetTarget"].guiActiveUnfocused = false;
                 dockingNode.Events["MakeReferenceTransform"].guiActive = false;
+                originalsnapOffset = dockingNode.snapOffset;
+                originalAcquireTorque = dockingNode.acquireTorque;
+                originalAcquireTorqueRoll = dockingNode.acquireTorqueRoll;
             }
 
             //Update GUI
             UpdateWeldGUI();
+            updateAngleSnap();
 
             //If we have been welded and we should show the welded mesh then do so.
             if (string.IsNullOrEmpty(weldedMeshName) == false)
                 ShowWeldedMesh(hasBeenWelded);
-
-            //TEMPORARY disable anglesnap
-            angleSnapOn = false;
 
             //Update docking state
             if (dockingNode != null && dockingNode.vesselInfo != null)
@@ -241,69 +263,29 @@ namespace WildBlueIndustries
 
         protected void updateAngleSnap()
         {
-            //Setup angle snap
-            dockingNode.snapRotation = angleSnapOn;
-            dockingNode.snapOffset = snapAngle;
             if (angleSnapOn)
-                dockingNode.captureMinRollDot = 0.999f;
-            else
-                dockingNode.captureMinRollDot = float.MinValue;
-
-            //If the other port doesn't have angle snap on, then turn off ours.
-            //Seems to only apply when we're the port that was targeted (the passive port)
-            if (watchForDocking && dockingNode.otherNode != null)
             {
-                if (dockingNode.otherNode.snapRotation == false)
-                {
-                    dockingNode.snapRotation = false;
-                    dockingNode.snapOffset = 0f;
-                    angleSnapOn = false;
-                    dockingNode.captureMinRollDot = float.MinValue;
-                }
+                Events["ToggleAngleSnap"].guiName = "Turn Off Angle Snap";
+                dockingNode.snapRotation = true;
+                dockingNode.snapOffset = snapOffset;
+//                dockingNode.captureMinRollDot = 0.999f;
+                dockingNode.acquireTorque = acquireTorque;
+                dockingNode.acquireTorqueRoll = acquireTorqueRoll;
             }
-
-            //We might be the active docking port.
-            //See if the target part is a docking port, and if so, check to see if angle snap is on.
-            //If not, tun off our angle snap.
-            else if (this.part.vessel.targetObject != null && this.part.vessel.targetObject is ModuleDockingNode)
+            else
             {
-                ModuleDockingNode targetNode = (ModuleDockingNode)this.part.vessel.targetObject;
-                WBIDockingNodeHelper dockingHelper = targetNode.part.FindModuleImplementing<WBIDockingNodeHelper>();
-
-                if (targetNode.snapRotation == false && dockingHelper == null)
-                {
-                    dockingNode.snapRotation = false;
-                    dockingNode.snapOffset = 0f;
-                    angleSnapOn = false;
-                    dockingNode.captureMinRollDot = float.MinValue;
-                }
-
-                //If we're docking with a WBI port and its snap rotation is off and our angle snap is on then turn on the WBI port's angle snap.
-                else if (targetNode.snapRotation == false && dockingHelper != null && angleSnapOn)
-                {
-                    dockingHelper.angleSnapOn = true;
-                    targetNode.snapRotation = true;
-                    targetNode.snapOffset = dockingHelper.snapAngle;
-                    targetNode.captureMinRollDot = 0.999f;
-                }
-
-                //Turn off other port's angle snap
-                else if (dockingHelper != null)
-                {
-                    dockingHelper.angleSnapOn = false;
-                    targetNode.snapRotation = false;
-                    targetNode.snapOffset = 0f;
-                    targetNode.captureMinRollDot = float.MinValue;
-                }
+                Events["ToggleAngleSnap"].guiName = "Turn On Angle Snap";
+                dockingNode.snapRotation = false;
+                dockingNode.snapOffset = originalsnapOffset;
+//                dockingNode.captureMinRollDot = float.MinValue;
+                dockingNode.acquireTorque = originalAcquireTorque;
+                dockingNode.acquireTorqueRoll = originalAcquireTorqueRoll;
             }
         }
 
         public override void OnUpdate()
         {
             base.OnUpdate();
-
-            //Update angle snap
-            updateAngleSnap();
 
             //Workaround: Watch to see when we dock. When we do, update the GUI.
             if (watchForDocking)

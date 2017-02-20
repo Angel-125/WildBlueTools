@@ -36,6 +36,7 @@ namespace WildBlueIndustries
         public WBIExperimentLab experimentLab = null;
         public LoadExperimentView loadExperimentView = new LoadExperimentView();
         public bool canCreateExperiments;
+        public bool needsConnectionToKSC;
         public string experimentCreationSkill = string.Empty;
         public int minimumCreationLevel;
         public string creationTags;
@@ -179,7 +180,7 @@ namespace WildBlueIndustries
 
                 //Transfer button
                 Texture xFerIcon;
-                if (canCreateExperiments && experimentSlot.experimentID == experimentSlot.defaultExperiment)
+                if (hasCreationAbility && experimentSlot.experimentID == experimentSlot.defaultExperiment)
                     xFerIcon = loadIcon;
                 else if (HighLogic.LoadedSceneIsFlight)
                     xFerIcon = transferIcon;
@@ -323,17 +324,29 @@ namespace WildBlueIndustries
             if (this.canCreateExperiments)
             {
                 //Check valid connection
-                if (HighLogic.LoadedSceneIsFlight)
+                if (needsConnectionToKSC)
                 {
-                    if (CommNet.CommNetScenario.CommNetEnabled && !this.part.vessel.connection.IsConnectedHome)
-                        return;
-                }
+                    if (HighLogic.LoadedSceneIsFlight)
+                    {
+                        if (this.part.vessel == null || this.part.vessel.connection == null)
+                        {
+                            hasCreationAbility = false;
+                            return;
+                        }
 
-                //Check crew skill.
-                if (Utils.IsExperienceEnabled() == false)
-                {
-                    hasCreationAbility = true;
-                    return;
+                        if (CommNet.CommNetScenario.CommNetEnabled && !this.part.vessel.connection.IsConnectedHome)
+                        {
+                            hasCreationAbility = false;
+                            return;
+                        }
+                    }
+
+                    //Check crew skill.
+                    if (Utils.IsExperienceEnabled() == false)
+                    {
+                        hasCreationAbility = true;
+                        return;
+                    }
                 }
 
                 ProtoCrewMember[] crewMembers = this.part.protoModuleCrew.ToArray();
