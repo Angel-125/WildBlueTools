@@ -27,12 +27,6 @@ namespace WildBlueIndustries
         [KSPField]
         public float materialCostModifier = 1.0f;
 
-        //Should the player pay to reconfigure the module?
-        public static bool payForReconfigure = true;
-
-        //Should we check for the required skill to redecorate?
-        public static bool checkForSkill = true;
-
         protected float recycleBase = 0.7f;
         protected float baseSkillModifier = 0.05f;
         protected double reconfigureCost;
@@ -43,7 +37,7 @@ namespace WildBlueIndustries
         {
             if (HighLogic.LoadedSceneIsFlight == false)
                 return true;
-            if (!payForReconfigure)
+            if (!WBIMainSettings.PayToReconfigure)
                 return true;
             if (reconfigureCost == 0f)
                 return true;
@@ -113,7 +107,7 @@ namespace WildBlueIndustries
         {
             if (HighLogic.LoadedSceneIsFlight == false)
                 return true;
-            if (!payForReconfigure)
+            if (!WBIMainSettings.PayToReconfigure)
                 return true;
             //string value;
             bool canAffordCost = false;
@@ -188,7 +182,7 @@ namespace WildBlueIndustries
         {
             if (HighLogic.LoadedSceneIsFlight == false)
                 return true;
-            if (!checkForSkill)
+            if (!WBIMainSettings.RequiresSkillCheck)
                 return true;
             string skillRequired = templateManager[templateName].GetValue("reconfigureSkill");
             if (string.IsNullOrEmpty(skillRequired))

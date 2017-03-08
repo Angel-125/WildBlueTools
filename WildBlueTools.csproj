@@ -57,7 +57,11 @@
   <ItemGroup>
     <Compile Include="Animation\ModuleAnimateGenericSFX.cs" />
     <Compile Include="Science\GeoLabView.cs" />
+    <Compile Include="Science\WBIExpCompleteParam.cs" />
+    <Compile Include="Science\WBIEnhancedExperiment.cs" />
     <Compile Include="Science\WBIGeoLab.cs" />
+    <Compile Include="Science\WBIResearchContract.cs" />
+    <Compile Include="Science\WBIReturnHomeParam.cs" />
     <Compile Include="Switchers\WBIConvertibleMPL.cs" />
     <Compile Include="Converters\WBIModuleGreenhouse.cs" />
     <Compile Include="GUI\InfoView.cs" />
@@ -71,6 +75,7 @@
     <Compile Include="Science\ExpManifestAdminView.cs" />
     <Compile Include="GUI\ConvertibleStorageView.cs" />
     <Compile Include="GUI\ScienceLabResultsView.cs" />
+    <Compile Include="Settings\ToolTipScenario.cs" />
     <Compile Include="Utilities\WBIModuleWetWorkshop.cs" />
     <Compile Include="Science\WBIBiomeMultiExperiment.cs" />
     <Compile Include="Utilities\WBINameTag.cs" />
@@ -80,6 +85,8 @@
     <Compile Include="WBIFlexibleDockingPort.cs" />
     <Compile Include="Utilities\WBIForceDock.cs" />
     <Compile Include="Utilities\WBIGroundStabilizer.cs" />
+    <Compile Include="Science\WBITargetBodyParam.cs" />
+    <Compile Include="Science\WBIExpConditionsParam.cs" />
     <Compile Include="Wrappers\WBIKISInventoryWrapper.cs" />
     <Compile Include="IVAUtils\ButtonClickDelegate.cs" />
     <Compile Include="PropModules\InternalPlasmaScreen.cs" />

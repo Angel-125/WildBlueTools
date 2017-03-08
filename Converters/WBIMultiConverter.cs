@@ -82,7 +82,7 @@ namespace WildBlueIndustries
                 adjustedPartCost *= reconfigureCostModifier;
 
             //Do we pay for resources? If so, either pay the resources if we're deploying the module, or refund the recycled parts
-            if (payForReconfigure)
+            if (WBIMainSettings.PayToReconfigure)
             {
                 //If we aren't deployed then see if we can afford to pay the resource cost.
                 if (!isDeployed)
@@ -144,7 +144,7 @@ namespace WildBlueIndustries
             // Not paying for reconfiguration, check for skill requirements
             else
             {
-                if (checkForSkill)
+                if (WBIMainSettings.RequiresSkillCheck)
                 {
                     if (hasSufficientSkill(CurrentTemplateName))
                         base.ToggleInflation();

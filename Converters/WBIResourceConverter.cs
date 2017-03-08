@@ -35,9 +35,6 @@ namespace WildBlueIndustries
         protected string needCrew = "Missing {0} Crew";
 
         public static bool showResults = true;
-        public static bool repairsRequireResources;
-        public static bool partsCanBreak;
-        public static bool requireSkillCheck;
 
         [KSPField]
         public int crewsRequired = 0;

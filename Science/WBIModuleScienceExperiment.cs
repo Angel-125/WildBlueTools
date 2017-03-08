@@ -56,6 +56,9 @@ namespace WildBlueIndustries
         [KSPField]
         public string requiredResources = string.Empty;
 
+        [KSPField]
+        public bool checkPartResources;
+
         [KSPField(isPersistant = true)]
         public string accumulatedResources = string.Empty;
 
@@ -86,7 +89,10 @@ namespace WildBlueIndustries
         [KSPField]
         public float minimumAsteroidMass;
 
-        [KSPField(isPersistant = true)]
+        [KSPField]
+        public bool resultsSafetyCheck;
+
+        [KSPField(isPersistant = true, guiName = "Status")]
         public string status = string.Empty;
 
         [KSPField(isPersistant = true)]
@@ -118,7 +124,6 @@ namespace WildBlueIndustries
         protected bool hasRequiredParts;
         protected ConfigNode nodeCompletionHandler = null;
         protected string partsList = string.Empty;
-        protected bool resultsSafetyCheck;
 
         public override void OnLoad(ConfigNode node)
         {
@@ -156,6 +161,7 @@ namespace WildBlueIndustries
             ScienceData[] data = GetData();
             if ((data == null || data.Length == 0) && experimentID != defaultExperiment && !resultsSafetyCheck)
             {
+                Debug.Log("[WBIModuleScienceExperiment] - Safety check trigger, running experiment.");
                 resultsSafetyCheck = true;
                 Deployed = false;
                 Inoperable = false;
@@ -224,8 +230,13 @@ namespace WildBlueIndustries
         public void SetGUIVisible(bool guiVisible)
         {
             isGUIVisible = guiVisible;
-            Events["DeployExperiment"].guiActive = guiVisible;
-            Events["DeployExperimentExternal"].guiActiveUnfocused = guiVisible;
+
+            //Base class actions and events are always disabled.
+            Events["DeployExperiment"].active = false;
+            Events["DeployExperimentExternal"].active = false;
+            Actions["DeployAction"].active = false;
+
+            //Our events and actions
         }
 
         public bool CheckCompletion()
@@ -385,13 +396,31 @@ namespace WildBlueIndustries
                 //for each resource, see if we still need more
                 totalCount = resourceMapKeys.Length;
                 SExperimentResource experimentResource;
+                PartResource partResource = null;
                 for (index = 0; index < totalCount; index++)
                 {
                     experimentResource = resourceMap[resourceMapKeys[index]];
-                    if (experimentResource.currentAmount < experimentResource.targetAmount)
+                    if (!checkPartResources)
                     {
-                        status = "Needs " + experimentResource.name + string.Format(" ({0:f3}/{1:f3})", experimentResource.currentAmount, experimentResource.targetAmount);
-                        return false;
+                        if ((experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
+                        {
+                            status = "Needs " + experimentResource.name + string.Format(" ({0:f3}/{1:f3})", experimentResource.currentAmount, experimentResource.targetAmount);
+                            return false;
+                        }
+                    }
+
+                    else //Check the part for the required resources
+                    {
+//                        Debug.Log("[WBIModuleScienceExperiment] - Checking part for " + experimentResource.name);
+                        if (this.part.Resources.Contains(experimentResource.name))
+                        {
+                            partResource = this.part.Resources[experimentResource.name];
+                            if ((partResource.amount / experimentResource.targetAmount) < 0.999f)
+                            {
+                                status = "Needs " + experimentResource.name + string.Format(" ({0:f3}/{1:f3})", partResource.amount, experimentResource.targetAmount);
+                                return false;
+                            }
+                        }
                     }
                 }
             }

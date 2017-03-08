@@ -153,11 +153,6 @@ namespace WildBlueIndustries
 
         public void UpdateSettings()
         {
-            WBIAffordableSwitcher.payForReconfigure = WBIMainSettings.PayToReconfigure;
-            WBIAffordableSwitcher.checkForSkill = WBIMainSettings.RequiresSkillCheck;
-            WBIResourceConverter.repairsRequireResources = WBIMainSettings.RepairsRequireResources;
-            WBIResourceConverter.partsCanBreak = WBIMainSettings.PartsCanBreak;
-            WBIResourceConverter.requireSkillCheck = WBIMainSettings.RequiresSkillCheck;
         }
     }
 }

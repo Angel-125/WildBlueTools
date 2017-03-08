@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirshipUtils", "..\Airships
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snacks", "..\Snacks\Snacks\Snacks.csproj", "{3463BA25-163C-4A80-B246-9E807ADABF0B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KerbalKomets", "..\KerbalKomets\KerbalKomets.csproj", "{F59B89A7-FB6F-43E8-9BE8-68F4969B2406}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{3463BA25-163C-4A80-B246-9E807ADABF0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3463BA25-163C-4A80-B246-9E807ADABF0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3463BA25-163C-4A80-B246-9E807ADABF0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F59B89A7-FB6F-43E8-9BE8-68F4969B2406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F59B89A7-FB6F-43E8-9BE8-68F4969B2406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F59B89A7-FB6F-43E8-9BE8-68F4969B2406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F59B89A7-FB6F-43E8-9BE8-68F4969B2406}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

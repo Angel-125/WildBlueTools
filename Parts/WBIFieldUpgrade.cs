@@ -24,9 +24,6 @@ namespace WildBlueIndustries
         private const string kInsufficientSkill = "Insufficient skill to upgrade the {0:s}.";
         private const string kInsufficientCrew = "Cannot upgrade. Either crew the vessel or perform an EVA.";
 
-        public static bool payForReconfigure;
-        public static bool requiresSkillCheck;
-
         [KSPField]
         public string upgradeResource = string.Empty;
 
@@ -63,7 +60,7 @@ namespace WildBlueIndustries
             if (HighLogic.LoadedSceneIsEditor)
                 return true;
 
-            if (!payForReconfigure && !requiresSkillCheck)
+            if (!WBIMainSettings.PayToReconfigure && !WBIMainSettings.RequiresSkillCheck)
                 return true;
             else
                 return false;
@@ -73,7 +70,7 @@ namespace WildBlueIndustries
         {
             if (HighLogic.LoadedSceneIsFlight == false)
                 return true;
-            if (!payForReconfigure)
+            if (!WBIMainSettings.PayToReconfigure)
                 return true;
             if (upgradeCost == 0f)
                 return true;
@@ -98,7 +95,7 @@ namespace WildBlueIndustries
         {
             if (HighLogic.LoadedSceneIsFlight == false)
                 return true;
-            if (!requiresSkillCheck)
+            if (!WBIMainSettings.RequiresSkillCheck)
                 return true;
             if (string.IsNullOrEmpty(upgradeSkill))
                 return true;

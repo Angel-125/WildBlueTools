@@ -177,7 +177,7 @@ namespace WildBlueIndustries
         [KSPEvent(guiActiveUnfocused = true, unfocusedRange = 3f, guiName = "Perform repairs", guiActiveEditor = false, guiActive = true)]
         public virtual void RepairLab()
         {
-            if (repairsRequireResources)
+            if (WBIMainSettings.RepairsRequireResources)
             {
                 double repairUnits = calculateRepairCost();
 
@@ -218,7 +218,7 @@ namespace WildBlueIndustries
 
         protected virtual double calculateRepairCost()
         {
-            if (repairsRequireResources == false)
+            if (WBIMainSettings.RepairsRequireResources == false)
                 return 0f;
             if (!Utils.IsExperienceEnabled())
                 return 0f;
@@ -235,7 +235,7 @@ namespace WildBlueIndustries
                 for (int index = 0; index < crewMembers.Length; index++)
                 {
                     crew = crewMembers[index];
-                    if (crew.HasEffect(repairSkill) || requireSkillCheck == false)
+                    if (crew.HasEffect(repairSkill) || WBIMainSettings.RequiresSkillCheck == false)
                     {
                         repairUnits = repairUnits * (0.9f - (crew.experienceTrait.CrewMemberExperienceLevel() * 0.1f));
                         repairSkillFound = true;
@@ -321,7 +321,7 @@ namespace WildBlueIndustries
         {
             base.onCriticalFailure();
 
-            if (partsCanBreak)
+            if (WBIMainSettings.PartsCanBreak)
             {
                 StopConverter();
                 isBroken = true;
@@ -337,7 +337,7 @@ namespace WildBlueIndustries
                 resultsMessage.AppendLine("Lab: " + this.part.partInfo.title);
                 resultsMessage.AppendLine("Subject: Lab Critical Failure!");
                 resultsMessage.AppendLine("Summary: Unfortunately the " + this.part.partInfo.title + " has suffered a catastrophic failure and requires repairs.");
-                if (repairsRequireResources && string.IsNullOrEmpty(repairResource) == false)
+                if (WBIMainSettings.RepairsRequireResources && string.IsNullOrEmpty(repairResource) == false)
                     resultsMessage.AppendLine(string.Format("It will take {0:f2}", repairAmount) + " " + repairResource + " to repair");
                 msg = new MessageSystem.Message("Lab Critical Failure!", resultsMessage.ToString(),
                     MessageSystemButton.MessageButtonColor.BLUE, MessageSystemButton.ButtonIcons.FAIL);

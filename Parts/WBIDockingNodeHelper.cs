@@ -46,13 +46,13 @@ namespace WildBlueIndustries
         public float snapOffset = 0;
 
         [KSPField]
-		public float portRoll = 30;
+        public float portRoll = 30;
 
         [KSPField]
-		public float portTorque = 30;
+        public float portTorque = 30;
 
         [KSPField]
-		public float acquireTorque = 10;
+        public float acquireTorque = 10;
 
         [KSPField]
         public float acquireTorqueRoll = 10;
@@ -187,8 +187,8 @@ namespace WildBlueIndustries
 
             //GUI update
             Events["UnsetNodeTarget"].guiActiveUnfocused = false;
-            Events["SetNodeTarget"].guiActiveUnfocused = true; 
-            
+            Events["SetNodeTarget"].guiActiveUnfocused = true;
+
             TurnAnimationOff();
 
             dockingNode.UnsetTarget();
@@ -268,7 +268,7 @@ namespace WildBlueIndustries
                 Events["ToggleAngleSnap"].guiName = "Turn Off Angle Snap";
                 dockingNode.snapRotation = true;
                 dockingNode.snapOffset = snapOffset;
-//                dockingNode.captureMinRollDot = 0.999f;
+                //                dockingNode.captureMinRollDot = 0.999f;
                 dockingNode.acquireTorque = acquireTorque;
                 dockingNode.acquireTorqueRoll = acquireTorqueRoll;
             }
@@ -277,7 +277,7 @@ namespace WildBlueIndustries
                 Events["ToggleAngleSnap"].guiName = "Turn On Angle Snap";
                 dockingNode.snapRotation = false;
                 dockingNode.snapOffset = originalsnapOffset;
-//                dockingNode.captureMinRollDot = float.MinValue;
+                //                dockingNode.captureMinRollDot = float.MinValue;
                 dockingNode.acquireTorque = originalAcquireTorque;
                 dockingNode.acquireTorqueRoll = originalAcquireTorqueRoll;
             }
@@ -443,7 +443,7 @@ namespace WildBlueIndustries
             foreach (Part childPart in movingPart.children)
                 shiftPart(childPart, offset);
         }
-        
+
         protected void setMeshVisible(string meshName, bool isVisible)
         {
             Transform[] targets;

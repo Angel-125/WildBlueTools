@@ -140,14 +140,14 @@ namespace WildBlueIndustries
             if (reasonCode == EInvalidTemplateReasons.TemplateIsValid)
             {
                 //If we require specific skills to perform the reconfigure, do we have sufficient skill to reconfigure it?
-                if (checkForSkill)
+                if (WBIMainSettings.RequiresSkillCheck)
                 {
                     if (hasSufficientSkill(templateName) == false)
                         return;
                 }
 
                 //If we have to pay to reconfigure the module, then do our checks.
-                if (payForReconfigure)
+                if (WBIMainSettings.PayToReconfigure)
                 {
                     //Can we afford it?
                     if (canAffordReconfigure(templateName) == false)
