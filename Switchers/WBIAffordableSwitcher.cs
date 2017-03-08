@@ -187,8 +187,8 @@ namespace WildBlueIndustries
             string skillRequired = templateManager[templateName].GetValue("reconfigureSkill");
             if (string.IsNullOrEmpty(skillRequired))
                 return true;
-            if (Utils.IsExperienceEnabled() == false)
-                return true;
+//            if (Utils.IsExperienceEnabled() == false)
+//                return true;
             bool hasAtLeastOneCrew = false;
 
             //Tearing down the current configuration returns 70% of the current configuration's resource, plus 5% per skill point

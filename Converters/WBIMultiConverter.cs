@@ -90,6 +90,10 @@ namespace WildBlueIndustries
                     //Can we afford it?
                     if (canAffordReconfigure(CurrentTemplateName, false) == false)
                         return;
+
+                    //Do we have the skill?
+                    if (!hasSufficientSkill(CurrentTemplateName))
+                        return;
                     /*
                     if (totalResources < adjustedPartCost)
                     {
