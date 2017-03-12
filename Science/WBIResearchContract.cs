@@ -29,6 +29,8 @@ namespace ContractsPlus.Contracts
 
     public class WBIResearchContract : Contract
     {
+        public const int CurrentContractVersion = 2;
+
         const float fundsAdvance = 15000f;
         const float fundsCompleteBase = 50000f;
         const float fundsFailure = 35000f;
@@ -37,6 +39,9 @@ namespace ContractsPlus.Contracts
         const float rewardAdjustmentFactor = 0.4f;
         const string defaultExperiment = "WBIEmptyExperiment";
 
+        public bool experimentCompleted = false;
+        public int versionNumber = 1;
+
         CelestialBody targetBody = null;
         ConfigNode experimentNode = null;
         WBIExperimentSituations situations;
@@ -44,14 +49,12 @@ namespace ContractsPlus.Contracts
 
         protected override bool Generate()
         {
-            targetBody = getNextTarget();
-            if (targetBody == null)
-            {
-                targetBody = Planetarium.fetch.Home;
-                Debug.LogWarning("targetBody could not be computed, using homeworld");
-            }
+            Debug.Log("[WBIResearchContract] - Trying to generate a contract, available count: " + WBIContractScenario.Instance.contractsAvailable + "/" + WBIContractScenario.maxContracts);
+            if (WBIContractScenario.Instance.contractsAvailable == WBIContractScenario.maxContracts)
+                return false;
+
             generateExperimentIfNeeded();
-            Debug.Log("[WBIResearchContract] - Generating contract for " + experimentNode.GetValue("title"));
+//            Debug.Log("[WBIResearchContract] - Generating contract for " + experimentNode.GetValue("title"));
 
             //Add parameter: complete research of experiment, orbiting/landed/splashed, etc.
             this.AddParameter(new WBITargetBodyParam(targetBody), null);
@@ -133,6 +136,10 @@ namespace ContractsPlus.Contracts
             experimentID = node.GetValue("experimentID");
             experimentNode = GetExperimentNode(experimentID);
             situations = GetSituations(experimentNode);
+            if (node.HasValue("experimentCompleted"))
+                experimentCompleted = bool.Parse(node.GetValue("experimentCompleted"));
+            if (node.HasValue("versionNumber"))
+                versionNumber = int.Parse("versionNumber");
         }
 
         protected override void OnSave(ConfigNode node)
@@ -140,11 +147,90 @@ namespace ContractsPlus.Contracts
             int bodyID = targetBody.flightGlobalsIndex;
             node.AddValue("targetBody", bodyID);
             node.AddValue("experimentID", experimentID);
+            node.AddValue("experimentCompleted", experimentCompleted);
+            node.AddValue("versionNumber", CurrentContractVersion);
+        }
+
+        protected override void OnParameterStateChange(ContractParameter p)
+        {
+            base.OnParameterStateChange(p);
+
+            foreach (ContractParameter parameter in AllParameters)
+            {
+                if (parameter.State == ParameterState.Incomplete || parameter.State == ParameterState.Failed)
+                    return;
+            }
+
+            //All parameters are complete
+            SetState(State.Completed);
+        }
+
+        protected override void OnOffered()
+        {
+            base.OnOffered();
+            WBIContractScenario.Instance.contractsAvailable += 1;
+            if (WBIContractScenario.Instance.contractsAvailable > WBIContractScenario.maxContracts)
+                WBIContractScenario.Instance.contractsAvailable = WBIContractScenario.maxContracts;
+        }
+
+        protected override void OnCompleted()
+        {
+            base.OnCompleted();
+            WBIContractScenario.Instance.contractsAvailable -= 1;
+            if (WBIContractScenario.Instance.contractsAvailable < 0)
+                WBIContractScenario.Instance.contractsAvailable = 0;
+        }
+
+        protected override void OnFailed()
+        {
+            base.OnFailed();
+            WBIContractScenario.Instance.contractsAvailable -= 1;
+            if (WBIContractScenario.Instance.contractsAvailable < 0)
+                WBIContractScenario.Instance.contractsAvailable = 0;
+        }
+
+        protected override void OnFinished()
+        {
+            base.OnFinished();
+            WBIContractScenario.Instance.contractsAvailable -= 1;
+            if (WBIContractScenario.Instance.contractsAvailable < 0)
+                WBIContractScenario.Instance.contractsAvailable = 0;
+        }
+
+        protected override void OnDeclined()
+        {
+            base.OnDeclined();
+            WBIContractScenario.Instance.contractsAvailable -= 1;
+            if (WBIContractScenario.Instance.contractsAvailable < 0)
+                WBIContractScenario.Instance.contractsAvailable = 0;
+        }
+
+        protected override void OnOfferExpired()
+        {
+            base.OnOfferExpired();
+            WBIContractScenario.Instance.contractsAvailable -= 1;
+            if (WBIContractScenario.Instance.contractsAvailable < 0)
+                WBIContractScenario.Instance.contractsAvailable = 0;
         }
 
         public override bool MeetRequirements()
         {
             generateExperimentIfNeeded();
+
+            //Has the target body been orbited?
+            bool targetBodyOrbited = false;
+            foreach (CelestialBodySubtree subtree in ProgressTracking.Instance.celestialBodyNodes)
+            {
+                if (subtree.Body == targetBody)
+                {
+                    targetBodyOrbited = true;
+                    break;
+                }
+            }
+            if (!targetBodyOrbited)
+            {
+                return false;
+            }
 
             //If the experiment has a minimum tech requirement, make sure we've met the requirement.
             if (experimentNode.HasValue("techRequired") == false)
@@ -307,7 +393,13 @@ namespace ContractsPlus.Contracts
         {
             if (experimentNode == null)
             {
-                Debug.Log("[WBIResearchContract] - generating an experiment to offer as a contract.");
+                targetBody = getNextTarget();
+                if (targetBody == null)
+                {
+                    targetBody = Planetarium.fetch.Home;
+                    Debug.LogWarning("targetBody could not be computed, using homeworld");
+                }
+
                 experimentNode = getRandomExperiment();
             }
             experimentID = experimentNode.GetValue("id");

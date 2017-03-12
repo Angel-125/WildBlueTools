@@ -59,7 +59,9 @@ namespace ContractsPlus.Contracts
         {
             node.AddValue("experimentID", experimentID);
             node.AddValue("targetBody", targetBody);
-            node.AddValue("situations", situations);
+
+            if (string.IsNullOrEmpty(situations) == false)
+                node.AddValue("situations", situations);
         }
 
         protected override void OnLoad(ConfigNode node)
@@ -69,15 +71,28 @@ namespace ContractsPlus.Contracts
             situations = node.GetValue("situations");
         }
 
+        protected void setComplete()
+        {
+            WBIResearchContract contract = (WBIResearchContract)Root;
+            contract.experimentCompleted = true;
+            base.SetComplete();
+        }
+
         private void OnExperimentDeployed(ScienceData data)
         {
             //data.subjectID example: WBICryogenicResourceStudy@MinmusInSpaceHigh
             if (data.subjectID.Contains(experimentID) && data.subjectID.Contains(targetBody))
             {
                 //Make sure the situation matches
+                if (string.IsNullOrEmpty(situations))
+                {
+                    setComplete();
+                    return;
+                }
+
                 if (situations == "any")
                 {
-                    base.SetComplete();
+                    setComplete();
                     return;
                 }
 
@@ -89,18 +104,24 @@ namespace ContractsPlus.Contracts
                     {
                         case "SPLASHED":
                             if (data.subjectID.Contains("Splashed"))
-                                base.SetComplete();
+                            {
+                                setComplete();
+                            }
                             break;
 
                         case "FLYING":
                             if (data.subjectID.Contains("Flying"))
-                                base.SetComplete();
+                            {
+                                setComplete();
+                            }
                             break;
 
                         case "PRELAUNCH":
                         case "LANDED":
                             if (data.subjectID.Contains("Landed"))
-                                base.SetComplete();
+                            {
+                                setComplete();
+                            }
                             break;
 
                         case "ESCAPING":
@@ -108,7 +129,9 @@ namespace ContractsPlus.Contracts
                         case "ORBITING":
                         default:
                             if (data.subjectID.Contains("InSpace"))
-                                base.SetComplete();
+                            {
+                                setComplete();
+                            }
                             break;
                     }
                 }

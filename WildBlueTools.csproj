@@ -82,6 +82,7 @@
     <Compile Include="Utilities\WBIDockingPortToggle.cs" />
     <Compile Include="Utilities\WBIDeployableEngine.cs" />
     <Compile Include="Science\WBIDataTransferUtility.cs" />
+    <Compile Include="Science\WBIContractScenario.cs" />
     <Compile Include="WBIFlexibleDockingPort.cs" />
     <Compile Include="Utilities\WBIForceDock.cs" />
     <Compile Include="Utilities\WBIGroundStabilizer.cs" />
