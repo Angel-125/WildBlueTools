@@ -544,28 +544,6 @@ namespace WildBlueIndustries
             }
         }
 
-        public float GetModuleCost()
-        {
-            float resourceCost = ResourceHelper.GetResourceCost(this.part);
-
-            return resourceCost;
-        }
-
-        public float GetModuleCost(float modifier)
-        {
-            return GetModuleCost();
-        }
-
-        public virtual float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
-        {
-            return GetModuleCost();
-        }
-
-        public ModifierChangeWhen GetModuleCostChangeWhen()
-        {
-            return ModifierChangeWhen.CONSTANTLY;
-        }
-
         public void RemoveAllResources()
         {
             List<PartResource> doomedResources = new List<PartResource>();
@@ -1380,6 +1358,10 @@ namespace WildBlueIndustries
         #endregion
 
         #region ReconfigurationCosts
+        protected virtual void recoverResourceCost(string resourceName, double recycleAmount)
+        {
+        }
+
         protected virtual bool payPartsCost(int templateIndex)
         {
              return true;
@@ -1415,6 +1397,33 @@ namespace WildBlueIndustries
         public ModifierChangeWhen GetModuleMassChangeWhen()
         {
             return ModifierChangeWhen.CONSTANTLY;
+        }
+        #endregion
+
+        #region IPartCostModifier
+        public float GetModuleCost()
+        {
+            float resourceCost = ResourceHelper.GetResourceCost(this.part);
+
+            return resourceCost;
+        }
+
+        public float GetModuleCost(float modifier)
+        {
+            return GetModuleCost();
+        }
+
+        public virtual float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
+        {
+            return GetModuleCost();
+        }
+
+        public ModifierChangeWhen GetModuleCostChangeWhen()
+        {
+            if (HighLogic.LoadedSceneIsEditor)
+                return ModifierChangeWhen.CONSTANTLY;
+            else
+                return ModifierChangeWhen.FIXED;
         }
         #endregion
     }

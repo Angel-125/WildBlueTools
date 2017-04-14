@@ -21,7 +21,7 @@ namespace WildBlueIndustries
     public class WBIFieldUpgrade : PartModule
     {
         private const string kInsufficientParts = "Insufficient resources to upgrade the {0:s}. You need a total of {1:f2} {2:s} to reconfigure.";
-        private const string kInsufficientSkill = "Insufficient skill to upgrade the {0:s}.";
+        private const string kInsufficientSkill = "Insufficient skill to upgrade the {0:s}. You need one of: ";
         private const string kInsufficientCrew = "Cannot upgrade. Either crew the vessel or perform an EVA.";
 
         [KSPField]
@@ -102,7 +102,7 @@ namespace WildBlueIndustries
             if (Utils.IsExperienceEnabled() == false)
                 return true;
             bool hasAtLeastOneCrew = false;
-            string errorMessage = string.Format(kInsufficientSkill, this.part.partInfo.title);
+            string errorMessage = string.Format(kInsufficientSkill + Utils.GetTraitsWithEffect(upgradeSkill), this.part.partInfo.title);
 
             //Make sure we have an experienced person either out on EVA performing the reconfiguration, or inside the module.
             //Check EVA first

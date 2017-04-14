@@ -49,7 +49,7 @@ namespace ContractsPlus.Contracts
 
         protected override bool Generate()
         {
-            Debug.Log("[WBIResearchContract] - Trying to generate a contract, available count: " + WBIContractScenario.Instance.contractsAvailable + "/" + WBIContractScenario.maxContracts);
+//            Debug.Log("[WBIResearchContract] - Trying to generate a contract, available count: " + WBIContractScenario.Instance.contractsAvailable + "/" + WBIContractScenario.maxContracts);
             if (WBIContractScenario.Instance.contractsAvailable == WBIContractScenario.maxContracts)
                 return false;
 

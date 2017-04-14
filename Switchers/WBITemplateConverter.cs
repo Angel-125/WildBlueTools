@@ -23,7 +23,7 @@ namespace WildBlueIndustries
     {
         private const string kNeedAdditionalParts = "Insufficient resources to reconfigure the module. You need an additional {0:f2} {1:s} to reconfigure.";
         private const string kInsufficientParts = "Insufficient resources to reconfigure the module. You need a total of {0:f2} {1:s} to reconfigure.";
-        private const string kInsufficientSkill = "Insufficient skill to reconfigure the module.";
+        private const string kInsufficientSkill = "Insufficient skill to reconfigure the module. You need one of: ";
         private const string kInsufficientCrew = "Cannot reconfigure. Either crew the module or perform an EVA.";
 
         //Currently you can support multiple templateNodes, with each node separated by a semicolon.
@@ -207,7 +207,7 @@ namespace WildBlueIndustries
 
                 if (experience.TypeName != skillRequired)
                 {
-                    ScreenMessages.PostScreenMessage(kInsufficientSkill, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(kInsufficientSkill + Utils.GetTraitsWithEffect(skillRequired), 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     return false;
                 }
 
@@ -227,7 +227,7 @@ namespace WildBlueIndustries
 
             if (!hasAtLeastOneCrew)
             {
-                ScreenMessages.PostScreenMessage(kInsufficientSkill, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(kInsufficientSkill + Utils.GetTraitsWithEffect(skillRequired), 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return false;
             }
 

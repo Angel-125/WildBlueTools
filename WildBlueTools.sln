@@ -13,13 +13,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buffalo", "..\Buffalo\Buffa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperKerbal", "..\SuperKerbal\SuperKerbal\SuperKerbal.csproj", "{90745AD6-4DFB-46C4-BFAF-1A26F6486722}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Switchers", "..\SquadEngineConcepts\Switchers\Switchers.csproj", "{A03712D5-6D65-4867-93A1-C89CF959DA6F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirshipUtils", "..\Airships\AirshipUtils\AirshipUtils.csproj", "{16F9B534-09B0-42B5-BD49-E3B3364A48A7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snacks", "..\Snacks\Snacks\Snacks.csproj", "{3463BA25-163C-4A80-B246-9E807ADABF0B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KerbalKomets", "..\KerbalKomets\KerbalKomets.csproj", "{F59B89A7-FB6F-43E8-9BE8-68F4969B2406}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KerbalActuators", "..\KerbalActuators\KerbalActuators\KerbalActuators.csproj", "{691F7D23-82FA-4194-8357-0EF40092C050}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Switchers", "..\KSPRocketPartOverhaul\PartOverhaulsMeshSwitch\Switchers\Switchers.csproj", "{A03712D5-6D65-4867-93A1-C89CF959DA6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,10 +53,6 @@ Global
 		{90745AD6-4DFB-46C4-BFAF-1A26F6486722}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{90745AD6-4DFB-46C4-BFAF-1A26F6486722}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{90745AD6-4DFB-46C4-BFAF-1A26F6486722}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{16F9B534-09B0-42B5-BD49-E3B3364A48A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{16F9B534-09B0-42B5-BD49-E3B3364A48A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{16F9B534-09B0-42B5-BD49-E3B3364A48A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -67,6 +65,14 @@ Global
 		{F59B89A7-FB6F-43E8-9BE8-68F4969B2406}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F59B89A7-FB6F-43E8-9BE8-68F4969B2406}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F59B89A7-FB6F-43E8-9BE8-68F4969B2406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{691F7D23-82FA-4194-8357-0EF40092C050}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{691F7D23-82FA-4194-8357-0EF40092C050}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{691F7D23-82FA-4194-8357-0EF40092C050}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{691F7D23-82FA-4194-8357-0EF40092C050}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

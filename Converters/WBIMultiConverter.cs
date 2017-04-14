@@ -94,15 +94,6 @@ namespace WildBlueIndustries
                     //Do we have the skill?
                     if (!hasSufficientSkill(CurrentTemplateName))
                         return;
-                    /*
-                    if (totalResources < adjustedPartCost)
-                    {
-                        notEnoughParts();
-                        string notEnoughPartsMsg = string.Format("Insufficient resources to assemble the module. You need a total of {0:f2} " + requiredName + " to assemble.", resourceCost);
-                        ScreenMessages.PostScreenMessage(notEnoughPartsMsg, 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                        return;
-                    }
-                     */
 
                     //Yup, we can afford it
                     //Pay the reconfigure cost
@@ -119,28 +110,12 @@ namespace WildBlueIndustries
                     // Toggle first in case deflate confirmation is needed, we'll check the state after the toggle.
                     base.ToggleInflation();
 
+                    //Recycle what we can.
+
                     // deflateConfirmed's logic seems backward.
                     if (!HasResources() || (HasResources() && deflateConfirmed == false))
                     {
-                        // The part came from the factory configured which represents an additional resource cost. If reconfigured in the field, the difference was paid at
-                        // that time. Deflating doesn't remove any functionality, so no refund beyond the original adjusted part cost.
-                        double recycleAmount = adjustedPartCost;
-
-                        //Do we have sufficient space in the vessel to store the recycled parts?
-                        double availableStorage = ResourceHelper.GetTotalResourceSpaceAvailable(requiredName, this.part.vessel);
-
-                        if (availableStorage < recycleAmount)
-                        {
-                            double amountLost = recycleAmount - availableStorage;
-                            ScreenMessages.PostScreenMessage(string.Format("Module deflated, {0:f2} {1:s} lost due to insufficient storage.", amountLost, requiredName), 5.0f, ScreenMessageStyle.UPPER_CENTER);
-
-                            //We'll only recycle what we have room to store.
-                            recycleAmount = availableStorage;
-                        }
-
-                        //Yup, we have the space
-                        reconfigureCost = -recycleAmount;
-                        payPartsCost(CurrentTemplateIndex);
+                        recoverResourceCost(requiredName, adjustedPartCost * recycleBase);
                     }
                 }
             }
