@@ -22,7 +22,7 @@ namespace WildBlueIndustries
 {
     public class WBIMeshHelper : ExtendedPartModule
     {
-        [KSPField]
+        [KSPField()]
         public string objects = string.Empty;
 
         [KSPField(isPersistant = true)]
@@ -31,14 +31,20 @@ namespace WildBlueIndustries
         [KSPField()]
         public string guiNames = string.Empty;
 
+        [KSPField()]
+        public bool editorOnly = false;
+
+        [KSPField()]
+        public bool showGui = false;
+
+        [KSPField()]
+        public bool showPrev = true;
+
         protected List<List<Transform>> objectTransforms = new List<List<Transform>>();
         protected Dictionary<string, int> meshIndexes = new Dictionary<string, int>();
         protected List<string> objectNames = new List<string>();
-        protected bool showGui = false;
-        protected bool showPrev = true;
-        protected bool editorOnly = false;
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next variant", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next variant", active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public virtual void NextMesh()
         {
             int nextIndex = selectedObject;
@@ -55,7 +61,7 @@ namespace WildBlueIndustries
 
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Prev variant", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Prev variant", active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public virtual void PrevMesh()
         {
             int nextIndex = selectedObject;
@@ -82,8 +88,6 @@ namespace WildBlueIndustries
         {
             base.OnSave(node);
             node.AddValue("selectedObject", selectedObject.ToString());
-
-            node.AddValue("showGui", showGui.ToString());
         }
 
         public virtual void OnEditorAttach()
@@ -104,18 +108,6 @@ namespace WildBlueIndustries
             if (string.IsNullOrEmpty(value) == false)
                 selectedObject = int.Parse(value);
 
-            value = protoNode.GetValue("showGui");
-            if (string.IsNullOrEmpty(value) == false)
-                showGui = bool.Parse(value);
-
-            value = protoNode.GetValue("showPrev");
-            if (string.IsNullOrEmpty(value) == false)
-                showPrev = bool.Parse(value);
-
-            value = protoNode.GetValue("editorOnly");
-            if (string.IsNullOrEmpty(value) == false)
-                editorOnly = bool.Parse(value);
-
             objects = protoNode.GetValue("objects");
             guiNames = protoNode.GetValue("guiNames");
             if (HighLogic.LoadedSceneIsEditor)
@@ -129,18 +121,22 @@ namespace WildBlueIndustries
         {
             base.OnStart(state);
 
-            this.part.OnEditorAttach += OnEditorAttach;
+            if (HighLogic.LoadedSceneIsEditor)
+                this.part.OnEditorAttach += OnEditorAttach;
 
             if (editorOnly && HighLogic.LoadedSceneIsEditor == false)
                 showGui = false;
 
+
             Events["NextMesh"].active = showGui;
             Events["NextMesh"].guiActive = showGui;
             Events["NextMesh"].guiActiveEditor = showGui;
+            Events["NextMesh"].guiActiveUnfocused = showGui;
 
             Events["PrevMesh"].active = showGui && showPrev;
             Events["PrevMesh"].guiActive = showGui && showPrev;
             Events["PrevMesh"].guiActiveEditor = showGui && showPrev;
+            Events["PrevMesh"].guiActiveUnfocused = showGui;
 
             if (objectTransforms.Count == 0)
             {

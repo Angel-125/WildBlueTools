@@ -107,6 +107,7 @@ namespace WildBlueIndustries
         public void OnButtonClick()
         {
             lightsOn = !lightsOn;
+
             if (propStateHelper != null)
                 propStateHelper.SaveProperty(internalProp.propID, "lightsOn", lightsOn.ToString());
 
@@ -139,7 +140,7 @@ namespace WildBlueIndustries
             {
                 foreach (Light light in lights)
                 {
-                    if (light.name == lightName)
+                    if (light.name.Contains(lightName))
                         light.enabled = lightsOn;
                 }
             }
@@ -171,7 +172,7 @@ namespace WildBlueIndustries
             {
                 foreach (Light light in lights)
                 {
-                    if (light.name == lightName)
+                    if (light.name.Contains(lightName))
                         light.enabled = lightsOn;
                 }
             }
