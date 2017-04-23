@@ -223,6 +223,9 @@ namespace WildBlueIndustries
 
         public void OnVesselModified(Vessel ves)
         {
+            if (ves != this.part.vessel)
+                return;
+
             getMaxTotalFuel();
         }
 

@@ -18,6 +18,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
+    public enum ELightStates
+    {
+        Off,
+        On,
+        MainColor,
+        AltColor,
+    }
+
     public class WBIInternalButtonCabinLight : InternalModule
     {
         [KSPField]
@@ -41,10 +49,21 @@ namespace WildBlueIndustries
         [KSPField]
         public float lightIntensityOff;
 
-        protected bool lightsOn = true;
+        [KSPField]
+        public bool setLightColor;
+
+        [KSPField]
+        public string primaryLightColor = string.Empty;
+
+        [KSPField]
+        public string secondaryLightColor = string.Empty;
+
+        protected ELightStates lightState;
         protected Material colorShiftMaterial;
         protected Color colorButtonOn;
         protected Color colorButtonOff;
+        protected Color mainLightColor;
+        protected Color altLightColor;
         protected WBIPropStateHelper propStateHelper;
         protected WBILight lightModule;
 
@@ -53,15 +72,18 @@ namespace WildBlueIndustries
             lightModule = this.part.FindModuleImplementing<WBILight>();
             if (lightModule != null)
             {
-                lightsOn = lightModule.isDeployed;
+                if (lightModule.isDeployed && !setLightColor)
+                    lightState = ELightStates.On;
+                else if (lightModule.isDeployed && setLightColor)
+                    lightState = ELightStates.MainColor;
             }
 
             propStateHelper = this.part.FindModuleImplementing<WBIPropStateHelper>();
             if (propStateHelper != null)
             {
-                string value = propStateHelper.LoadProperty(internalProp.propID, "lightsOn");
+                string value = propStateHelper.LoadProperty(internalProp.propID, "lightState");
                 if (string.IsNullOrEmpty(value) == false)
-                    lightsOn = bool.Parse(value);
+                    lightState = (ELightStates)(int.Parse(value));
             }
 
             //Get the transform and setup click watcher
@@ -90,6 +112,15 @@ namespace WildBlueIndustries
             Renderer colorShiftRenderer = internalProp.FindModelComponent<Renderer>(buttonName);
             colorShiftMaterial = colorShiftRenderer.material;
 
+            if (setLightColor)
+            {
+                rgbString = primaryLightColor.Split(new char[] { ',' });
+                mainLightColor = new Color(float.Parse(rgbString[0]), float.Parse(rgbString[1]), float.Parse(rgbString[2]));
+
+                rgbString = secondaryLightColor.Split(new char[] { ',' });
+                altLightColor = new Color(float.Parse(rgbString[0]), float.Parse(rgbString[1]), float.Parse(rgbString[2]));
+            }
+
             SetButtonColor();
     
             //Setup lights
@@ -98,7 +129,7 @@ namespace WildBlueIndustries
 
         public void SetButtonColor()
         {
-            if (lightsOn)
+            if (lightState != ELightStates.Off)
                 colorShiftMaterial.SetColor("_EmissiveColor", colorButtonOn);
             else
                 colorShiftMaterial.SetColor("_EmissiveColor", colorButtonOff);
@@ -106,10 +137,28 @@ namespace WildBlueIndustries
 
         public void OnButtonClick()
         {
-            lightsOn = !lightsOn;
+            switch (lightState)
+            {
+                case ELightStates.Off:
+                default:
+                    if (setLightColor)
+                        lightState = ELightStates.MainColor;
+                    else
+                        lightState = ELightStates.On;
+                    break;
+
+                case ELightStates.MainColor:
+                    lightState = ELightStates.AltColor;
+                    break;
+
+                case ELightStates.AltColor:
+                    lightState = ELightStates.Off;
+                    break;
+            }
+            int state = (int)lightState;
 
             if (propStateHelper != null)
-                propStateHelper.SaveProperty(internalProp.propID, "lightsOn", lightsOn.ToString());
+                propStateHelper.SaveProperty(internalProp.propID, "lightState", state.ToString());
 
             SetupLights();
 
@@ -122,58 +171,58 @@ namespace WildBlueIndustries
 
             if (lightModule != null)
             {
-                if (lightModule.isDeployed && lightsOn == false)
+                if (lightModule.isDeployed && lightState == ELightStates.Off)
                     SetupLights(true);
-                else if (lightModule.isDeployed == false && lightsOn)
+                else if (lightModule.isDeployed == false && lightState != ELightStates.Off)
                     SetupLights(false);
             }
         }
 
         public void SetupLights(bool lightsAreOn)
         {
-            lightsOn = lightsAreOn;
+            if (lightsAreOn)
+                lightState = ELightStates.On;
+            else
+                lightState = ELightStates.Off;
             SetButtonColor();
 
-            Light[] lights = internalModel.FindModelComponents<Light>();
-
-            if (lights != null && lights.Length > 0)
-            {
-                foreach (Light light in lights)
-                {
-                    if (light.name.Contains(lightName))
-                        light.enabled = lightsOn;
-                }
-            }
-
-            //Set the emissives for the lamps
-            if (string.IsNullOrEmpty(cockpitLampName) == false)
-            {
-                Transform lampTransform = internalModel.FindModelTransform(cockpitLampName);
-                Renderer rendererMaterial;
-                Color colorOn = new Color(1, 1, 1, 1);
-                Color colorOff = new Color(0, 0, 0, 0);
-
-                if (lampTransform != null)
-                {
-                    rendererMaterial = lampTransform.GetComponent<Renderer>();
-                    if (lightsOn)
-                        rendererMaterial.material.SetColor("_EmissiveColor", colorOn);
-                    else
-                        rendererMaterial.material.SetColor("_EmissiveColor", colorOff);
-                }
-            }
+            SetupLights();
         }
 
         public void SetupLights()
         {
             Light[] lights = internalModel.FindModelComponents<Light>();
+            bool lightsAreOn = false;
+
+            if (lightState != ELightStates.Off)
+                lightsAreOn = true;
 
             if (lights != null && lights.Length > 0)
             {
                 foreach (Light light in lights)
                 {
+                    //Set enabled/disabled and color
                     if (light.name.Contains(lightName))
-                        light.enabled = lightsOn;
+                    {
+                        switch (lightState)
+                        {
+                            case ELightStates.Off:
+                            default:
+                                light.enabled = false;
+                                break;
+
+                            case ELightStates.On:
+                            case ELightStates.MainColor:
+                                light.enabled = true;
+                                light.color = mainLightColor;
+                                break;
+
+                            case ELightStates.AltColor:
+                                light.enabled = true;
+                                light.color = altLightColor;
+                                break;
+                        }
+                    }
                 }
             }
 
@@ -188,7 +237,7 @@ namespace WildBlueIndustries
                 if (lampTransform != null)
                 {
                     rendererMaterial = lampTransform.GetComponent<Renderer>();
-                    if (lightsOn)
+                    if (lightsAreOn)
                         rendererMaterial.material.SetColor("_EmissiveColor", colorOn);
                     else
                         rendererMaterial.material.SetColor("_EmissiveColor", colorOff);
@@ -198,9 +247,9 @@ namespace WildBlueIndustries
             //External light
             if (lightModule != null)
             {
-                if (lightsOn && lightModule.isDeployed == false)
+                if (lightsAreOn && lightModule.isDeployed == false)
                     lightModule.ToggleAnimation();
-                else if (lightsOn == false && lightModule.isDeployed)
+                else if (lightsAreOn == false && lightModule.isDeployed)
                     lightModule.ToggleAnimation();
             }
         }

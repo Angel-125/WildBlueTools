@@ -152,6 +152,7 @@
     <Compile Include="Animation\WBIAnimateRotate.cs" />
     <Compile Include="Settings\WBIDockingParameters.cs" />
     <Compile Include="Settings\WBIMainSettings.cs" />
+    <Compile Include="WBINodeStripper.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

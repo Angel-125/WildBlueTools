@@ -328,6 +328,7 @@ namespace WildBlueIndustries
                             nodeResource.AddValue("maxAmount", experiment.resourceMap[resourceName].targetAmount.ToString());
                             resource = this.part.Resources.Add(nodeResource);
                             resource.isVisible = false;
+                            resource.isTweakable = false;
                             addedResources.Add(resourceName);
                         }
 
@@ -371,6 +372,7 @@ namespace WildBlueIndustries
                         nodeResource.AddValue("maxAmount", transferRecipient.resourceMap[resourceName].targetAmount.ToString());
                         resource = this.part.Resources.Add(nodeResource);
                         resource.isVisible = false;
+                        resource.isTweakable = false;
                     }
 
                     //Add to max amount to account for amount that the experiment needs

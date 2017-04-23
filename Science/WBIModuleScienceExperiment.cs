@@ -92,6 +92,9 @@ namespace WildBlueIndustries
         [KSPField]
         public bool resultsSafetyCheck;
 
+        [KSPField]
+        public bool checkVesselResources = false;
+
         [KSPField(isPersistant = true, guiName = "Status")]
         public string status = string.Empty;
 
@@ -233,7 +236,9 @@ namespace WildBlueIndustries
 
             //Base class actions and events are always disabled.
             Events["DeployExperiment"].active = false;
+            Events["DeployExperiment"].guiActive = false;
             Events["DeployExperimentExternal"].active = false;
+            Events["DeployExperimentExternal"].guiActive = false;
             Actions["DeployAction"].active = false;
 
             //Our events and actions
@@ -400,7 +405,23 @@ namespace WildBlueIndustries
                 for (index = 0; index < totalCount; index++)
                 {
                     experimentResource = resourceMap[resourceMapKeys[index]];
-                    if (!checkPartResources)
+                    if (checkVesselResources)
+                    {
+                        //If we don't have all of the resource we need, see if the vessel has it.
+                        if ((experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
+                        {
+                            experimentResource.currentAmount += this.part.RequestResource(experimentResource.name, experimentResource.targetAmount - experimentResource.currentAmount, ResourceFlowMode.ALL_VESSEL);
+
+                            //Still didn't get enough? We're waiting for more.
+                            if ((experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
+                            {
+                                status = "Needs " + experimentResource.name + string.Format(" ({0:f3}/{1:f3})", experimentResource.currentAmount, experimentResource.targetAmount);
+                                return false;
+                            }
+                        }
+                    }
+
+                    else if (!checkPartResources)
                     {
                         if ((experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
                         {
@@ -747,6 +768,10 @@ namespace WildBlueIndustries
             //nodeCompletionHandler
             if (nodeDefinition.HasNode("MODULE"))
                 nodeCompletionHandler = nodeDefinition.GetNode("MODULE");
+
+            //Check vessel for resources
+            if (nodeDefinition.HasValue("checkVesselResources"))
+                checkVesselResources = bool.Parse(nodeDefinition.GetValue("checkVesselResources"));
 
             //Dirty the GUI
             MonoUtilities.RefreshContextWindows(this.part);
