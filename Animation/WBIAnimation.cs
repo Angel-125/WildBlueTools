@@ -64,6 +64,9 @@ namespace WildBlueIndustries
         [KSPField]
         public float stopSoundVolume = 0.5f;
 
+        [KSPField]
+        public KSPActionGroup defaultActionGroup;
+
         //Helper objects
         public bool isDeployed = false;
         public bool isMoving = false;
@@ -183,6 +186,9 @@ namespace WildBlueIndustries
 
             SetupAnimations();
             setupSounds();
+
+            if ((int)defaultActionGroup > 0)
+                Actions["ToggleAnimationAction"].actionGroup = defaultActionGroup;
         }
 
         protected override void getProtoNodeValues(ConfigNode protoNode)

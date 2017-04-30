@@ -65,6 +65,15 @@ namespace WildBlueIndustries
 
             getDefaultTexture();
 
+            //Get the screen's render material
+            Transform target = internalProp.FindModelTransform(screenTransform);
+            if (target == null)
+                return;
+            rendererMaterial = target.GetComponent<Renderer>();
+            if (showAlphaControl)
+                SetScreenVisible(screenIsVisible);
+
+            //Get the prop state helper.
             propStateHelper = this.part.FindModuleImplementing<WBIPropStateHelper>();
             if (propStateHelper != null)
             {
@@ -108,17 +117,7 @@ namespace WildBlueIndustries
                     clickWatcher.clickDelegate = OnScreenClick;
                 }
             }
-
-            //Get the screen's render material
-            Transform target = internalProp.FindModelTransform(screenTransform);
-            if (target == null)
-                return;
-            rendererMaterial = target.GetComponent<Renderer>();
-            if (showAlphaControl)
-                SetScreenVisible(screenIsVisible);
-
-            //Get the transforms for other objects affected by alpha
-            
+           
             //Setup screen view
             screenView.showImageDelegate = ShowImage;
             screenView.toggleScreenDelegate = SetScreenVisible;
