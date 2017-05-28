@@ -37,6 +37,7 @@ namespace WildBlueIndustries
                 availablePart.partUrl = url.url;
             }
 
+            Debug.Log("FRED checking folders");
             foreach (string folderName in folderNames)
             {
                 if (availablePart.partUrl.Contains("Deprecated"))
@@ -52,6 +53,8 @@ namespace WildBlueIndustries
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class ModCategorizer : MonoBehaviour
     {
+        static string kFilterByFunction = "#autoLOC_453547";
+
         private void AddFilterByMod()
         {
             ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes("MODCAT");
@@ -91,12 +94,11 @@ namespace WildBlueIndustries
                 modFilter.modName = folderName;
 
                 categoryIcon = new Icon(folderName + " icon", normalIcon, selectedIcon);
-                categoryFilter = PartCategorizer.Instance.filters.Find(f => f.button.categoryName == "Filter by Function");
-                PartCategorizer.AddCustomSubcategoryFilter(categoryFilter, title, categoryIcon, p => modFilter.IsPartInCat(p));
+                categoryFilter = PartCategorizer.Instance.filters.Find(f => f.button.categorydisplayName == kFilterByFunction);
+
+                PartCategorizer.AddCustomSubcategoryFilter(categoryFilter, title, title, categoryIcon, p => modFilter.IsPartInCat(p));
 
                 categoryButton = categoryFilter.button.activeButton;
-//                categoryButton.SetFalse(categoryButton, RUIToggleButtonTyped.ClickType.FORCED);
-//                categoryButton.SetTrue(categoryButton, RUIToggleButtonTyped.ClickType.FORCED);
             }
         }
 

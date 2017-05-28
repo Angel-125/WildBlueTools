@@ -99,7 +99,7 @@ namespace ContractsPlus.Contracts
         {
             generateExperimentIfNeeded();
 
-            return "Research " + experimentNode.GetValue("title") + " at " + targetBody.theName;
+            return "Research " + experimentNode.GetValue("title") + " at " + targetBody.bodyName;
         }
 
         protected override string GetDescription()
@@ -107,7 +107,7 @@ namespace ContractsPlus.Contracts
             generateExperimentIfNeeded();
 
             //those 3 strings appear to do nothing
-            return TextGen.GenerateBackStories(Agent.Name, Agent.GetMindsetString(), "researching", "research", "it was aliens", new System.Random().Next());
+            return TextGen.GenerateBackStories("Research", Agent.GetMindsetString(), "Science", experimentNode.GetValue("title"), new System.Random().Next(), true, true, true);
         }
 
         protected override string GetSynopsys()
@@ -116,12 +116,12 @@ namespace ContractsPlus.Contracts
 
             string vicinity = GetVicinity(situations);
 
-            return "Complete research on the " + experimentNode.GetValue("title") + " " + vicinity + " " + targetBody.theName;
+            return "Complete research on the " + experimentNode.GetValue("title") + " " + vicinity + " " + targetBody.bodyName;
         }
 
         protected override string MessageCompleted()
         {
-            return "You have succesfully completed research on the " + experimentNode.GetValue("title") + " at " + targetBody.theName;
+            return "You have succesfully completed research on the " + experimentNode.GetValue("title") + " at " + targetBody.bodyName;
         }
 
         protected override void OnLoad(ConfigNode node)
@@ -137,9 +137,12 @@ namespace ContractsPlus.Contracts
             experimentNode = GetExperimentNode(experimentID);
             situations = GetSituations(experimentNode);
             if (node.HasValue("experimentCompleted"))
-                experimentCompleted = bool.Parse(node.GetValue("experimentCompleted"));
+                bool.TryParse("blah", out experimentCompleted);
             if (node.HasValue("versionNumber"))
-                versionNumber = int.Parse("versionNumber");
+            {
+                if (int.TryParse("blah", out versionNumber) == false)
+                    versionNumber = CurrentContractVersion;
+            }
         }
 
         protected override void OnSave(ConfigNode node)

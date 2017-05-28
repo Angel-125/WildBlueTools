@@ -57,6 +57,14 @@ namespace WildBlueIndustries
         }
 
         #region CustomParameterNode
+        public override string DisplaySection
+        {
+            get
+            {
+                return Section;
+            }
+        }
+
         public override string Section
         {
             get

@@ -164,23 +164,6 @@ namespace WildBlueIndustries
             }
         }
 
-        protected void showDialog(string title, string dlgMessage)
-        {
-            PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f),
-                new MultiOptionDialog(dlgMessage,
-                    title,
-                    HighLogic.UISkin,
-                    new Rect(0.5f, 0.5f, 200f, 60f),
-                    new DialogGUIFlexibleSpace(),
-                    new DialogGUIVerticalLayout(
-                        new DialogGUIFlexibleSpace(),
-                        new DialogGUIButton("Close", () => { }, 190.0f, 30.0f, true)
-                        )),
-                false,
-                HighLogic.UISkin);
-        }
-
         protected void setupGUI()
         {
             //Base class actions and events are always disabled.

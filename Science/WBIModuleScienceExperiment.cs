@@ -33,6 +33,7 @@ namespace WildBlueIndustries
         public string name;
         public double targetAmount;
         public double currentAmount;
+        public bool transferFromVessel;
     }
 
     [KSPModule("Science Experiment")]
@@ -91,9 +92,6 @@ namespace WildBlueIndustries
 
         [KSPField]
         public bool resultsSafetyCheck;
-
-        [KSPField]
-        public bool checkVesselResources = false;
 
         [KSPField(isPersistant = true, guiName = "Status")]
         public string status = string.Empty;
@@ -405,23 +403,17 @@ namespace WildBlueIndustries
                 for (index = 0; index < totalCount; index++)
                 {
                     experimentResource = resourceMap[resourceMapKeys[index]];
-                    if (checkVesselResources)
-                    {
-                        //If we don't have all of the resource we need, see if the vessel has it.
-                        if ((experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
-                        {
-                            experimentResource.currentAmount += this.part.RequestResource(experimentResource.name, experimentResource.targetAmount - experimentResource.currentAmount, ResourceFlowMode.ALL_VESSEL);
 
-                            //Still didn't get enough? We're waiting for more.
-                            if ((experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
-                            {
-                                status = "Needs " + experimentResource.name + string.Format(" ({0:f3}/{1:f3})", experimentResource.currentAmount, experimentResource.targetAmount);
-                                return false;
-                            }
-                        }
+                    //If necessary, pull the resource from the vessel instead of waiting for the resource
+                    //to come to the lab.
+                    if (experimentResource.transferFromVessel && (experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
+                    {
+                        double amountObtained = this.part.RequestResource(experimentResource.name,
+                            experimentResource.targetAmount - experimentResource.currentAmount, ResourceFlowMode.ALL_VESSEL);
+                        TakeShare(experimentResource.name, amountObtained);
                     }
 
-                    else if (!checkPartResources)
+                    if (!checkPartResources)
                     {
                         if ((experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
                         {
@@ -769,10 +761,6 @@ namespace WildBlueIndustries
             if (nodeDefinition.HasNode("MODULE"))
                 nodeCompletionHandler = nodeDefinition.GetNode("MODULE");
 
-            //Check vessel for resources
-            if (nodeDefinition.HasValue("checkVesselResources"))
-                checkVesselResources = bool.Parse(nodeDefinition.GetValue("checkVesselResources"));
-
             //Dirty the GUI
             MonoUtilities.RefreshContextWindows(this.part);
 
@@ -797,7 +785,7 @@ namespace WildBlueIndustries
             for (int index = 0; index < resourceMapKeys.Length; index++)
             {
                 experimentResource = resourceMap[resourceMapKeys[index]];
-                builder.Append(resourceMapKeys[index] + "," + experimentResource.currentAmount.ToString() + ";");
+                builder.Append(resourceMapKeys[index] + "," + experimentResource.currentAmount.ToString() + "," + experimentResource.transferFromVessel + ";");
             }
             accumulatedResources = builder.ToString();
             accumulatedResources = accumulatedResources.Substring(0, accumulatedResources.Length - 1);
@@ -824,6 +812,10 @@ namespace WildBlueIndustries
                 experimentResource = new SExperimentResource();
                 experimentResource.name = resourceAmount[0];
                 experimentResource.targetAmount = double.Parse(resourceAmount[1]);
+                if (resourceAmount.Length > 2)
+                {
+                    experimentResource.transferFromVessel = bool.Parse(resourceAmount[2]);
+                }
                 resourceMap.Add(resourceAmount[0], experimentResource);
             }
 
@@ -843,6 +835,10 @@ namespace WildBlueIndustries
                     {
                         experimentResource = resourceMap[resourceAmount[0]];
                         experimentResource.currentAmount = double.Parse(resourceAmount[1]);
+                        if (resourceAmount.Length > 2)
+                        {
+                            experimentResource.transferFromVessel = bool.Parse(resourceAmount[2]);
+                        }
                         resourceMap[resourceAmount[0]] = experimentResource;
                     }
                 }

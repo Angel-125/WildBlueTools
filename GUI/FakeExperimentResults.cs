@@ -40,13 +40,14 @@ namespace WildBlueIndustries
 
         public void ShowResults(string experimentID, float amount, ModuleScienceLab lab = null)
         {
+            CBAttributeMapSO.MapAttribute biome = Utils.GetCurrentBiome(part.vessel);
             ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment(experimentID);
             ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(part.vessel),
-                part.vessel.mainBody, Utils.GetCurrentBiome(part.vessel).name);
+                part.vessel.mainBody, biome.name, biome.displayname);
 
             //Kerbin low orbit has a science multiplier of 1.
             ScienceSubject subjectLEO = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.InSpaceLow,
-                FlightGlobals.GetHomeBody(), "");
+                FlightGlobals.GetHomeBody(), "", "");
 
             //This ensures you can re-run the experiment.
             subjectLEO.science = 0f;

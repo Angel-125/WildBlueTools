@@ -41,7 +41,7 @@ namespace ContractsPlus.Contracts
         {
             base.OnLoad(node);
             if (node.HasValue("isCompleted"))
-                isCompleted = bool.Parse("isCompleted");
+                isCompleted = bool.Parse(node.GetValue("isCompleted"));
         }
 
         protected override void OnSave(ConfigNode node)

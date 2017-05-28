@@ -186,9 +186,12 @@ namespace WildBlueIndustries
             {
                 //Get the experiment slot
                 experimentSlot = experimentSlots[index];
+                if (experimentSlot.experimentID == experimentSlot.defaultExperiment)
+                    continue;
 
                 //First, check for completion
-                experimentSlot.CheckCompletion();
+                if (experimentSlot.CheckCompletion())
+                    continue;
 
                 //Now get all the resources that the experiment needs
                 requiredResources = experimentSlot.GetRequiredResources();
@@ -223,7 +226,9 @@ namespace WildBlueIndustries
                         //Calculate share amount
                         shareAmount = resource.amount / requiredResourceMap[resource.resourceName].Count;
                         if (shareAmount < 0.0001f)
+                        {
                             continue;
+                        }
 
                         //Debugging: track the share amount
                         if (debugMode)
@@ -259,7 +264,8 @@ namespace WildBlueIndustries
             {
                 //Get the experiment slot
                 experimentSlot = experimentSlots[index];
-                experimentSlot.PackResources();
+                if (experimentSlot.experimentID != experimentSlot.defaultExperiment)
+                    experimentSlot.PackResources();
             }
         }
 
