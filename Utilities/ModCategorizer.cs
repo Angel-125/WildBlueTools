@@ -37,7 +37,6 @@ namespace WildBlueIndustries
                 availablePart.partUrl = url.url;
             }
 
-            Debug.Log("FRED checking folders");
             foreach (string folderName in folderNames)
             {
                 if (availablePart.partUrl.Contains("Deprecated"))

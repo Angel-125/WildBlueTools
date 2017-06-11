@@ -32,28 +32,25 @@ namespace WildBlueIndustries
 
             if (!stripUnusedNodes)
                 return;
-
+           
             stripNodes();
+
+            this.enabled = false;
+            this.isEnabled = false;
         }
 
         protected void stripNodes()
         {
             List<AttachNode> doomedNodes = new List<AttachNode>();
 
-            foreach (Part vesselPart in this.part.vessel.Parts)
+            foreach (AttachNode node in this.part.attachNodes)
             {
-                foreach (AttachNode node in vesselPart.attachNodes)
-                {
-                    if (node.attachedPart == null)
-                        doomedNodes.Add(node);
-                }
-
-                foreach (AttachNode doomed in doomedNodes)
-                    vesselPart.attachNodes.Remove(doomed);
-
-                doomedNodes.Clear();
+                if (node.attachedPart == null)
+                    doomedNodes.Add(node);
             }
 
+            foreach (AttachNode doomed in doomedNodes)
+                this.part.attachNodes.Remove(doomed);
         }
     }
 }
