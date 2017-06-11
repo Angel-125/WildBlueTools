@@ -240,11 +240,14 @@ namespace WildBlueIndustries
             secondsPerCycle = GetSecondsPerCycle();
 
             //If we're missing resources then we're done.
-            if (result.Status.ToLower().Contains("missing"))
+            if (!string.IsNullOrEmpty(result.Status))
             {
-                status = result.Status;
-                missingResources = true;
-                return;
+                if (result.Status.ToLower().Contains("missing"))
+                {
+                    status = result.Status;
+                    missingResources = true;
+                    return;
+                }
             }
 
             //Calculate elapsed time

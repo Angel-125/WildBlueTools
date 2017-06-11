@@ -54,6 +54,8 @@ namespace WildBlueIndustries
                 powerOutputDisplay = "n/a";
                 return;
             }
+            if (converter.status == null)
+                return;
 
             //Power output
             if (converter.status.Contains("load"))

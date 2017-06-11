@@ -245,7 +245,8 @@ namespace WildBlueIndustries
             GUILayout.BeginVertical();
 
             GUILayout.BeginScrollView(new Vector2(0, 0), new GUIStyle(GUI.skin.textArea), GUILayout.Height(140));
-            GUILayout.Label("<color=white><b>Status: </b>" + status + "</color>");
+            if (!string.IsNullOrEmpty(status))
+                GUILayout.Label("<color=white><b>Status: </b>" + status + "</color>");
             GUILayout.Label("<color=white><b>Growing Time Remaining: </b>" + timeRemaining + "</color>");
             GUILayout.Label("<color=white><b>Last Attempt: </b>" + lastAttempt + "</color>");
             GUILayout.EndScrollView();
