@@ -94,7 +94,7 @@
     <Compile Include="Utilities\WBIGroundStabilizer.cs" />
     <Compile Include="Science\WBITargetBodyParam.cs" />
     <Compile Include="Science\WBIExpConditionsParam.cs" />
-    <Compile Include="Converters\Wrappers\WBIKISInventoryWrapper.cs" />
+    <Compile Include="Wrappers\WBIKISInventoryWrapper.cs" />
     <Compile Include="IVAUtils\ButtonClickDelegate.cs" />
     <Compile Include="PropModules\InternalPlasmaScreen.cs" />
     <Compile Include="IVAUtils\ExternalCamera.cs" />
@@ -135,13 +135,13 @@
     <Compile Include="PropModules\WBIInternalButtonCabinLight.cs" />
     <Compile Include="PropModules\WBIPropStateHelper.cs" />
     <Compile Include="Switchers\WBIConvertibleStorage.cs" />
-    <Compile Include="Converters\Wrappers\WBIKISSeatInventoryConfig.cs" />
-    <Compile Include="Converters\Wrappers\WBISeatInventoryHelper.CS" />
+    <Compile Include="Wrappers\WBIKISSeatInventoryConfig.cs" />
+    <Compile Include="Wrappers\WBISeatInventoryHelper.CS" />
     <Compile Include="Science\WBIExperimentLab.cs" />
     <Compile Include="Science\WBIModuleScienceExperiment.cs" />
     <Compile Include="Science\WBIExperimentManifest.cs" />
     <Compile Include="Utilities\WBINodeMover.cs" />
-    <Compile Include="Converters\Wrappers\WBIRTWrapper.cs" />
+    <Compile Include="Wrappers\WBIRTWrapper.cs" />
     <Compile Include="Parts\WBIModuleDecouple.cs" />
     <Compile Include="Switchers\WBIOpsManager.cs" />
     <Compile Include="GUI\LocalOpsManager.cs" />
@@ -157,9 +157,14 @@
     <Compile Include="Animation\WBIAnimateRotate.cs" />
     <Compile Include="Settings\WBIDockingParameters.cs" />
     <Compile Include="Settings\WBIMainSettings.cs" />
-    <Compile Include="WBINodeStripper.cs" />
+    <Compile Include="Utilities\WBINodeStripper.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\BARIS\BARIS.csproj">
+      <Project>{7923C5AB-895D-4687-883E-CD5116986954}</Project>
+      <Name>BARIS</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

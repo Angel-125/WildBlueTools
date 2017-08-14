@@ -23,16 +23,28 @@ namespace WildBlueIndustries
         [GameParameters.CustomParameterUI("Require resources to reconfigure", toolTip = "If enabled, you'll need resources to reconfigure your parts.", autoPersistance = true)]
         public bool payToReconfigure = true;
 
-        [GameParameters.CustomParameterUI("Require skills to reconfigure or repair", toolTip = "If enabled, you need skills to reconfigure or repair parts.", autoPersistance = true)]
+        [GameParameters.CustomParameterUI("Require skills to reconfigure", toolTip = "If enabled, you need skills to reconfigure parts.", autoPersistance = true)]
         public bool requiresSkillCheck = true;
 
-        [GameParameters.CustomParameterUI("Parts can break", toolTip = "If enabled, parts can break.", autoPersistance = true)]
-        public bool partsCanBreak = true;
-
-        [GameParameters.CustomParameterUI("Require resources to repair ", toolTip = "If enabled, you need resources to repair broken parts.", autoPersistance = true)]
-        public bool repairsRequireResources = true;
+        [GameParameters.CustomParameterUI("Enable Debug Logging", toolTip = "If enabled, your logs will be spammed with debug info.", autoPersistance = true)]
+        public bool enableDebugLogging = true;
 
         #region Properties
+        public static bool EnableDebugLogging
+        {
+            get
+            {
+                WBIMainSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<WBIMainSettings>();
+                return settings.enableDebugLogging;
+            }
+
+            set
+            {
+                WBIMainSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<WBIMainSettings>();
+                settings.enableDebugLogging = value;
+            }
+        }
+
         public static bool PayToReconfigure
         {
             get
@@ -59,37 +71,7 @@ namespace WildBlueIndustries
             set
             {
                 WBIMainSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<WBIMainSettings>();
-                settings.repairsRequireResources = value;
-            }
-        }
-
-        public static bool PartsCanBreak
-        {
-            get
-            {
-                WBIMainSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<WBIMainSettings>();
-                return settings.partsCanBreak;
-            }
-
-            set
-            {
-                WBIMainSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<WBIMainSettings>();
-                settings.partsCanBreak = value;
-            }
-        }
-
-        public static bool RepairsRequireResources
-        {
-            get
-            {
-                WBIMainSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<WBIMainSettings>();
-                return settings.repairsRequireResources;
-            }
-
-            set
-            {
-                WBIMainSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<WBIMainSettings>();
-                settings.repairsRequireResources = value;
+                settings.requiresSkillCheck = value;
             }
         }
         #endregion

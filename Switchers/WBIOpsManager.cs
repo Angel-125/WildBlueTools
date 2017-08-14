@@ -32,9 +32,16 @@ namespace WildBlueIndustries
         string GetPartTitle();
     }
 
-    public class WBIOpsManager : WBIConvertibleStorage
+    public class WBIOpsManager : WBIConvertibleStorage, ICanBreak
     {
+        [KSPField(isPersistant = true)]
+        public int activeConverters; 
+
+        [KSPField(isPersistant = true)]
+        public bool isBroken;
+
         protected OpsManagerView opsManagerView = new OpsManagerView();
+        protected ModuleQualityControl qualityControl = null;
 
         public override void OnStart(StartState state)
         {
@@ -42,10 +49,72 @@ namespace WildBlueIndustries
                 opsManagerView.hasDecals = true;
             opsManagerView.part = this.part;
             opsManagerView.storageView = this.storageView;
+            opsManagerView.setActiveConverterCount = setActiveConverterCount;
 
             base.OnStart(state);
             Events["ReconfigureStorage"].guiName = "Manage Operations";
         }
+
+        public void Destroy()
+        {
+            qualityControl.onPartBroken -= OnPartBroken;
+            qualityControl.onPartFixed -= OnPartFixed;
+        }
+
+        protected void setActiveConverterCount(int count)
+        {
+            //If the active converter count != the current count and
+            //at least one converter is active, then perform a quality check
+            if (activeConverters != count && count > 0)
+                qualityControl.PerformQualityCheck();
+
+            //Record the new count.
+            activeConverters = count;
+
+            //Wake up the qualityControl
+            qualityControl.UpdateActivationState();
+        }
+
+        #region ICanBreak
+        public string GetCheckSkill()
+        {
+            if (CurrentTemplate.HasValue("reconfigureSkill"))
+                return CurrentTemplate.GetValue("reconfigureSkill");
+            else
+                return "RepairSkill";
+        }
+
+        public bool ModuleIsActivated()
+        {
+            if (activeConverters > 0)
+                return true;
+            else
+                return false;
+        }
+
+        public void SubscribeToEvents(ModuleQualityControl moduleQualityControl)
+        {
+            qualityControl = this.part.FindModuleImplementing<ModuleQualityControl>();
+            qualityControl.onPartBroken += OnPartBroken;
+            qualityControl.onPartFixed += OnPartFixed;
+        }
+
+        public void OnPartFixed(ModuleQualityControl qualityControl)
+        {
+            isBroken = false;
+            opsManagerView.isBroken = isBroken;
+        }
+
+        public void OnPartBroken(ModuleQualityControl qualityControl)
+        {
+            isBroken = true;
+            opsManagerView.isBroken = isBroken;
+
+            List<ModuleResourceConverter> converters = this.part.FindModulesImplementing<ModuleResourceConverter>();
+            foreach (ModuleResourceConverter converter in converters)
+                converter.StopResourceConverter();
+        }
+        #endregion
 
         public override void ReconfigureStorage()
         {
@@ -91,18 +160,7 @@ namespace WildBlueIndustries
         #region IOpsView
         public override List<string> GetButtonLabels()
         {
-            List<string> buttonLabels = new List<string>();
-
-            //Get our part modules
-            opsManagerView.UpdateConverters();
-            opsManagerView.GetPartModules();
-
-            buttonLabels.Add("Config");
-            buttonLabels.Add("Command");
-            buttonLabels.Add("Resources");
-            buttonLabels.Add("Converters");
-
-            return buttonLabels;
+            return opsManagerView.GetButtonLabels();
         }
 
         public override void DrawOpsWindow(string buttonLabel)

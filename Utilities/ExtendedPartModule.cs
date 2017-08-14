@@ -26,13 +26,15 @@ namespace WildBlueIndustries
         //These aren't availble after the first time the part is loaded.
         static protected Dictionary<string, ConfigNode> protoPartNodes = new Dictionary<string, ConfigNode>();
 
-        private bool _loggingEnabled;
-
         #region Logging
         public virtual void Log(object message)
         {
-            //            if (!_loggingEnabled)
-            //                return;
+            if (HighLogic.LoadedScene == GameScenes.LOADING || HighLogic.LoadedScene == GameScenes.LOADINGBUFFER ||
+                HighLogic.LoadedScene == GameScenes.PSYSTEM || HighLogic.LoadedScene == GameScenes.SETTINGS)
+                return;
+
+            if (!WBIMainSettings.EnableDebugLogging)
+                return;
 
             Debug.Log(this.ClassName + " [" + this.GetInstanceID().ToString("X")
                 + "][" + Time.time.ToString("0.0000") + "]: " + message);
@@ -40,7 +42,11 @@ namespace WildBlueIndustries
 
         public virtual void Log(object message, UnityEngine.Object context = null)
         {
-            if (!_loggingEnabled)
+            if (HighLogic.LoadedScene == GameScenes.LOADING || HighLogic.LoadedScene == GameScenes.LOADINGBUFFER ||
+                HighLogic.LoadedScene == GameScenes.PSYSTEM || HighLogic.LoadedScene == GameScenes.SETTINGS)
+                return;
+
+            if (!WBIMainSettings.EnableDebugLogging)
                 return;
 
             Debug.Log(this.ClassName + " [" + this.GetInstanceID().ToString("X")
@@ -50,69 +56,27 @@ namespace WildBlueIndustries
 
         #region Overrides
 
-        public override void OnLoad(ConfigNode node)
-        {
-            base.OnLoad(node);
-            string protoNodeKey = getMyPartName() + this.moduleName;
-
-            try
-            {
-                string value = node.GetValue("enableLogging");
-
-                //When the part is loaded for the first time as the game starts up, we'll be reading the MODULE config node in the part's config file.
-                //At that point we'll have access to all fields in the MODULE node. Later on when the part is loaded, the game doesn't load the MODULE config node.
-                //Instead, we seem to load an instance of the part.
-                //Let's make a copy of the config node and load it up when the part is instanced.
-                if (HighLogic.LoadedScene == GameScenes.LOADING)
-                {
-                    Log("Looking for proto node for " + protoNodeKey);
-                    if (protoPartNodes.ContainsKey(protoNodeKey) == false)
-                    {
-                        protoPartNodes.Add(protoNodeKey, node);
-                        Log("Config node added for " + protoNodeKey);
-                    }
-                }
-            }
-
-            catch (Exception ex)
-            {
-                Log("OnLoad generated an exception: " + ex);
-            }
-        }
-
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            string protoNodeKey = getMyPartName() + this.moduleName;
-            string value;
-            ConfigNode protoNode = null;
-            bool foundMyPart = protoPartNodes.ContainsKey(protoNodeKey);
+            if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
+                return;
 
-            //Try an alternate method to find the part
-            if (!foundMyPart)
+            ConfigNode[] nodes = this.part.partInfo.partConfig.GetNodes("MODULE");
+            ConfigNode node = null;
+
+            for (int index = 0; index < nodes.Length; index++)
             {
-                foreach (string key in protoPartNodes.Keys)
-                    if (protoNodeKey.Contains(key))
+                node = nodes[index];
+                if (node.HasValue("name"))
+                {
+                    moduleName = node.GetValue("name");
+                    if (moduleName == this.ClassName)
                     {
-                        foundMyPart = true;
-                        protoNode = protoPartNodes[key];
+                        getProtoNodeValues(node);
+                        break;
                     }
-            }
-
-            //Logging
-            if (foundMyPart)
-            {
-                //Get the proto config node
-                if (protoNode == null)
-                    protoNode = protoPartNodes[protoNodeKey];
-
-                value = protoNode.GetValue("enableLogging");
-
-                if (!string.IsNullOrEmpty(value))
-                    _loggingEnabled = bool.Parse(value);
-
-                //Call virtual method to let other objects get protoNode values
-                getProtoNodeValues(protoNode);
+                }
             }
         }
 

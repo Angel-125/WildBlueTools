@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
-    public class WBIGasTurbine : ModuleResourceConverter
+    public class WBIGasTurbine : ModuleBreakableConverter
     {
         const float kBaseEfficiencyBonus = 0.01f;
         const float kBaseSpoolPowerLevel = 0.1f;
@@ -198,7 +198,7 @@ namespace WildBlueIndustries
             setupInfoBox();
         }
 
-        public void Destroy()
+        public override void Destroy()
         {
             GameEvents.onStageActivate.Remove(OnStageActivate);
             GameEvents.onVesselWasModified.Remove(OnVesselModified);

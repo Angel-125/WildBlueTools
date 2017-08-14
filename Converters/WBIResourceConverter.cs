@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 namespace WildBlueIndustries
 {
     [KSPModule("Resource Converter")]
-    public class WBIResourceConverter : ModuleResourceConverter
+    public class WBIResourceConverter : ModuleBreakableConverter
     {
         private const float kminimumSuccess = 80f;
         private const float kCriticalSuccess = 95f;
@@ -109,8 +109,7 @@ namespace WildBlueIndustries
             return null;
         }
 
-        [KSPEvent(guiName = "Start Converter", guiActive = true)]
-        public virtual void StartConverter()
+        public override void StartConverter()
         {
             string absentResource = GetMissingRequiredResource();
 
@@ -128,54 +127,26 @@ namespace WildBlueIndustries
                 return;
             }
 
-            StartResourceConverter();
+            base.StartConverter();
             cycleStartTime = Planetarium.GetUniversalTime();
             lastUpdateTime = cycleStartTime;
             elapsedTime = 0.0f;
-            Events["StartConverter"].guiActive = false;
-            Events["StopConverter"].guiActive = true;
         }
 
-        [KSPEvent(guiName = "Stop Converter", guiActive = true)]
-        public virtual void StopConverter()
+        public override void StopConverter()
         {
-            StopResourceConverter();
+            base.StopConverter();
             progress = "None";
-            Events["StartConverter"].guiActive = true;
-            Events["StopConverter"].guiActive = false;
         }
 
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            Events["StartResourceConverter"].guiActive = false;
-            Events["StopResourceConverter"].guiActive = false;
 
             //Setup
             progress = "None";
             if (hoursPerCycle == 0f)
                 hoursPerCycle = kDefaultHoursPerCycle;
-
-            Events["StartConverter"].guiName = StartActionName;
-            Events["StopConverter"].guiName = StopActionName;
-            if (showGUI)
-            {
-                if (ModuleIsActive())
-                {
-                    Events["StartConverter"].guiActive = false;
-                    Events["StopConverter"].guiActive = true;
-                }
-                else
-                {
-                    Events["StartConverter"].guiActive = true;
-                    Events["StopConverter"].guiActive = false;
-                }
-            }
-            else
-            {
-                Events["StartConverter"].guiActive = false;
-                Events["StopConverter"].guiActive = false;
-            }
 
             if (minimumSuccess == 0)
                 minimumSuccess = kminimumSuccess;
@@ -273,53 +244,15 @@ namespace WildBlueIndustries
 
         }
 
-        public virtual void SetGuiVisible(bool isVisible)
+        public override void SetGuiVisible(bool isVisible)
         {
-            Events["StartResourceConverter"].guiActive = false;
-            Events["StartResourceConverter"].guiActiveEditor = false;
-            Events["StartResourceConverter"].guiActiveUnfocused = false;
-            Events["StopResourceConverter"].guiActive = false;
-            Events["StopResourceConverter"].guiActiveEditor = false;
-            Events["StopResourceConverter"].guiActiveUnfocused = false;
+            base.SetGuiVisible(isVisible);
 
             Fields["lastAttempt"].guiActive = isVisible;
             Fields["lastAttempt"].guiActiveEditor = isVisible;
             Fields["progress"].guiActive = isVisible;
             Fields["progress"].guiActiveEditor = isVisible;
             Fields["status"].guiActive = isVisible;
-
-            if (isVisible)
-            {
-                if (ModuleIsActive())
-                {
-                    Events["StartConverter"].guiActive = false;
-                    Events["StartConverter"].guiActiveUnfocused = false;
-                    Events["StartConverter"].guiActiveEditor = false;
-                    Events["StopConverter"].guiActive = true;
-                    Events["StopConverter"].guiActiveUnfocused = true;
-                    Events["StopConverter"].guiActiveEditor = true;
-                }
-
-                else
-                {
-                    Events["StartConverter"].guiActive = true;
-                    Events["StartConverter"].guiActiveUnfocused = true;
-                    Events["StartConverter"].guiActiveEditor = true;
-                    Events["StopConverter"].guiActive = false;
-                    Events["StopConverter"].guiActiveUnfocused = false;
-                    Events["StopConverter"].guiActiveEditor = false;
-                }
-            }
-
-            else
-            {
-                Events["StartConverter"].guiActive = false;
-                Events["StartConverter"].guiActiveUnfocused = false;
-                Events["StartConverter"].guiActiveEditor = false;
-                Events["StopConverter"].guiActive = false;
-                Events["StopConverter"].guiActiveUnfocused = false;
-                Events["StopConverter"].guiActiveEditor = false;
-            }
         }
 
         public virtual void CalculateProgress()
@@ -427,6 +360,7 @@ namespace WildBlueIndustries
         protected virtual void onCriticalFailure()
         {
             lastAttempt = attemptCriticalFail;
+            qualityControl.DeclarePartBroken();
         }
 
         protected virtual void onCriticalSuccess()

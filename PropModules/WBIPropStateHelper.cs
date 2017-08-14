@@ -49,6 +49,8 @@ namespace WildBlueIndustries
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
 
             ConfigNode[] propValues = node.GetNodes("PROPVALUE");
             foreach (ConfigNode propValueNode in propValues)

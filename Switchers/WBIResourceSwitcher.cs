@@ -491,6 +491,9 @@ namespace WildBlueIndustries
 
         protected virtual void adjustKeptResources(ConfigNode nodeTemplate)
         {
+            if (string.IsNullOrEmpty(resourcesToKeep))
+                return;
+
             double maxAmount = 0;
             Dictionary<string, ConfigNode> configResources = new Dictionary<string, ConfigNode>();
             ConfigNode[] nodeResources = null;
@@ -505,41 +508,38 @@ namespace WildBlueIndustries
             //(like we keep monopropellant and have switched to a template that has monopropellant)
             //make sure to combine the totals. By the same token, make sure that the kept resources
             //are at the proper levels.
-            if (string.IsNullOrEmpty(resourcesToKeep) == false)
+            foreach (string key in keptResources.Keys)
             {
-                foreach (string key in keptResources.Keys)
+                maxAmount = keptResources[key];
+
+                //If the template contains a kept resouce then increase max amount
+                if (configResources.ContainsKey(key))
                 {
-                    maxAmount = keptResources[key];
+                    resource = this.part.Resources[key];
+                    resource.maxAmount = maxAmount + (double.Parse(configResources[key].GetValue("maxAmount")) * capacityFactor);
+                    resourceMaxAmounts[key] = resource.maxAmount;
 
-                    //If the template contains a kept resouce then increase max amount
-                    if (configResources.ContainsKey(key))
-                    {
-                        resource = this.part.Resources[key];
-                        resource.maxAmount = maxAmount + (double.Parse(configResources[key].GetValue("maxAmount")) * capacityFactor);
-                        resourceMaxAmounts[key] = resource.maxAmount;
+                    //Adjust for inflatables.
+                    if (isInflatable && isDeployed == false)
+                        resource.maxAmount = 0;
 
-                        //Adjust for inflatables.
-                        if (isInflatable && isDeployed == false)
-                            resource.maxAmount = 0;
+                    else if (HighLogic.LoadedSceneIsEditor)
+                        resource.amount = resource.maxAmount;
+                }
 
-                        else if (HighLogic.LoadedSceneIsEditor)
-                            resource.amount = resource.maxAmount;
-                    }
+                //template does not contain a kept resource
+                else
+                {
+                    resource = this.part.Resources[key];
+                    resource.maxAmount = maxAmount;
+                    resourceMaxAmounts[key] = resource.maxAmount;
 
-                    //template does not contain a kept resource
-                    else
-                    {
-                        resource = this.part.Resources[key];
-                        resource.maxAmount = maxAmount;
-                        resourceMaxAmounts[key] = resource.maxAmount;
+                    //Adjust for inflatables.
+                    if (isInflatable && isDeployed == false)
+                        resource.maxAmount = 0;
 
-                        //Adjust for inflatables.
-                        if (isInflatable && isDeployed == false)
-                            resource.maxAmount = 0;
-
-                        else if (resource.amount > resource.maxAmount)
-                            resource.amount = resource.maxAmount;
-                    }
+                    else if (resource.amount > resource.maxAmount)
+                        resource.amount = resource.maxAmount;
                 }
             }
         }

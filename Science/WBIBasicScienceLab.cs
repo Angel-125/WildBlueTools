@@ -68,9 +68,6 @@ namespace WildBlueIndustries
         [KSPField]
         public string experimentID;
 
-        [KSPField(isPersistant = true)]
-        public bool isBroken;
-
         [KSPField]
         public string repairResource;
 
@@ -161,44 +158,14 @@ namespace WildBlueIndustries
             if (isBroken)
             {
                 StopConverter();
-                Events["RepairLab"].active = true;
-                Events["StartResourceConverter"].active = false;
                 status = kNeedsRepairs;
             }
 
             else
             {
-                Events["RepairLab"].active = false;
-                Events["StartResourceConverter"].active = true;
                 status = "";
             }
         }
-
-        [KSPEvent(guiActiveUnfocused = true, unfocusedRange = 3f, guiName = "Perform repairs", guiActiveEditor = false, guiActive = true)]
-        public virtual void RepairLab()
-        {
-            if (WBIMainSettings.RepairsRequireResources)
-            {
-                double repairUnits = calculateRepairCost();
-
-                //Not enough resources to effect repairs? Tell the player.
-                if (repairUnits < 0.0f)
-                {
-                    string message = string.Format(notEnoughResourcesToRepair, this.part.partInfo.title, repairAmount, repairResource);
-                    ScreenMessages.PostScreenMessage(message, kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
-                    return;
-                }
-
-                //We have enough, deduct the repair cost
-                FlightGlobals.ActiveVessel.rootPart.RequestResource(repairResource, repairUnits, ResourceFlowMode.ALL_VESSEL);
-            }
-
-            //Finally, unset broken.
-            isBroken = false;
-            Events["RepairLab"].active = false;
-            Events["StartResourceConverter"].active = true;
-        }
-
         #endregion
 
         #region Helpers
@@ -218,7 +185,7 @@ namespace WildBlueIndustries
 
         protected virtual double calculateRepairCost()
         {
-            if (WBIMainSettings.RepairsRequireResources == false)
+            if (BARISSettings.RepairsRequireResources == false)
                 return 0f;
             if (!Utils.IsExperienceEnabled())
                 return 0f;
@@ -320,29 +287,6 @@ namespace WildBlueIndustries
         protected override void onCriticalFailure()
         {
             base.onCriticalFailure();
-
-            if (WBIMainSettings.PartsCanBreak)
-            {
-                StopConverter();
-                isBroken = true;
-                Events["RepairLab"].active = true;
-                Events["RepairLab"].guiActive = true;
-                Events["StartResourceConverter"].active = false;
-                status = kNeedsRepairs;
-
-                StringBuilder resultsMessage = new StringBuilder();
-                MessageSystem.Message msg;
-
-                resultsMessage.AppendLine("From: " + this.part.vessel.vesselName);
-                resultsMessage.AppendLine("Lab: " + this.part.partInfo.title);
-                resultsMessage.AppendLine("Subject: Lab Critical Failure!");
-                resultsMessage.AppendLine("Summary: Unfortunately the " + this.part.partInfo.title + " has suffered a catastrophic failure and requires repairs.");
-                if (WBIMainSettings.RepairsRequireResources && string.IsNullOrEmpty(repairResource) == false)
-                    resultsMessage.AppendLine(string.Format("It will take {0:f2}", repairAmount) + " " + repairResource + " to repair");
-                msg = new MessageSystem.Message("Lab Critical Failure!", resultsMessage.ToString(),
-                    MessageSystemButton.MessageButtonColor.BLUE, MessageSystemButton.ButtonIcons.FAIL);
-                MessageSystem.Instance.AddMessage(msg);
-            }
         }
 
         protected override void onCriticalSuccess()

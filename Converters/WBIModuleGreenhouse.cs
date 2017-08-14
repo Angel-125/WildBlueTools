@@ -92,6 +92,8 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
             CBAttributeMapSO.MapAttribute biome = Utils.GetCurrentBiome(this.part.vessel);
             biomeName = biome.name;
 

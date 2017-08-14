@@ -26,9 +26,14 @@ namespace WildBlueIndustries
         public string partTitle;
     }
 
+    public delegate void SetActiveConverterCountDelegate(int count);
+
     public class OpsManagerView : Window<OpsManagerView>, IOpsView, IParentView
     {
+        public SetActiveConverterCountDelegate setActiveConverterCount;
+        public bool isBroken;
         public bool hasDecals;
+        public int activeConverterCount;
         public Part part;
         public ConvertibleStorageView storageView;
         public List<ModuleResourceConverter> converters = new List<ModuleResourceConverter>();
@@ -36,9 +41,11 @@ namespace WildBlueIndustries
         private Vector2 _scrollPosViews, _scrollPosResources, _scrollPosConverters;
         List<SDrawbleView> views = new List<SDrawbleView>();
         SDrawbleView currentDrawableView;
-        ModuleCommand commandModule;
-        WBIResourceSwitcher switcher;
-        WBILight lightModule = null;
+
+        public ModuleCommand commandModule;
+        public WBIResourceSwitcher switcher;
+        public WBILight lightModule = null;
+        public ModuleQualityControl qualityControl = null;
 
         public OpsManagerView() :
         base("Manage Operations", 800, 480)
@@ -83,7 +90,9 @@ namespace WildBlueIndustries
                 converter = possibleConverters[index];
 
                 if (!(converter is WBIBasicScienceLab))
+                {
                     converters.Add(converter);
+                }
             }
         }
 
@@ -151,6 +160,10 @@ namespace WildBlueIndustries
                     drawConvertersView();
                     break;
 
+                case "Quality Control":
+                    drawQualityControl();
+                    break;
+
                 default:
                     if (currentDrawableView.vessel != null)
                         currentDrawableView.view.DrawOpsWindow(buttonLabel);
@@ -179,6 +192,10 @@ namespace WildBlueIndustries
 
             if (converters.Count > 0)
                 buttonLabels.Add("Converters");
+
+            //If parts can break, then add the Quality Control button
+            if (qualityControl != null)
+                buttonLabels.Add("Quality Control");
 
             return buttonLabels;
         }
@@ -242,6 +259,93 @@ namespace WildBlueIndustries
             }
 
             lightModule = this.part.FindModuleImplementing<WBILight>();
+
+            qualityControl = this.part.FindModuleImplementing<ModuleQualityControl>();
+        }
+
+        protected void drawQualityControl()
+        {
+            GUILayout.BeginVertical();
+            GUILayout.BeginScrollView(new Vector2(), new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
+
+            //Quality
+            if (BARISSettings.PartsCanBreak || BARISScenario.showDebug)
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Quality: " + qualityControl.qualityDisplay);
+                if (qualityControl.currentQuality <= 0)
+                    GUILayout.Label("To repair: " + qualityControl.GetRepairCost());
+
+                else if (qualityControl.currentMTBF <= 0)
+                    GUILayout.Label("To maintain: " + qualityControl.GetRepairCost());
+
+                if (BARISScenario.showDebug)
+                {
+                    GUILayout.Label(string.Format("MTBF: {0:f2}/{1:f2}", qualityControl.currentMTBF, qualityControl.mtbf));
+                }
+                GUILayout.EndHorizontal();
+
+                //If the part needs maintenance and EVA repairs aren't required, then show the repair button
+                //if the part isn't broken.
+                if (qualityControl.currentQuality > 0 && qualityControl.currentMTBF <= 0 && !BARISSettings.RepairsRequireEVA)
+                {
+                    if (GUILayout.Button(qualityControl.Events["PerformMaintenance"].guiName))
+                        qualityControl.PerformMaintenance();
+                }
+
+                //If the part is broken and EVA repairs aren't required, then show the repair button.
+                else if (qualityControl.currentQuality <= 0 && !BARISSettings.RepairsRequireEVA)
+                {
+                    if (GUILayout.Button(qualityControl.Events["RepairPart"].guiName))
+                        qualityControl.RepairPart();
+                }
+            }
+
+            //Feature is disabled
+            else
+            {
+                GUILayout.Label("<color=yellow><b>This feature is disabled while Parts Can Break is also disabled.</b></color>");
+            }
+
+            //Debug buttons
+            if (BARISScenario.showDebug && HighLogic.LoadedSceneIsFlight)
+            {
+                if (GUILayout.Button("Perform quality check"))
+                    qualityControl.PerformQualityCheck();
+
+                if (GUILayout.Button("Perform quality maint. crit fail"))
+                    qualityControl.PerformQualityMaintCriticalFail();
+
+                if (GUILayout.Button("Perform quality main. success"))
+                    qualityControl.PerformQualityMaintSuccess();
+
+                if (GUILayout.Button("Perform maintenance"))
+                    qualityControl.PerformMaintenance();
+
+                if (GUILayout.Button("Send maint. email"))
+                    qualityControl.SendMaintenanceEmail();
+
+                if (GUILayout.Button("Send broken email"))
+                    qualityControl.SendPartBrokenEmail();
+
+                if (GUILayout.Button("Declare Broken"))
+                    qualityControl.DeclarePartBroken();
+
+                if (GUILayout.Button("Declare Fixed"))
+                    qualityControl.DeclarePartFixed();
+
+                if (GUILayout.Button("Decrement MTBF"))
+                    qualityControl.DecrementMTBF();
+
+                if (GUILayout.Button("Decrement Quality"))
+                    qualityControl.DecrementQuality(); 
+                
+                if (GUILayout.Button("Zero MTBF"))
+                    qualityControl.currentMTBF = 0f;
+            }
+
+            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
         }
 
         protected void drawCommandView()
@@ -335,11 +439,21 @@ namespace WildBlueIndustries
         protected void drawConvertersView()
         {
             GUILayout.BeginVertical();
+
+            //If the part is broken, then no need to show the converters.
+            if (isBroken)
+            {
+                GUILayout.Label("<color=yellow><b>" + BARISScenario.MsgBodyThis + this.part.partInfo.title + BARISScenario.MsgBodyBroken1 + qualityControl.GetRepairCost() + BARISScenario.MsgBodyBroken2 + "</b></color>");
+                GUILayout.EndVertical();
+                return;
+            }
+
             string converterName = "??";
             string converterStatus = "??";
             bool isActivated;
             ModuleResourceConverter converter;
             int totalCount;
+            int activeConverters = 0;
 
             _scrollPosConverters = GUILayout.BeginScrollView(_scrollPosConverters, new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
             if (converters.Count == 0)
@@ -360,19 +474,13 @@ namespace WildBlueIndustries
 
                 GUILayout.BeginVertical();
 
-                GUILayout.Label("EfficiencyModifiers");
-                GUILayout.Label("Count: " + converter.EfficiencyModifiers.Count);
-                foreach (string key in converter.EfficiencyModifiers.Keys)
-                {
-                    GUILayout.Label(key + ": " + converter.EfficiencyModifiers[key]);
-                }
-
                 //Toggle, name and status message
                 if (!HighLogic.LoadedSceneIsEditor)
                     isActivated = GUILayout.Toggle(isActivated, string.Format(converterName + " ({0:f1}%): ", converter.EfficiencyBonus * 100f) + converterStatus);
                 else
                     isActivated = GUILayout.Toggle(isActivated, converterName);
 
+                //Toggle resource converter
                 if (converter.IsActivated != isActivated)
                 {
                     if (isActivated)
@@ -381,11 +489,24 @@ namespace WildBlueIndustries
                         converter.StopResourceConverter();
                 }
 
+                //Track the number of active converters
+                if (converter.IsActivated)
+                    activeConverters += 1;
+
                 GUILayout.EndVertical();
             }
 
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
+
+            //Update the delegate.
+            if (setActiveConverterCount != null && activeConverters != activeConverterCount)
+            {
+                //Keep internal track of the active converter count so that we don't
+                //repeatedly keep setting the delegate's count.
+                activeConverterCount = activeConverters;
+                setActiveConverterCount(activeConverterCount);
+            }
         }
 
     }

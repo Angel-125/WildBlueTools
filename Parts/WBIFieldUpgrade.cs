@@ -102,7 +102,16 @@ namespace WildBlueIndustries
             if (Utils.IsExperienceEnabled() == false)
                 return true;
             bool hasAtLeastOneCrew = false;
-            string errorMessage = string.Format(kInsufficientSkill + Utils.GetTraitsWithEffect(upgradeSkill), this.part.partInfo.title);
+
+            string[] skillTraits = Utils.GetTraitsWithEffect(upgradeSkill);
+            StringBuilder builder = new StringBuilder();
+            for (int index = 0; index < skillTraits.Length; index++)
+            {
+                builder.Append(skillTraits[index]);
+                builder.Append(",");
+            }
+
+            string errorMessage = string.Format(kInsufficientSkill + builder.ToString(), this.part.partInfo.title);
 
             //Make sure we have an experienced person either out on EVA performing the reconfiguration, or inside the module.
             //Check EVA first

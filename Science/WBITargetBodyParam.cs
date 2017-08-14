@@ -61,6 +61,8 @@ namespace ContractsPlus.Contracts
         protected override void OnUpdate()
         {
             base.OnUpdate();
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
 
             if (FlightGlobals.ActiveVessel.mainBody.flightGlobalsIndex == targetBodyID)
                 base.SetComplete();

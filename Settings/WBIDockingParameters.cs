@@ -20,13 +20,13 @@ namespace WildBlueIndustries
 {
     public class WBIDockingParameters : GameParameters.CustomParameterNode
     {
-        [GameParameters.CustomParameterUI("Welding requires EVA", toolTip = "If enabled, an EVA is required to weld the port.", autoPersistance = true)]
+        //[GameParameters.CustomParameterUI("Welding requires EVA", toolTip = "If enabled, an EVA is required to weld the port.", autoPersistance = true)]
         public bool weldRequiresEVA = true;
 
-        [GameParameters.CustomParameterUI("Welding requires the repair skill", toolTip = "If enabled, only kerbals with the repair skill can perform the weld.", autoPersistance = true)]
+        //[GameParameters.CustomParameterUI("Welding requires the repair skill", toolTip = "If enabled, only kerbals with the repair skill can perform the weld.", autoPersistance = true)]
         public bool weldRequiresRepairSkill = true;
 
-        [GameParameters.CustomParameterUI("Keep docking ports after welding", toolTip = "If enabled, docking ports won't be deleted when welded together.", autoPersistance = true)]
+        //[GameParameters.CustomParameterUI("Keep docking ports after welding", toolTip = "If enabled, docking ports won't be deleted when welded together.", autoPersistance = true)]
         public bool keepDockingPorts = false;
 
         public static bool WeldRequiresEVA
