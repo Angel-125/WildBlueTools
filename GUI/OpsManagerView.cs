@@ -45,7 +45,7 @@ namespace WildBlueIndustries
         public ModuleCommand commandModule;
         public WBIResourceSwitcher switcher;
         public WBILight lightModule = null;
-        public ModuleQualityControl qualityControl = null;
+        public BaseQualityControl qualityControl = null;
 
         public OpsManagerView() :
         base("Manage Operations", 800, 480)
@@ -260,41 +260,46 @@ namespace WildBlueIndustries
 
             lightModule = this.part.FindModuleImplementing<WBILight>();
 
-            qualityControl = this.part.FindModuleImplementing<ModuleQualityControl>();
+            qualityControl = this.part.FindModuleImplementing<BaseQualityControl>();
         }
 
         protected void drawQualityControl()
         {
             GUILayout.BeginVertical();
             GUILayout.BeginScrollView(new Vector2(), new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
+            int quality;
+            int currentQuality;
+            double currentMTBF;
+            double mtbf;
 
             //Quality
-            if (BARISSettings.PartsCanBreak || BARISScenario.showDebug)
+            qualityControl.GetQualityStats(out quality, out currentQuality, out mtbf, out currentMTBF);
+            if (BARISBridge.PartsCanBreak || BARISBridge.showDebug)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Quality: " + qualityControl.qualityDisplay);
-                if (qualityControl.currentQuality <= 0)
+                if (currentQuality <= 0)
                     GUILayout.Label("To repair: " + qualityControl.GetRepairCost());
 
-                else if (qualityControl.currentMTBF <= 0)
+                else if (currentMTBF <= 0)
                     GUILayout.Label("To maintain: " + qualityControl.GetRepairCost());
 
-                if (BARISScenario.showDebug)
+                if (BARISBridge.showDebug)
                 {
-                    GUILayout.Label(string.Format("MTBF: {0:f2}/{1:f2}", qualityControl.currentMTBF, qualityControl.mtbf));
+                    GUILayout.Label(string.Format("MTBF: {0:f2}/{1:f2}", currentMTBF, mtbf));
                 }
                 GUILayout.EndHorizontal();
 
                 //If the part needs maintenance and EVA repairs aren't required, then show the repair button
                 //if the part isn't broken.
-                if (qualityControl.currentQuality > 0 && qualityControl.currentMTBF <= 0 && !BARISSettings.RepairsRequireEVA)
+                if (currentQuality > 0 && currentMTBF <= 0 && !BARISBridge.RepairsRequireEVA)
                 {
                     if (GUILayout.Button(qualityControl.Events["PerformMaintenance"].guiName))
                         qualityControl.PerformMaintenance();
                 }
 
                 //If the part is broken and EVA repairs aren't required, then show the repair button.
-                else if (qualityControl.currentQuality <= 0 && !BARISSettings.RepairsRequireEVA)
+                else if (currentQuality <= 0 && !BARISBridge.RepairsRequireEVA)
                 {
                     if (GUILayout.Button(qualityControl.Events["RepairPart"].guiName))
                         qualityControl.RepairPart();
@@ -305,43 +310,6 @@ namespace WildBlueIndustries
             else
             {
                 GUILayout.Label("<color=yellow><b>This feature is disabled while Parts Can Break is also disabled.</b></color>");
-            }
-
-            //Debug buttons
-            if (BARISScenario.showDebug && HighLogic.LoadedSceneIsFlight)
-            {
-                if (GUILayout.Button("Perform quality check"))
-                    qualityControl.PerformQualityCheck();
-
-                if (GUILayout.Button("Perform quality maint. crit fail"))
-                    qualityControl.PerformQualityMaintCriticalFail();
-
-                if (GUILayout.Button("Perform quality main. success"))
-                    qualityControl.PerformQualityMaintSuccess();
-
-                if (GUILayout.Button("Perform maintenance"))
-                    qualityControl.PerformMaintenance();
-
-                if (GUILayout.Button("Send maint. email"))
-                    qualityControl.SendMaintenanceEmail();
-
-                if (GUILayout.Button("Send broken email"))
-                    qualityControl.SendPartBrokenEmail();
-
-                if (GUILayout.Button("Declare Broken"))
-                    qualityControl.DeclarePartBroken();
-
-                if (GUILayout.Button("Declare Fixed"))
-                    qualityControl.DeclarePartFixed();
-
-                if (GUILayout.Button("Decrement MTBF"))
-                    qualityControl.DecrementMTBF();
-
-                if (GUILayout.Button("Decrement Quality"))
-                    qualityControl.DecrementQuality(); 
-                
-                if (GUILayout.Button("Zero MTBF"))
-                    qualityControl.currentMTBF = 0f;
             }
 
             GUILayout.EndScrollView();
@@ -443,7 +411,7 @@ namespace WildBlueIndustries
             //If the part is broken, then no need to show the converters.
             if (isBroken)
             {
-                GUILayout.Label("<color=yellow><b>" + BARISScenario.MsgBodyThis + this.part.partInfo.title + BARISScenario.MsgBodyBroken1 + qualityControl.GetRepairCost() + BARISScenario.MsgBodyBroken2 + "</b></color>");
+                GUILayout.Label("<color=yellow><b>" + BARISBridge.MsgBodyThis + this.part.partInfo.title + BARISBridge.MsgBodyBroken1 + qualityControl.GetRepairCost() + BARISBridge.MsgBodyBroken2 + "</b></color>");
                 GUILayout.EndVertical();
                 return;
             }

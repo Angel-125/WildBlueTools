@@ -41,7 +41,7 @@ namespace WildBlueIndustries
         public bool isBroken;
 
         protected OpsManagerView opsManagerView = new OpsManagerView();
-        protected ModuleQualityControl qualityControl = null;
+        protected BaseQualityControl qualityControl = null;
 
         public override void OnStart(StartState state)
         {
@@ -92,20 +92,20 @@ namespace WildBlueIndustries
                 return false;
         }
 
-        public void SubscribeToEvents(ModuleQualityControl moduleQualityControl)
+        public void SubscribeToEvents(BaseQualityControl moduleQualityControl)
         {
-            qualityControl = this.part.FindModuleImplementing<ModuleQualityControl>();
+            qualityControl = this.part.FindModuleImplementing<BaseQualityControl>();
             qualityControl.onPartBroken += OnPartBroken;
             qualityControl.onPartFixed += OnPartFixed;
         }
 
-        public void OnPartFixed(ModuleQualityControl qualityControl)
+        public void OnPartFixed(BaseQualityControl moduleQualityControl)
         {
             isBroken = false;
             opsManagerView.isBroken = isBroken;
         }
 
-        public void OnPartBroken(ModuleQualityControl qualityControl)
+        public void OnPartBroken(BaseQualityControl moduleQualityControl)
         {
             isBroken = true;
             opsManagerView.isBroken = isBroken;

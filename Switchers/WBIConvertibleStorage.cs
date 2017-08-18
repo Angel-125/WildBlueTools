@@ -286,6 +286,8 @@ namespace WildBlueIndustries
             if (nodeTemplate.nodes.Contains("RESOURCE"))
             {
                 ConfigNode[] resources = nodeTemplate.GetNodes("RESOURCE");
+                foreach (ConfigNode node in resources)
+                    Debug.Log("template resource: " + node.GetValue("name"));
                 if (resources.Length > 0)
                 {
                     if (isInflatable)
