@@ -94,6 +94,7 @@
     <Compile Include="Utilities\WBIGroundStabilizer.cs" />
     <Compile Include="Science\WBITargetBodyParam.cs" />
     <Compile Include="Science\WBIExpConditionsParam.cs" />
+    <Compile Include="Switchers\WBITextureSwitcher.cs" />
     <Compile Include="Wrappers\WBIKISInventoryWrapper.cs" />
     <Compile Include="IVAUtils\ButtonClickDelegate.cs" />
     <Compile Include="PropModules\InternalPlasmaScreen.cs" />

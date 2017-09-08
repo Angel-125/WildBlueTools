@@ -6,6 +6,9 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.27
+- Bug Fixes
+
 1.26
 - BARIS is now an optional download as originally intended- just took awhile for me to figure out how to make that work. DO NOT DELETE the 000ABARISBridgeDoNotDelete FOLDER! That plugin is the bridge between this mod and BARIS.
 - Recalibrated templates for Cryo Engines and added cryo tank cooling to LiquidHydrogen storage.
