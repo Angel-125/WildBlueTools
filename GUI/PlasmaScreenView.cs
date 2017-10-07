@@ -12,7 +12,7 @@ namespace WildBlueIndustries
     public delegate void SetScreenAlphaDelegate(float alpha);
     public delegate void ToggleScreenDelegate(bool isVisble);
 
-    public class PlasmaScreenView : Window<PlasmaScreenView>
+    public class PlasmaScreenView : Dialog<PlasmaScreenView>
     {
         public Texture defaultTexture;
         public ShowImageDelegate showImageDelegate;

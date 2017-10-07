@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
-    internal class LoadExperimentView : Window<LoadExperimentView>
+    internal class LoadExperimentView : Dialog<LoadExperimentView>
     {
         static Texture transferIcon;
         static Texture experimentIcon;
@@ -304,8 +304,13 @@ namespace WildBlueIndustries
             if (node.HasValue("maxAltitude"))
                 info.Append(string.Format("<b>Max altitude: </b>{0:f2}m\r\n", float.Parse(node.GetValue("maxAltitude"))));
             //Required parts
-            if (node.HasValue("requiredParts"))
-                info.Append("<b>Parts: </b>" + node.GetValue("requiredParts") + "\r\n");
+            if (node.HasValue("requiredPart"))
+            {
+                string[] requiredParts = node.GetValues("requiredPart");
+                info.Append("<b>Requires one of: </b>\r\n");
+                for (int index = 0; index < requiredParts.Length; index++)
+                    info.Append(requiredParts[index] + "\r\n");
+            }
             //Required resources
             if (node.HasValue("requiredResources"))
             {

@@ -48,32 +48,57 @@ namespace WildBlueIndustries
         public virtual void NextMesh()
         {
             int nextIndex = selectedObject;
+            int objectIndex = 0;
+            WBIMeshHelper helper;
 
             nextIndex = (nextIndex + 1) % this.objectNames.Count;
-
-            setObject(nextIndex);
+            objectIndex = nextIndex;
 
             if (objectNames.Count > 0)
-            {
                 nextIndex = (nextIndex + 1) % this.objectNames.Count;
-                Events["NextMesh"].guiName = objectNames[nextIndex];
-            }
 
+            SetMeshIndex(objectIndex, nextIndex);
+
+            //Handle symmetrical parts
+            if (HighLogic.LoadedSceneIsEditor)
+            {
+                foreach (Part symmetryPart in this.part.symmetryCounterparts)
+                {
+                    helper = symmetryPart.GetComponent<WBIMeshHelper>();
+                    helper.SetMeshIndex(objectIndex, nextIndex);
+                }
+            }
+        }
+
+        public void SetMeshIndex(int index, int guiIndex)
+        {
+            setObject(index);
+            Events["NextMesh"].guiName = objectNames[guiIndex];
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Prev variant", active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public virtual void PrevMesh()
         {
             int nextIndex = selectedObject;
+            int objectIndex = 0;
+            WBIMeshHelper helper;
 
             nextIndex = (nextIndex - 1) % this.objectNames.Count;
-
-            setObject(nextIndex);
+            objectIndex = nextIndex;
 
             if (objectNames.Count > 0)
-            {
                 nextIndex = (nextIndex - 1) % this.objectNames.Count;
-                Events["NextMesh"].guiName = objectNames[nextIndex];
+
+            SetMeshIndex(objectIndex, nextIndex);
+
+            //Handle symmetrical parts
+            if (HighLogic.LoadedSceneIsEditor)
+            {
+                foreach (Part symmetryPart in this.part.symmetryCounterparts)
+                {
+                    helper = symmetryPart.GetComponent<WBIMeshHelper>();
+                    helper.SetMeshIndex(objectIndex, nextIndex);
+                }
             }
         }
 

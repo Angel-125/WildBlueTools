@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Animation\ModuleAnimateGenericSFX.cs" />
     <Compile Include="Converters\WBIGasTurbine.cs" />
+    <Compile Include="PlayModes\PlayModesWindow.cs" />
     <Compile Include="Science\GeoLabView.cs" />
     <Compile Include="Science\WBIExpCompleteParam.cs" />
     <Compile Include="Science\WBIEnhancedExperiment.cs" />
@@ -94,6 +95,9 @@
     <Compile Include="Utilities\WBIGroundStabilizer.cs" />
     <Compile Include="Science\WBITargetBodyParam.cs" />
     <Compile Include="Science\WBIExpConditionsParam.cs" />
+    <Compile Include="Switchers\WBITextureSwitcher.cs" />
+    <Compile Include="PlayModes\WBTAppButton.cs" />
+    <Compile Include="PlayModes\WBIPlayModeHelper.cs" />
     <Compile Include="Wrappers\WBIKISInventoryWrapper.cs" />
     <Compile Include="IVAUtils\ButtonClickDelegate.cs" />
     <Compile Include="PropModules\InternalPlasmaScreen.cs" />
@@ -121,11 +125,9 @@
     <Compile Include="Switchers\WBIModuleSwitcher.cs" />
     <Compile Include="Switchers\WBIResourceSwitcher.cs" />
     <Compile Include="Switchers\TemplateManager.cs" />
-    <Compile Include="GUI\WindowUtils.cs" />
     <Compile Include="Utilities\Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Helpers\ResourceHelper.cs" />
-    <Compile Include="GUI\Window.cs" />
     <Compile Include="Converters\WBIResourceConverter.cs" />
     <Compile Include="Parts\WBIActiveRadiatorToggle.cs" />
     <Compile Include="Science\WBIBasicScienceLab.cs" />

@@ -10,7 +10,7 @@ namespace WildBlueIndustries
     public delegate bool PerformAnalysisDelegate();
     public delegate void DrawViewDelegate();
 
-    public class GeoLabView : Window<GeoLabView>
+    public class GeoLabView : Dialog<GeoLabView>
     {
         public Part part;
         public ModuleGPS gps;

@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
-    public class ScienceLabResultsView : Window<ScienceLabResultsView>
+    public class ScienceLabResultsView : Dialog<ScienceLabResultsView>
     {
         const string kTransmitScience = "<color=lightBlue>Transmit science</color>";
         const string kTransferScience = "<color=white>Transfer to Mobile Processing Lab</color>";

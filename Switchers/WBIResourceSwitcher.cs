@@ -47,10 +47,10 @@ namespace WildBlueIndustries
         public string defaultTemplate = string.Empty;
 
         //Base amount of volume the part stores, if any.
-        [KSPField(isPersistant = true)]
+        [KSPField()]
         public float baseStorage;
 
-        [KSPField(isPersistant = true)]
+        [KSPField()]
         public float maxStorage;
 
         [KSPField(isPersistant = true)]
@@ -549,7 +549,7 @@ namespace WildBlueIndustries
             List<PartResource> doomedResources = new List<PartResource>();
             foreach (PartResource res in this.part.Resources)
             {
-                if (resourcesToKeep == null)
+                if (string.IsNullOrEmpty(resourcesToKeep))
                     doomedResources.Add(res);
 
                 else if (resourcesToKeep.Contains(res.resourceName) == false)
@@ -728,92 +728,6 @@ namespace WildBlueIndustries
 
             //Create the templateManager
             templateManager = new TemplateManager(this.part, this.vessel, new LogDelegate(Log), templateNodes, templateTags);
-
-            //If we have resources in our node then load them.
-            if (resourceNodes != null)
-            {
-                //Clear any existing resources. We shouldn't have any...
-                templateResources.Clear();
-
-                foreach (ConfigNode resourceNode in resourceNodes)
-                {
-                    resourceName = resourceNode.GetValue("name");
-                    if (this.part.Resources.Contains(resourceName))
-                    {
-                        resource = this.part.Resources[resourceName];
-                        if (isInflatable)
-                        {
-                            if (isDeployed)
-                                resource.maxAmount = double.Parse(resourceNode.GetValue("maxAmount"));
-                            else
-                                resource.maxAmount = 1.0f;
-                        }
-
-                        else
-                        {
-                            resource.maxAmount = double.Parse(resourceNode.GetValue("maxAmount"));
-                        }
-                    }
-                    else
-                    {
-                        resource = this.part.AddResource(resourceNode);
-                    }
-
-                    templateResources.Add(resource);
-                }
-            }
-        }
-
-        public override void OnSave(ConfigNode node)
-        {
-            ConfigNode resourceNode;
-            ConfigNode[] subNodes;
-            string value;
-            base.OnSave(node);
-            bool resourceNotFound = true;
-
-            foreach (PartResource resource in templateResources)
-            {
-                //See if the resource node already exists.
-                //If it doesn't then add the new node.
-                subNodes = node.GetNodes("RESOURCE");
-                if (subNodes == null)
-                {
-                    //Create the resource node and save its data
-                    resourceNode = ConfigNode.CreateConfigFromObject(resource);
-                    resourceNode.name = "RESOURCE";
-                    resource.Save(resourceNode);
-                    node.AddNode(resourceNode);
-                }
-
-                else //Loop through the config node and add the resource if it does not exist
-                {
-                    resourceNotFound = true;
-
-                    foreach (ConfigNode subNode in subNodes)
-                    {
-                        value = subNode.GetValue("name");
-                        if (string.IsNullOrEmpty(value) == false)
-                        {
-                            if (value == resource.resourceName)
-                            {
-                                resourceNotFound = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    //Resource not found? Great, add it.
-                    if (resourceNotFound)
-                    {
-                        //Create the resource node and save its data
-                        resourceNode = ConfigNode.CreateConfigFromObject(resource);
-                        resourceNode.name = "RESOURCE";
-                        resource.Save(resourceNode);
-                        node.AddNode(resourceNode);
-                    }
-                }
-            }
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -822,7 +736,7 @@ namespace WildBlueIndustries
             if (string.IsNullOrEmpty(shortName) == false)
                 templateName = shortName;
 
-            bool loadTemplateResources = templateResources.Count<PartResource>() > 0 ? false : true;
+            bool loadTemplateResources = this.part.Resources.Count > 0 ? false : true;// templateResources.Count<PartResource>() > 0 ? false : true;
             base.OnStart(state);
             Log("OnStart - State: " + state + "  Part: " + getMyPartName());
 
@@ -860,6 +774,9 @@ namespace WildBlueIndustries
             {
                 ShowDecals(decalsVisible);
             }
+
+            //Setup KISInventory if any
+            setupKISInventory(CurrentTemplate);
         }
 
         #endregion
@@ -872,6 +789,7 @@ namespace WildBlueIndustries
             string value;
             float capacityModifier = capacityFactor;
             ConfigNode[] templateResourceNodes = nodeTemplate.GetNodes("RESOURCE");
+            StringBuilder resourceNameBuilder = new StringBuilder();
             if (templateResourceNodes == null)
             {
                 Log(nodeTemplate.GetValue("name") + " has no resources.");
@@ -887,6 +805,7 @@ namespace WildBlueIndustries
                 //If we kept the resource, then skip this template resource.
                 //We won't know what the original values were if we merged values.
                 value = resourceNode.GetValue("name");
+                resourceNameBuilder.Append(value);
                 if (this.part.Resources.Contains(value))
                     continue;
 
@@ -918,6 +837,85 @@ namespace WildBlueIndustries
                 templateResources.Add(resource);
                 resource.isTweakable = true;
             }
+
+            //Clear the resources that shouldn't be there.
+            List<PartResource> doomedResources = new List<PartResource>();
+            string templateResourceNames = resourceNameBuilder.ToString();
+            foreach (PartResource res in this.part.Resources)
+            {
+                //If the resource isn't in our template but it's one we should keep, then skip it.
+                if (!string.IsNullOrEmpty(resourcesToKeep))
+                {
+                    if (resourcesToKeep.Contains(res.resourceName))
+                        continue;
+                }
+
+                //If the resource isn't in our template then drop it.
+                if (templateResourceNames.Contains(res.resourceName) == false)
+                    doomedResources.Add(res);
+            }
+            foreach (PartResource doomed in doomedResources)
+            {
+                ResourceHelper.RemoveResource(doomed.resourceName, this.part);
+            }
+            Log("Extraneous resources cleared.");
+        }
+
+        protected virtual void setupKISInventory(ConfigNode nodeTemplate)
+        {
+            //KIS templates work differently. We have to know the part's base and max volume.
+            //Base volume represents how much can be stored when not using a KIS template.
+            //Max volume represents how much can be stored when the part is configured as a KIS storage container.
+            //First, do we even have an inventory?
+            if (this.part.Modules.Contains("ModuleKISInventory") == false)
+                return;
+            PartModule inventory = this.part.Modules["ModuleKISInventory"];
+
+            //Storage volume
+            float storageVolume = 0f;
+            if (nodeTemplate.HasValue("storageVolume"))
+                storageVolume = float.Parse(nodeTemplate.GetValue("storageVolume"));
+
+            //Ok, is the template a KIS template?
+            if (nodeTemplate.HasValue("isKISInventory"))
+            {
+                //If we are an inflatable module and inflated, set the base amount. Otherwise, set it to 1
+                if (isInflatable)
+                {
+                    if (isDeployed && storageVolume > 0f)
+                    {
+                        Utils.SetField("maxVolume", storageVolume, inventory);
+                    }
+
+                    else if (isDeployed)
+                    {
+                        Utils.SetField("maxVolume", maxStorage, inventory);
+                    }
+
+                    else
+                    {
+                        Utils.SetField("maxVolume", 1, inventory);
+                    }
+                    return;
+
+                }
+
+                //It's not inflatable.
+                else if (storageVolume > 0f)
+                {
+                    Utils.SetField("maxVolume", storageVolume, inventory);
+                }
+                else
+                {
+                    Utils.SetField("maxVolume", maxStorage, inventory);
+                }
+            }
+
+            //Not a KIS inventory
+            else if (baseStorage > 0f)
+            {
+                Utils.SetField("maxVolume", baseStorage, inventory);
+            }
         }
 
         public virtual void loadResourcesFromTemplate(ConfigNode nodeTemplate)
@@ -942,7 +940,7 @@ namespace WildBlueIndustries
             List<PartResource> doomedResources = new List<PartResource>();
             foreach (PartResource res in this.part.Resources)
             {
-                if (resourcesToKeep == null)
+                if (string.IsNullOrEmpty(resourcesToKeep))
                     doomedResources.Add(res);
 
                 else if (resourcesToKeep.Contains(res.resourceName) == false)
@@ -1012,31 +1010,9 @@ namespace WildBlueIndustries
                 resource.isTweakable = true;
             }
 
-            //KIS templates work differently. We have to know the part's base and max volume.
-            //Base volume represents how much can be stored when not using a KIS template.
-            //Max volume represents how much can be stored when the part is configured as a KIS storage container.
-            //First, do we even have an inventory?
-            if (this.part.Modules.Contains("ModuleKISInventory") == false)
-                return;
-            PartModule inventory = this.part.Modules["ModuleKISInventory"];
 
-            //Ok, is the template a KIS template?
-            //If not, then just set the volume to the base amount.
-            if (string.IsNullOrEmpty(nodeTemplate.GetValue("isKISInventory")))
-            {
-                //If we are an inflatable module and inflated, set the base amount. Otherwise, set it to 1
-                if (isInflatable && isDeployed == false)
-                    Utils.SetField("maxVolume", 1, inventory);
-                else
-                    Utils.SetField("maxVolume", baseStorage, inventory);
-                return;
-            }
-
-            //If we are an inflatable module and inflated, set the max amount. Otherwise, set it to 1
-            if (isInflatable && isDeployed == false)
-                Utils.SetField("maxVolume", 1, inventory);
-            else
-                Utils.SetField("maxVolume", maxStorage, inventory);
+            //Setup inventory
+            setupKISInventory(nodeTemplate);
         }
 
         protected void updateDecalsFromTemplate(ConfigNode nodeTemplate)

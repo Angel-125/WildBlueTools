@@ -20,7 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
-    public class LocalOpsManager : Window<LocalOpsManager>, IParentView
+    public class LocalOpsManager : Dialog<LocalOpsManager>, IParentView
     {
         private Vector2 _scrollPosViews, _scrollPosButtons;
         Dictionary<string, List<SDrawbleView>> drawableViews = new Dictionary<string, List<SDrawbleView>>();

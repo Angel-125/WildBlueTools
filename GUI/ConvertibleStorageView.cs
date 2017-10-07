@@ -22,7 +22,7 @@ namespace WildBlueIndustries
     public delegate void SetTemplate(string template);
     public delegate void SetupView();
 
-    public class ConvertibleStorageView : Window<ConvertibleStorageView>
+    public class ConvertibleStorageView : Dialog<ConvertibleStorageView>
     {
         public string info;
         public Texture decal;

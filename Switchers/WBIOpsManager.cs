@@ -122,14 +122,6 @@ namespace WildBlueIndustries
             opsManagerView.SetVisible(true);
         }
 
-        public override void OnGUI()
-        {
-            if (opsManagerView.IsVisible())
-            {
-                opsManagerView.DrawWindow();
-            }
-        }
-
         public override void OnUpdate()
         {
             base.OnUpdate();

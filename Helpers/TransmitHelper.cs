@@ -161,54 +161,6 @@ namespace WildBlueIndustries
             //For now, fake a transmission
             OnTransmitComplete();
             return true;
-
-            /*
-
-            //First, look for an RTAntenna module
-            foreach (Part vesselPart in this.part.vessel.Parts)
-            {
-                foreach (PartModule module in vesselPart.Modules)
-                {
-                    if (module.moduleName == "ModuleRTAntenna")
-                    {
-                        rtAntennas.Add(module);
-                    }
-                }
-            }
-
-            //If we didn't find an antenna, then we're done.
-            if (rtAntennas.Count == 0)
-            {
-                ScreenMessages.PostScreenMessage(kNoAvailableTransmitter, 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                return false;
-            }
-
-            //Now we need to find the best antenna in terms of packet size.
-            foreach (PartModule module in rtAntennas)
-            {
-                rtAntenna = new WBIRTWrapper(module);
-                if (bestRTAntenna == null)
-                    bestRTAntenna = rtAntenna;
-
-                else if (rtAntenna.PacketSize > bestRTAntenna.PacketSize)
-                    bestRTAntenna = rtAntenna;
-            }
-
-            //Once we find the best antenna, set it up.
-            bestRTAntenna.SetState(true);
-            transmitter = bestRTAntenna.rtPartModule.part.FindModuleImplementing<ModuleDataTransmitter>();
-            if (transmitter == null)
-            {
-                Debug.Log("Unable to create a ModuleDataTransmitter");
-                return false;
-            }
-
-            //Ok, start transmitting!
-            transmitter.TransmitData(dataQueue);
-            monitor_for_completion(transmitter);
-            isTransmitting = true;
-            return true;
-             */
         }
 
         private void monitor_for_completion(ModuleDataTransmitter transmitter)

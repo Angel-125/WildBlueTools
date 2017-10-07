@@ -55,6 +55,7 @@ namespace WildBlueIndustries
         float prevBlue;
         float prevLevel;
         WBIAnimation friendAnimation = null;
+        FixedUpdateHelper fixedUpdateHelper;
 
         [KSPAction("Toggle Lights", KSPActionGroup.Light)]
         public void ToggleLightsAction(KSPActionParam param)
@@ -136,12 +137,17 @@ namespace WildBlueIndustries
                     }
                 }
             }
+
+            if (fixedUpdateHelper == null)
+            {
+                fixedUpdateHelper = this.part.gameObject.AddComponent<FixedUpdateHelper>();
+                fixedUpdateHelper.onFixedUpdateDelegate = OnUpdateFixed;
+            }
+            fixedUpdateHelper.enabled = true;
         }
 
-        public override void OnFixedUpdate()
+        public void OnUpdateFixed()
         {
-            base.OnFixedUpdate();
-
             //Get the required EC
             if (HighLogic.LoadedSceneIsFlight)
             {

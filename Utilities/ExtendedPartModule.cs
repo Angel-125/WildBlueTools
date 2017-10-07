@@ -82,12 +82,7 @@ namespace WildBlueIndustries
 
         #endregion
 
-        #region Helpers        
-        public void FixedUpdate()
-        {
-            OnFixedUpdate();
-        }
-
+        #region Helpers
         protected virtual void getProtoNodeValues(ConfigNode protoNode)
         {
             //Dummy

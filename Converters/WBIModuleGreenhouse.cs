@@ -55,16 +55,6 @@ namespace WildBlueIndustries
             infoView.SetVisible(true);
         }
 
-        public void OnGUI()
-        {
-            try
-            {
-                if (infoView.IsVisible())
-                    infoView.DrawWindow();
-            }
-            catch { }
-        }
-
         public override string GetInfo()
         {
             GetTotalCrewSkill();

@@ -198,6 +198,7 @@ namespace WildBlueIndustries
                 storageView.resourceCost = float.Parse(templateManager[templateIndex].GetValue("requiredAmount"));
             else
                 storageView.resourceCost = 0f;
+            storageView.resourceCost *= materialCostModifier;
 
             //Required skill
             if (templateManager[templateIndex].HasValue("reconfigureSkill"))
@@ -305,14 +306,6 @@ namespace WildBlueIndustries
             }
 
             return moduleInfo.ToString();
-        }
-
-        public virtual void OnGUI()
-        {
-            if (storageView.IsVisible())
-            {
-                storageView.DrawWindow();
-            }
         }
 
         #region IOpsView

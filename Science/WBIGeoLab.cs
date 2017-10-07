@@ -40,12 +40,6 @@ namespace WildBlueIndustries
             geoLabView.SetVisible(!geoLabView.IsVisible());
         }
 
-        public virtual void OnGUI()
-        {
-            if (geoLabView.IsVisible())
-                geoLabView.DrawWindow();
-        }
-
         protected virtual bool perfomBiomeAnalysys()
         {
             //We need at least one crewmember in the lab.

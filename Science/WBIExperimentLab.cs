@@ -147,14 +147,6 @@ namespace WildBlueIndustries
                 manifestAdmin.EscapeKeyPressed();
         }
 
-        protected override void OnGUI()
-        {
-            base.OnGUI();
-
-            if (manifestAdmin.loadExperimentView.IsVisible())
-                manifestAdmin.loadExperimentView.DrawWindow();
-        }
-
         protected override void PostProcess(ConverterResults result, double deltaTime)
         {
             base.PostProcess(result, deltaTime);

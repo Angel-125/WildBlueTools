@@ -59,16 +59,6 @@ namespace WildBlueIndustries
             Events["StartExperiment"].active = true;
         }
 
-        public void OnGUI()
-        {
-            try
-            {
-                if (infoView.IsVisible())
-                    infoView.DrawWindow();
-            }
-            catch { }
-        }
-
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);

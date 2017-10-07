@@ -20,7 +20,7 @@ namespace WildBlueIndustries
 {
     public delegate void SetCameraNameDelegate(string newCameraName);
 
-    public class ExternalCameraView : Window<ExternalCameraView>
+    public class ExternalCameraView : Dialog<ExternalCameraView>
     {
         public string cameraName;
         public SetCameraNameDelegate setCameraNameDelegate;

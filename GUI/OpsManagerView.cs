@@ -28,7 +28,7 @@ namespace WildBlueIndustries
 
     public delegate void SetActiveConverterCountDelegate(int count);
 
-    public class OpsManagerView : Window<OpsManagerView>, IOpsView, IParentView
+    public class OpsManagerView : Dialog<OpsManagerView>, IOpsView, IParentView
     {
         public SetActiveConverterCountDelegate setActiveConverterCount;
         public bool isBroken;

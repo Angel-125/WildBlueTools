@@ -115,14 +115,6 @@ namespace WildBlueIndustries
             return experimentSlots;
         }
 
-        public void OnGUI()
-        {
-            if (manifestAdmin.IsVisible())
-                manifestAdmin.DrawWindow();
-            if (manifestAdmin.loadExperimentView.IsVisible())
-                manifestAdmin.loadExperimentView.DrawWindow();
-        }
-
         public override void OnUpdate()
         {
             base.OnUpdate();
