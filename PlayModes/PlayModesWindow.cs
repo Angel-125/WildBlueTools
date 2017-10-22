@@ -32,6 +32,7 @@ namespace WildBlueIndustries
         protected string description;
         protected ConfigNode nodePlayMode;
         internal WBIPlayModeHelper playModeHelper = new WBIPlayModeHelper();
+        protected int currentIndex;
 
         private Vector2 _scrollPos, _scrollPos2;
 
@@ -64,6 +65,7 @@ namespace WildBlueIndustries
 
                 //Get the current play mode.
                 selectedIndex = playModeHelper.GetCurrentModeIndex();
+                currentIndex = selectedIndex;
             }
         }
 
@@ -149,12 +151,17 @@ namespace WildBlueIndustries
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("OK"))
             {
-                //Set the play mode
-                playModeHelper.SetPlayMode(playModeNames[selectedIndex]);
+                if (currentIndex != selectedIndex)
+                {
+                    currentIndex = selectedIndex;
 
-                //Fire the delegate
-                if (changePlayModeDelegate != null)
-                    changePlayModeDelegate(playModeNames[selectedIndex]);
+                    //Set the play mode
+                    playModeHelper.SetPlayMode(playModeNames[selectedIndex]);
+
+                    //Fire the delegate
+                    if (changePlayModeDelegate != null)
+                        changePlayModeDelegate(playModeNames[selectedIndex]);
+                }
 
                 SetVisible(false);
             }

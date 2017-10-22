@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BARIS", "..\BARIS\BARIS.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BARISBridge", "..\BARIS\BARISBridge\BARISBridge.csproj", "{8D46364B-4F22-403D-84E3-C2DCA8E49A4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Switchers", "..\SquadEngineConcepts\Switchers\Switchers.csproj", "{A03712D5-6D65-4867-93A1-C89CF959DA6F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Switchers", "..\Switchers\Switchers.csproj", "{A03712D5-6D65-4867-93A1-C89CF959DA6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

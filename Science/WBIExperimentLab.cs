@@ -250,6 +250,7 @@ namespace WildBlueIndustries
                 }
             }
 
+            /*
             //Finally, pack the resources up
             totalSlots = experimentSlots.Length;
             for (int index = 0; index < totalSlots; index++)
@@ -259,6 +260,7 @@ namespace WildBlueIndustries
                 if (experimentSlot.experimentID != experimentSlot.defaultExperiment)
                     experimentSlot.PackResources();
             }
+             */
         }
 
         public void SetupGUI(bool guiVisible)

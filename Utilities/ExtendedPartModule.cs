@@ -22,10 +22,6 @@ namespace WildBlueIndustries
 
     public class ExtendedPartModule : PartModule
     {
-        //Nodes found in the part file's MODULE config node
-        //These aren't availble after the first time the part is loaded.
-        static protected Dictionary<string, ConfigNode> protoPartNodes = new Dictionary<string, ConfigNode>();
-
         #region Logging
         public virtual void Log(object message)
         {

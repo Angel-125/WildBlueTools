@@ -28,6 +28,8 @@ namespace WildBlueIndustries
         [KSPField]
         public float efficiency = 1.0f;
 
+        protected bool canDeploy;
+
         #region Module Overrides
 
         public override void OnStart(StartState state)
@@ -59,27 +61,12 @@ namespace WildBlueIndustries
 
         public override void ToggleInflation()
         {
-            if (CurrentTemplate.HasValue("requiredResource") == false || HighLogic.LoadedSceneIsEditor)
+            if (HighLogic.LoadedSceneIsEditor)
             {
+                canDeploy = true;
                 base.ToggleInflation();
                 return;
             }
-
-            string requiredName = CurrentTemplate.GetValue("requiredResource");
-            string requiredAmount = CurrentTemplate.GetValue("requiredAmount");
-            float totalResources = (float)ResourceHelper.GetTotalResourceAmount(requiredName, this.part.vessel);
-
-            if (string.IsNullOrEmpty(requiredAmount))
-            {
-                base.ToggleInflation();
-                return;
-            }
-            float resourceCost = float.Parse(requiredAmount);
-
-            calculateRemodelCostModifier();
-            float adjustedPartCost = resourceCost;
-            if (reconfigureCostModifier > 0f)
-                adjustedPartCost *= reconfigureCostModifier;
 
             //Do we pay for resources? If so, either pay the resources if we're deploying the module, or refund the recycled parts
             if (WBIMainSettings.PayToReconfigure)
@@ -88,6 +75,7 @@ namespace WildBlueIndustries
                 if (!isDeployed)
                 {
                     //Can we afford it?
+                    canDeploy = false;
                     if (canAffordReconfigure(CurrentTemplateName, false) == false)
                         return;
 
@@ -98,6 +86,7 @@ namespace WildBlueIndustries
                     //Yup, we can afford it
                     //Pay the reconfigure cost
                     //reconfigureCost = adjustedPartCost;
+                    canDeploy = true;
                     payPartsCost(CurrentTemplateIndex);
 
                     // Toggle after payment.
@@ -108,14 +97,18 @@ namespace WildBlueIndustries
                 else
                 {
                     // Toggle first in case deflate confirmation is needed, we'll check the state after the toggle.
+                    canDeploy = true;
                     base.ToggleInflation();
 
                     //Recycle what we can.
-
-                    // deflateConfirmed's logic seems backward.
-                    if (!HasResources() || (HasResources() && deflateConfirmed == false))
+                    if (deflateConfirmed == false)
                     {
-                        recoverResourceCost(requiredName, adjustedPartCost * recycleBase);
+                        //Rebuild input list
+                        buildInputList(templateName);
+
+                        string[] keys = inputList.Keys.ToArray();
+                        for (int index = 0; index < keys.Length; index++)
+                            recoverResourceCost(keys[index], inputList[keys[index]] * recycleBase);
                     }
                 }
             }
@@ -126,13 +119,20 @@ namespace WildBlueIndustries
                 if (WBIMainSettings.RequiresSkillCheck)
                 {
                     if (hasSufficientSkill(CurrentTemplateName))
+                    {
+                        canDeploy = true;
                         base.ToggleInflation();
+                    }
                     else
+                    {
+                        canDeploy = false;
                         return;
+                    }
                 }
 
                 else
                 {
+                    canDeploy = true;
                     base.ToggleInflation();
                 }
             }
@@ -145,17 +145,6 @@ namespace WildBlueIndustries
         #endregion
 
         #region Helpers
-        protected string getTemplateCost(int templateIndex)
-        {
-            if (templateManager[templateIndex].HasValue("requiredAmount"))
-            {
-                float cost = calculateRemodelCost(templateIndex);
-                return string.Format("{0:f2}", cost);
-            }
-            else
-                return "0";
-        }
-
         protected override void loadModulesFromTemplate(ConfigNode templateNode)
         {
             base.loadModulesFromTemplate(templateNode);

@@ -49,6 +49,7 @@ namespace WildBlueIndustries
 
         //Helper objects
         public bool animationStarted = false;
+        public Animation anim;
 
         #region User Events & API
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "ToggleInflation", externalToEVAOnly = false, unfocusedRange = 3.0f, guiActiveUnfocused = true)]
@@ -304,7 +305,7 @@ namespace WildBlueIndustries
         public virtual void PlayAnimation(bool playInReverse = false)
         {
             float animationSpeed = playInReverse == false ? 1.0f : -1.0f;
-            Animation anim = this.part.FindModelAnimators(animationName)[0];
+            anim = this.part.FindModelAnimators(animationName)[0];
 
             if (playInReverse)
             {

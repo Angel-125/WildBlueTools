@@ -107,10 +107,6 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Configuration")]
         public string templateName;
 
-        //Backwards compatibility
-        [KSPField(isPersistant = true)]
-        public string shortName;
-
         #endregion
 
         #region User Events & API
@@ -700,31 +696,11 @@ namespace WildBlueIndustries
 
         public override void OnLoad(ConfigNode node)
         {
-            ConfigNode[] resourceNodes = node.GetNodes("RESOURCE");
-            PartResource resource = null;
-            string resourceName;
-            string protoNodeKey;
-            string myPartName = getMyPartName();
-            ConfigNode protoNode = null;
-
             base.OnLoad(node);
-            protoNodeKey = myPartName + this.moduleName;
-            Log("OnLoad: " + myPartName + " " + node + " Scene: " + HighLogic.LoadedScene.ToString());
+            Log("OnLoad: " + this.part.partName + " " + node + " Scene: " + HighLogic.LoadedScene.ToString());
 
             //Watch for the editor attach event
             this.part.OnEditorAttach += OnEditorAttach;
-
-            if (protoPartNodes.ContainsKey(protoNodeKey))
-            {
-                //Get the proto config node
-                protoNode = protoPartNodes[protoNodeKey];
-
-                //Name of the nodes to use as templates
-                templateNodes = protoNode.GetValue("templateNodes");
-
-                //Also get template types
-                templateTags = protoNode.GetValue("templateTags");
-            }
 
             //Create the templateManager
             templateManager = new TemplateManager(this.part, this.vessel, new LogDelegate(Log), templateNodes, templateTags);
@@ -732,10 +708,6 @@ namespace WildBlueIndustries
 
         public override void OnStart(PartModule.StartState state)
         {
-            //Backwards compatibility
-            if (string.IsNullOrEmpty(shortName) == false)
-                templateName = shortName;
-
             bool loadTemplateResources = this.part.Resources.Count > 0 ? false : true;// templateResources.Count<PartResource>() > 0 ? false : true;
             base.OnStart(state);
             Log("OnStart - State: " + state + "  Part: " + getMyPartName());

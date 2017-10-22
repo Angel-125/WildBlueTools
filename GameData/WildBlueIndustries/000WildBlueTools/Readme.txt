@@ -6,15 +6,19 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.31
+- The S.A.F.E.R. fuel supply will last up to 10.86 years of continuous output.
+- Fix for parts not remembering what template they're using.
+- Blutonium and NuclearFuel are now Flow Mode all vessel. Reactors that use them are still restricted to resources in the part itself.
+- Added NuclearWaste resource.
+- The S.A.F.E.R. now produces NuclearWaste as part of its outputs. With Pathfinder installed, it can be reprocessed into NuclearFuel.
+
 1.28
 - KIS storage volumes now properly calculated.
 - Code cleanup
 - Play Mode selection moved from Pathfinder to Wild Blue Tools.
 - Added new Classic Stock play mode.
 - CRP is now a separate download.
-
-1.27
-- Bug Fixes
 
 1.26
 - BARIS is now an optional download as originally intended- just took awhile for me to figure out how to make that work. DO NOT DELETE the 000ABARISBridgeDoNotDelete FOLDER! That plugin is the bridge between this mod and BARIS.

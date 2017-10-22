@@ -27,7 +27,7 @@ namespace WildBlueIndustries
         public bool requiresSkillCheck = true;
 
         [GameParameters.CustomParameterUI("Enable Debug Logging", toolTip = "If enabled, your logs will be spammed with debug info.", autoPersistance = true)]
-        public bool enableDebugLogging = true;
+        public bool enableDebugLogging = false;
 
         #region Properties
         public static bool EnableDebugLogging

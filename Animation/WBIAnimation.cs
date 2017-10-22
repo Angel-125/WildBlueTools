@@ -136,20 +136,12 @@ namespace WildBlueIndustries
             if (animation == null)
                 return;
 
-            //Play start
-            /*
-            if (animation.isPlaying && isMoving == false)
-            {
-                isMoving = true;
-                playStart();
-            }
-             */
-
             //Play end
             else if (animation.isPlaying == false && isMoving)
             {
                 isMoving = false;
                 playEnd();
+                animationComplete();
             }
         }
 
@@ -202,8 +194,14 @@ namespace WildBlueIndustries
             startEventGUIName = protoNode.GetValue("startEventGUIName");
         }
 
+        protected virtual void animationComplete()
+        {
+        }
+
         public void playStart()
         {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
             if (startSound != null)
                 startSound.Play();
 
@@ -213,6 +211,8 @@ namespace WildBlueIndustries
 
         public void playEnd()
         {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
             if (stopSound != null)
                 stopSound.Play();
 

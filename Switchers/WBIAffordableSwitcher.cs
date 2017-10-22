@@ -38,6 +38,35 @@ namespace WildBlueIndustries
         protected double reconfigureCost;
         protected float reconfigureCostModifier;
         protected string requriredResource;
+        public Dictionary<string, double> inputList = new Dictionary<string, double>();
+
+        public override void RedecorateModule(bool loadTemplateResources = true)
+        {
+            base.RedecorateModule(loadTemplateResources);
+
+            if (CurrentTemplate.HasValue("mass"))
+            {
+                partMass = float.Parse(CurrentTemplate.GetValue("mass"));
+            }
+
+            else if (inputList.Keys.Count > 0)
+            {
+                PartResourceDefinition definition;
+                if (inputList.Count == 0)
+                    buildInputList(CurrentTemplateName);
+                string[] keys = inputList.Keys.ToArray();
+                string resourceName;
+
+                partMass = 0;
+                for (int index = 0; index < keys.Length; index++)
+                {
+                    resourceName = keys[index];
+                    definition = ResourceHelper.DefinitionForResource(resourceName);
+
+                    partMass += definition.density * (float)inputList[resourceName];
+                }
+            }
+        }
 
         protected override void recoverResourceCost(string resourceName, double recycleAmount)
         {
@@ -63,48 +92,81 @@ namespace WildBlueIndustries
                 return true;
             if (!WBIMainSettings.PayToReconfigure)
                 return true;
-            if (reconfigureCost == 0f)
-                return true;
-            if (!templateManager[templateIndex].HasValue(kRequiredResourceField))
-                return true;
-
-            float remodelCost = calculateRemodelCost(templateIndex);
-            string resourceName = templateManager[templateIndex].GetValue(kRequiredResourceField);
-            PartResourceDefinition definition = ResourceHelper.DefinitionForResource(resourceName);
-            double partsPaid = this.part.RequestResource(definition.id, remodelCost, ResourceFlowMode.ALL_VESSEL);
-
-            //Could we afford it?
-            if (Math.Abs(partsPaid) / Math.Abs(reconfigureCost) < 0.999f)
+            if (inputList.Keys.Count == 0)
             {
-                //Put back what we took
-                this.part.RequestResource(definition.id, -partsPaid, ResourceFlowMode.ALL_VESSEL);
-                return false;
+                Log("No resources to pay");
+                return true;
+            }
+
+            //Double check that we have enough resources
+            string[] keys = inputList.Keys.ToArray();
+            string resourceName;
+            double currentAmount, maxAmount;
+            PartResourceDefinition resourceDefiniton;
+            for (int index = 0; index < keys.Length; index++)
+            {
+                resourceName = keys[index];
+
+                resourceDefiniton = ResourceHelper.DefinitionForResource(resourceName);
+                this.part.vessel.resourcePartSet.GetConnectedResourceTotals(resourceDefiniton.id, out currentAmount, out maxAmount, true);
+
+                if (currentAmount < inputList[resourceName])
+                {
+                    Log("Not enough " + resourceName);
+                    return false;
+                }
+            }
+
+            //Now pay the cost.
+            for (int index = 0; index < keys.Length; index++)
+            {
+                resourceName = keys[index];
+                this.part.RequestResource(resourceName, inputList[resourceName]);
+                Log("Paid " + inputList[resourceName] + " units of " + resourceName);
             }
 
             return true;
         }
 
-        protected float calculateRemodelCost(int templateIndex)
+        protected void buildInputList(string templateName)
         {
-            //string value;
-            string requiredAmount = templateManager[templateIndex].GetValue(kRequiredAmountField);
-            float remodelCost = 0f;
+            //Calculate material modifier
             string requiredSkill = kDefaultSkill;
             float materialModifier = materialCostModifier;
-
-            if (templateManager[templateIndex].HasValue(kReconfigureSkillField))
-                requiredSkill = templateManager[templateIndex].GetValue(kReconfigureSkillField);
-            calculateRemodelCostModifier(requiredSkill);
-
-            if (templateManager[templateIndex].HasValue(kIgnoreMaterialModField))
+            if (templateManager[templateName].HasValue(kReconfigureSkillField))
+                requiredSkill = templateManager[templateName].GetValue(kReconfigureSkillField);
+            if (templateManager[templateName].HasValue(kIgnoreMaterialModField))
                 materialModifier = 1.0f;
 
-            if (string.IsNullOrEmpty(requiredAmount) == false)
+            //Calculate remodel cost modifier
+            calculateRemodelCostModifier(requiredSkill);
+
+            //Get the legacy cost values first.
+            inputList.Clear();
+            ConfigNode templateNode = templateManager[templateName];
+            string resourceName;
+            double amount;
+            if (templateNode.HasValue(kRequiredResourceField) && templateNode.HasValue(kRequiredAmountField))
             {
-                remodelCost = float.Parse(requiredAmount) * materialModifier * reconfigureCostModifier;
+                resourceName = templateNode.GetValue(kRequiredResourceField);
+                amount = double.Parse(templateNode.GetValue(kRequiredAmountField)) * materialModifier * reconfigureCostModifier;
+                inputList.Add(resourceName, amount);
             }
 
-            return remodelCost;
+            //Add the input list (if any)
+            if (templateNode.HasNode("INPUT_RESOURCE"))
+            {
+                ConfigNode[] inputs = templateNode.GetNodes("INPUT_RESOURCE");
+                for (int index = 0; index < inputs.Length; index++)
+                {
+                    resourceName = inputs[index].GetValue("ResourceName");
+                    amount = double.Parse(inputs[index].GetValue("Ratio")) * materialModifier * reconfigureCostModifier;
+                    if (inputList.ContainsKey(resourceName))
+                        inputList[resourceName] = inputList[resourceName] + amount;
+                    else
+                        inputList.Add(resourceName, amount);
+                }
+            }
         }
 
         protected override bool canAffordReconfigure(string templateName, bool deflatedModulesAutoPass = true)
@@ -113,52 +175,37 @@ namespace WildBlueIndustries
                 return true;
             if (!WBIMainSettings.PayToReconfigure)
                 return true;
-            //string value;
-            bool canAffordCost = false;
-            string requiredName = templateManager[templateName].GetValue(kRequiredResourceField);
-            string requiredSkill = kDefaultSkill;
-            float materialModifier = materialCostModifier;
 
-            if (templateManager[templateName].HasValue(kReconfigureSkillField))
-                requiredSkill = templateManager[templateName].GetValue(kReconfigureSkillField);
-            calculateRemodelCostModifier(requiredSkill);
-
-            //If we don't have the required resource defined in the template then we can
-            //automatically afford to reconfigure.
-            if (templateManager[templateName].HasValue(kRequiredAmountField) == false)
+            //Build the input list
+            buildInputList(templateName);
+            int totalKeys = inputList.Keys.Count;
+            if (totalKeys == 0)
             {
                 reconfigureCost = 0f;
+                Log("canAffordReconfigure: no resources so we can afford it.");
                 return true;
             }
 
-            if (templateManager[templateName].HasValue(kIgnoreMaterialModField))
-                materialModifier = 1.0f;
-
-            requriredResource = templateManager[templateName].GetValue(kRequiredAmountField);
-            if (string.IsNullOrEmpty(requriredResource) == false)
+            //Go through the input list and see if we can affort the resources
+            double currentAmount, maxAmount;
+            string resourceName;
+            string[] keys = inputList.Keys.ToArray();
+            PartResourceDefinition resourceDefiniton;
+            for (int index = 0; index < totalKeys; index++)
             {
-                //An inflatable part that hasn't been inflated yet is an automatic pass.
-                if ((isInflatable && !isDeployed) && deflatedModulesAutoPass)
-                    return true;
+                resourceName = keys[index];
+                resourceDefiniton = ResourceHelper.DefinitionForResource(resourceName);
+                this.part.vessel.resourcePartSet.GetConnectedResourceTotals(resourceDefiniton.id, out currentAmount, out maxAmount, true);
 
-                reconfigureCost = float.Parse(requriredResource) * materialModifier * reconfigureCostModifier;
-                double totalResources = ResourceHelper.GetTotalResourceAmount(requiredName, this.part.vessel);
-
-                //now check to make sure the vessel has enough parts.
-                if (totalResources < reconfigureCost)
-                    canAffordCost =  false;
-
-                else
-                    canAffordCost = true;
+                if (currentAmount < inputList[resourceName])
+                {
+                    string notEnoughPartsMsg = string.Format(kInsufficientParts, inputList[resourceName], resourceName);
+                    ScreenMessages.PostScreenMessage(notEnoughPartsMsg, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    return false;
+                }
             }
 
-            if (!canAffordCost)
-            {
-                string notEnoughPartsMsg = string.Format(kInsufficientParts, reconfigureCost, requiredName);
-                ScreenMessages.PostScreenMessage(notEnoughPartsMsg, 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                return false;
-            }
-
+            Log("We can afford the reconfigure.");
             return true;
         }
 
@@ -220,6 +267,11 @@ namespace WildBlueIndustries
         protected void calculateRemodelCostModifier(string skillRequired = kDefaultSkill)
         {
             int highestLevel = 0;
+            if (HighLogic.LoadedSceneIsFlight == false)
+            {
+                reconfigureCostModifier = 1.0f;
+                return;
+            }
 
             //Check for a kerbal on EVA
             if (FlightGlobals.ActiveVessel.isEVA)

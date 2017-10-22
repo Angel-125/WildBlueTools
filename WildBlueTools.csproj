@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Animation\ModuleAnimateGenericSFX.cs" />
     <Compile Include="Converters\WBIGasTurbine.cs" />
+    <Compile Include="KIS\WBIKISInventoryManager.cs" />
     <Compile Include="PlayModes\PlayModesWindow.cs" />
     <Compile Include="Science\GeoLabView.cs" />
     <Compile Include="Science\WBIExpCompleteParam.cs" />
@@ -90,7 +91,6 @@
     <Compile Include="Utilities\WBIDeployableEngine.cs" />
     <Compile Include="Science\WBIDataTransferUtility.cs" />
     <Compile Include="Science\WBIContractScenario.cs" />
-    <Compile Include="WBIFlexibleDockingPort.cs" />
     <Compile Include="Utilities\WBIForceDock.cs" />
     <Compile Include="Utilities\WBIGroundStabilizer.cs" />
     <Compile Include="Science\WBITargetBodyParam.cs" />
@@ -98,7 +98,7 @@
     <Compile Include="Switchers\WBITextureSwitcher.cs" />
     <Compile Include="PlayModes\WBTAppButton.cs" />
     <Compile Include="PlayModes\WBIPlayModeHelper.cs" />
-    <Compile Include="Wrappers\WBIKISInventoryWrapper.cs" />
+    <Compile Include="KIS\WBIKISInventoryWrapper.cs" />
     <Compile Include="IVAUtils\ButtonClickDelegate.cs" />
     <Compile Include="PropModules\InternalPlasmaScreen.cs" />
     <Compile Include="IVAUtils\ExternalCamera.cs" />
@@ -137,12 +137,20 @@
     <Compile Include="PropModules\WBIInternalButtonCabinLight.cs" />
     <Compile Include="PropModules\WBIPropStateHelper.cs" />
     <Compile Include="Switchers\WBIConvertibleStorage.cs" />
-    <Compile Include="Wrappers\WBIKISSeatInventoryConfig.cs" />
-    <Compile Include="Wrappers\WBISeatInventoryHelper.CS" />
+    <Compile Include="KIS\WBIKISSeatInventoryConfig.cs" />
+    <Compile Include="KIS\WBISeatInventoryHelper.CS" />
     <Compile Include="Science\WBIExperimentLab.cs" />
     <Compile Include="Science\WBIModuleScienceExperiment.cs" />
     <Compile Include="Science\WBIExperimentManifest.cs" />
     <Compile Include="Utilities\WBINodeMover.cs" />
+    <Compile Include="KIS\WBIKISInventoryView.cs" />
+    <Compile Include="PropModules\WBIInternalMissionFlag.cs" />
+    <Compile Include="Manifest\WBIManifest.cs" />
+    <Compile Include="Manifest\WBIManifestScenario.cs" />
+    <Compile Include="Manifest\WBIResourceManifest.cs" />
+    <Compile Include="KIS\WBIKISItem.cs" />
+    <Compile Include="KIS\WBIKISIcon.cs" />
+    <Compile Include="Manifest\WBIKISInventoryManifest.cs" />
     <Compile Include="Wrappers\WBIRTWrapper.cs" />
     <Compile Include="Parts\WBIModuleDecouple.cs" />
     <Compile Include="Switchers\WBIOpsManager.cs" />
@@ -166,6 +174,9 @@
       <Project>{8D46364B-4F22-403D-84E3-C2DCA8E49A4A}</Project>
       <Name>BARISBridge</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
