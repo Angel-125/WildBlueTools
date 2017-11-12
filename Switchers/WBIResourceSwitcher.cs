@@ -127,7 +127,7 @@ namespace WildBlueIndustries
 
             foreach (PartResource resource in this.part.Resources)
             {
-                if (resource.resourceName != "ElectricCharge")
+                if (resource.resourceName != "ElectricCharge" && resource.flowState)
                     resource.amount = 0;
             }
 

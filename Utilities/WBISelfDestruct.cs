@@ -30,12 +30,21 @@ namespace WildBlueIndustries
         [UI_Toggle(enabledText = "Armed", disabledText = "Disarmed")]
         public bool isArmed;
 
-        WBIModuleDecouple decoupler;
+        [KSPField]
+        public float explosionPotential = -1.0f;
+
+        [KSPField]
+        public bool explodeWhenStaged = false;
 
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            decoupler = this.part.FindModuleImplementing<WBIModuleDecouple>();
+
+            if (explosionPotential > 0f)
+                this.part.explosionPotential = explosionPotential;
+
+            if (explodeWhenStaged)
+                GameEvents.onStageActivate.Add(onStageActivate);
         }
 
         [KSPEvent(guiActive = true)]
@@ -46,8 +55,6 @@ namespace WildBlueIndustries
                 //ScreenMessages.PostScreenMessage("Explosive charges are currently disarmed, cannot detonate.", 3.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
-
-            this.part.decouple(10.0f);
 
             if (!poofNotBoom)
                 this.part.explode();
@@ -65,12 +72,17 @@ namespace WildBlueIndustries
         {
             base.OnUpdate();
             Events["Detonate"].guiActive = isArmed;
+        }
 
-            if (decoupler != null)
-            {
-                if (decoupler.isDecoupled)
-                    Detonate();
-            }
+        public void Destroy()
+        {
+            GameEvents.onStageActivate.Remove(onStageActivate);
+        }
+
+        protected void onStageActivate(int stageID)
+        {
+            if (this.part.inverseStage == stageID)
+                Detonate();
         }
     }
 }
