@@ -57,6 +57,7 @@ namespace WildBlueIndustries
         [KSPField]
         public float acquireTorqueRoll = 10;
 
+        WBILight dockingLight;
         protected ModuleDockingNode dockingNode;
         protected float originalAcquireTorque;
         protected float originalAcquireTorqueRoll;
@@ -196,6 +197,14 @@ namespace WildBlueIndustries
 
         public void TurnAnimationOn()
         {
+            //Turn on the docking lights if we have any
+            if (dockingLight != null)
+            {
+                dockingLight.TurnOnLights();
+                return;
+            }
+
+            //Legacy method of turning on docking lights.
             ModuleAnimateGeneric glowAnim = null;
 
             //Get our glow animation (if any)
@@ -210,6 +219,14 @@ namespace WildBlueIndustries
 
         public void TurnAnimationOff()
         {
+            //Turn on the docking lights if we have any
+            if (dockingLight != null)
+            {
+                dockingLight.TurnOffLights();
+                return;
+            }
+
+            //Legacy method of turning off docking lights.
             ModuleAnimateGeneric glowAnim = this.part.FindModuleImplementing<ModuleAnimateGeneric>();
 
             if (glowAnim == null)
@@ -235,6 +252,7 @@ namespace WildBlueIndustries
             GameEvents.onPartUndock.Add(onPartUndock);
 
             dockingNode = this.part.FindModuleImplementing<ModuleDockingNode>();
+            dockingLight = this.part.FindModuleImplementing<WBILight>();
             onGameSettingsApplied();
 
             //Hide the native events
