@@ -151,6 +151,7 @@
     <Compile Include="KIS\WBIKISItem.cs" />
     <Compile Include="KIS\WBIKISIcon.cs" />
     <Compile Include="Manifest\WBIKISInventoryManifest.cs" />
+    <Compile Include="Utilities\WBIEngineRepLoss.cs" />
     <Compile Include="Wrappers\WBIRTWrapper.cs" />
     <Compile Include="Parts\WBIModuleDecouple.cs" />
     <Compile Include="Switchers\WBIOpsManager.cs" />

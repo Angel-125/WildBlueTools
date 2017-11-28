@@ -6,6 +6,9 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.37
+- Fixed missing resource icons.
+
 1.36
 - Far Future Technologies support: NuclearSaltWater used in place of Explodium.
 - The Docking port helper now supports docking ports making use of WBILight. Hence, ports light up and you can set the color on the light.
