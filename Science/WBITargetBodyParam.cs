@@ -13,17 +13,29 @@ namespace ContractsPlus.Contracts
 {
     public class WBITargetBodyParam : ContractParameter
     {
-        int targetBodyID;
-        string targetBodyName;
+        const string DefaultTitle = "Transport experiment to ";
+        public int targetBodyID;
+        public string targetBodyName;
+        public string targetTitle = "Transport experiment to ";
 
         public WBITargetBodyParam()
         {
+            if (targetTitle == DefaultTitle)
+                targetTitle += targetBodyName;
         }
 
         public WBITargetBodyParam(CelestialBody targetBody)
         {
             targetBodyID = targetBody.flightGlobalsIndex;
             targetBodyName = targetBody.name;
+            targetTitle += targetBodyName;
+        }
+
+        public WBITargetBodyParam(CelestialBody targetBody, string bodyTitle)
+        {
+            targetBodyID = targetBody.flightGlobalsIndex;
+            targetBodyName = targetBody.name;
+            targetTitle = bodyTitle;
         }
 
         protected override string GetHashString()
@@ -33,7 +45,7 @@ namespace ContractsPlus.Contracts
 
         protected override string GetTitle()
         {
-            return "Transport experiment to " + targetBodyName;
+            return targetTitle;
         }
 
         protected override void OnRegister()
@@ -50,11 +62,14 @@ namespace ContractsPlus.Contracts
         {
             node.AddValue("targetBodyID", targetBodyID);
             node.AddValue("targetBodyName", targetBodyName);
+            node.AddValue("targetTitle", targetTitle);
         }
 
         protected override void OnLoad(ConfigNode node)
         {
             targetBodyName = node.GetValue("targetBodyName");
+            if (node.HasValue("targetTitle"))
+                targetTitle = node.GetValue("targetTitle");
             targetBodyID = int.Parse(node.GetValue("targetBodyID"));
         }
 

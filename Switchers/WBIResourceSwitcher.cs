@@ -584,7 +584,7 @@ namespace WildBlueIndustries
 
             //If the module is now inflated, re-add the max resource amounts to the list of resources.
             //If it isn't inflated, set max amount to 1.
-            if (HighLogic.LoadedSceneIsFlight)
+            if (HighLogic.LoadedSceneIsFlight || (HighLogic.LoadedSceneIsEditor && fillToMaxInEditor))
             {
                 foreach (PartResource resource in resourceList.Values)
                 {
