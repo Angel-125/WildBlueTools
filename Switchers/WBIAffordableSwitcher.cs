@@ -6,7 +6,7 @@ using UnityEngine;
 using KSP.IO;
 
 /*
-Source code copyright 2016, by Michael Billard (Angel-125)
+Source code copyright 2018, by Michael Billard (Angel-125)
 License: GPLV3
 
 Wild Blue Industries is trademarked by Michael Billard and may be used for non-commercial purposes. All other rights reserved.
@@ -40,20 +40,35 @@ namespace WildBlueIndustries
         protected string requriredResource;
         public Dictionary<string, double> inputList = new Dictionary<string, double>();
 
-        public override void RedecorateModule(bool loadTemplateResources = true)
+        public override void OnStart(StartState state)
         {
-            base.RedecorateModule(loadTemplateResources);
+            base.OnStart(state);
+            updatePartMass();
+        }
 
+        public override void UpdateContentsAndGui(int templateIndex)
+        {
+            base.UpdateContentsAndGui(templateIndex);
+            updatePartMass();
+        }
+
+        public override void UpdateContentsAndGui(string templateName)
+        {
+            base.UpdateContentsAndGui(templateName);
+            updatePartMass();
+        }
+
+        protected virtual void updatePartMass()
+        {
             if (CurrentTemplate.HasValue("mass"))
             {
                 partMass = float.Parse(CurrentTemplate.GetValue("mass"));
             }
 
-            else if (inputList.Keys.Count > 0)
+            else
             {
                 PartResourceDefinition definition;
-                if (inputList.Count == 0)
-                    buildInputList(CurrentTemplateName);
+                buildInputList(CurrentTemplateName);
                 string[] keys = inputList.Keys.ToArray();
                 string resourceName;
 

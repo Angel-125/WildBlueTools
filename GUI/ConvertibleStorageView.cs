@@ -6,7 +6,7 @@ using UnityEngine;
 using KSP.IO;
 
 /*
-Source code copyright 2016, by Michael Billard (Angel-125)
+Source code copyright 2018, by Michael Billard (Angel-125)
 License: GPLV3
 
 Wild Blue Industries is trademarked by Michael Billard and may be used for non-commercial purposes. All other rights reserved.
@@ -113,6 +113,8 @@ namespace WildBlueIndustries
 
             if (string.IsNullOrEmpty(requiredResource) == false && resourceCost != 0f)
                 GUILayout.Label(string.Format("<color=white>Cost: {0:s} ({1:f2})</color>", requiredResource, resourceCost));
+            else if (!string.IsNullOrEmpty(requiredResource))
+                GUILayout.Label(string.Format("<color=white>Cost: {0:s}</color>", requiredResource));
             else
                 GUILayout.Label("<color=white>Cost: NONE</color>");
 

@@ -6,7 +6,7 @@ using UnityEngine;
 using KSP.IO;
 
 /*
-Source code copyright 2016, by Michael Billard (Angel-125)
+Source code copyright 2018, by Michael Billard (Angel-125)
 License: GPLV3
 
 Wild Blue Industries is trademarked by Michael Billard and may be used for non-commercial purposes. All other rights reserved.
@@ -46,6 +46,9 @@ namespace WildBlueIndustries
 
         [KSPField()]
         public int inflatedCrewCapacity = 0;
+
+        [KSPField]
+        public bool isOneShot = true;
 
         //Helper objects
         public bool animationStarted = false;
@@ -107,9 +110,9 @@ namespace WildBlueIndustries
                 }
             }
 
-            //Setup colliders and inventories
-            setupColliders();
-            //setupInventories();
+            //If this is a one-shot then hide the animation button.
+            if (isOneShot && isDeployed && HighLogic.LoadedSceneIsEditor == false)
+                Events["ToggleInflation"].active = false;
 
             Log("Animation toggled new gui name: " + Events["ToggleInflation"].guiName);
         }
@@ -177,6 +180,10 @@ namespace WildBlueIndustries
 
             else if (flightAnimationOnly)
                 Events["ToggleInflation"].guiActiveEditor = false;
+
+            //If this is a one-shot then hide the animation button.
+            if (isOneShot && isDeployed && HighLogic.LoadedSceneIsEditor == false)
+                Events["ToggleInflation"].active = false;
         }
          
         #endregion

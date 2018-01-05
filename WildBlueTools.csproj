@@ -61,15 +61,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animation\ModuleAnimateGenericSFX.cs" />
+    <Compile Include="Contracts\WBIContractVesselTour.cs" />
+    <Compile Include="Contracts\WBIFerryKerbalParam.cs" />
+    <Compile Include="Contracts\WBIKerbalStayParam.cs" />
     <Compile Include="Converters\WBIGasTurbine.cs" />
     <Compile Include="KIS\WBIKISInventoryManager.cs" />
     <Compile Include="PlayModes\PlayModesWindow.cs" />
     <Compile Include="Science\GeoLabView.cs" />
-    <Compile Include="Science\WBIExpCompleteParam.cs" />
+    <Compile Include="Contracts\WBIExpCompleteParam.cs" />
     <Compile Include="Science\WBIEnhancedExperiment.cs" />
     <Compile Include="Science\WBIGeoLab.cs" />
-    <Compile Include="Science\WBIResearchContract.cs" />
-    <Compile Include="Science\WBIReturnHomeParam.cs" />
+    <Compile Include="Contracts\WBIResearchContract.cs" />
+    <Compile Include="Contracts\WBIReturnHomeParam.cs" />
     <Compile Include="Switchers\WBIConvertibleMPL.cs" />
     <Compile Include="Converters\WBIModuleGreenhouse.cs" />
     <Compile Include="GUI\InfoView.cs" />
@@ -90,11 +93,11 @@
     <Compile Include="Utilities\WBIDockingPortToggle.cs" />
     <Compile Include="Utilities\WBIDeployableEngine.cs" />
     <Compile Include="Science\WBIDataTransferUtility.cs" />
-    <Compile Include="Science\WBIContractScenario.cs" />
+    <Compile Include="Contracts\WBIContractScenario.cs" />
     <Compile Include="Utilities\WBIForceDock.cs" />
     <Compile Include="Utilities\WBIGroundStabilizer.cs" />
-    <Compile Include="Science\WBITargetBodyParam.cs" />
-    <Compile Include="Science\WBIExpConditionsParam.cs" />
+    <Compile Include="Contracts\WBITargetBodyParam.cs" />
+    <Compile Include="Contracts\WBIExpConditionsParam.cs" />
     <Compile Include="Switchers\WBITextureSwitcher.cs" />
     <Compile Include="PlayModes\WBTAppButton.cs" />
     <Compile Include="PlayModes\WBIPlayModeHelper.cs" />
@@ -152,6 +155,11 @@
     <Compile Include="KIS\WBIKISIcon.cs" />
     <Compile Include="Manifest\WBIKISInventoryManifest.cs" />
     <Compile Include="Utilities\WBIEngineRepLoss.cs" />
+    <Compile Include="Contracts\WBIReturnKerbalHome.cs" />
+    <Compile Include="PropModules\WBIDiscoBall.cs" />
+    <Compile Include="PropModules\WBIDanceFloor.cs" />
+    <Compile Include="PropModules\WBIJukebox.cs" />
+    <Compile Include="Parts\WBICruiseControl.cs" />
     <Compile Include="Wrappers\WBIRTWrapper.cs" />
     <Compile Include="Parts\WBIModuleDecouple.cs" />
     <Compile Include="Switchers\WBIOpsManager.cs" />

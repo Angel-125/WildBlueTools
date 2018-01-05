@@ -6,7 +6,7 @@ using UnityEngine;
 using KSP.IO;
 
 /*
-Source code copyright 2016, by Michael Billard (Angel-125)
+Source code copyright 2018, by Michael Billard (Angel-125)
 License: GPLV3
 
 Wild Blue Industries is trademarked by Michael Billard and may be used for non-commercial purposes. All other rights reserved.
@@ -191,7 +191,20 @@ namespace WildBlueIndustries
 
             //Required resource
             if (templateManager[templateIndex].HasValue("requiredResource"))
+            {
                 storageView.requiredResource = templateManager[templateIndex].GetValue("requiredResource");
+            }
+            else
+            {
+                buildInputList(CurrentTemplateName);
+                if (inputList.Keys.Count > 0)
+                {
+                    StringBuilder resourceList = new StringBuilder();
+                    foreach (string key in inputList.Keys)
+                        resourceList.Append(key + string.Format(": {0:f2}; ", inputList[key]));
+                    storageView.requiredResource = resourceList.ToString().TrimEnd(new char[] { ';' });
+                }
+            }
 
             //Resource cost
             if (templateManager[templateIndex].HasValue("requiredAmount"))
