@@ -34,6 +34,8 @@ namespace WildBlueIndustries
     {
         const float kBasePowerLevel = 0.5f;
         const string kNoSubOrbitMsg = "Cruise Control isn't supported while the vessel is sub-orbital.";
+        const string kFuelReserveMsg = "Deactivating Cruise Control, vessel has reached its fuel reserve level.";
+        const string kOutOfGasMsg = "Deactivating Cruise Control, vessel has run out of propellant.";
         const float kMessageDuration = 5.0f;
 
         [KSPField]
@@ -48,7 +50,7 @@ namespace WildBlueIndustries
         public float cruiseThrottle;
 
         [KSPField(guiName = "Fuel Reserve (%)", isPersistant = true, guiActive = true, guiActiveEditor = false)]
-        [UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 10f)]
+        [UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0f)]
         public float fuelReservePercent = 0f;
 
         /// <summary>
@@ -185,6 +187,7 @@ namespace WildBlueIndustries
             {
                 ScreenMessages.PostScreenMessage(kNoSubOrbitMsg, kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                 cruiseControlIsActive = false;
+                TimeWarp.SetRate(0, false);
                 return;
             }
 
@@ -196,6 +199,11 @@ namespace WildBlueIndustries
 
             //Request fuel mass
             fuelMass = getFuelMass();
+            if (fuelMass <= 0.0f)
+            {
+                Debug.Log("[WBICruiseControl] - " + this.part.partInfo.title + " has no propellants with mass!");
+                cruiseControlIsActive = false;
+            }
             if (!cruiseControlIsActive)
                 return;
 
@@ -230,13 +238,14 @@ namespace WildBlueIndustries
                     currentEngine = multiModeEngines[engineSwitcher.primaryEngineID];
                 else
                     currentEngine = multiModeEngines[engineSwitcher.secondaryEngineID];
+
+                //Setup propellants if needed
+                if (currentEngine != engine)
+                {
+                    engine = currentEngine;
+                    getPropellants();
+                }
             }
-
-            //Setup propellants if needed
-            if (currentEngine != engine)
-                getPropellants();
-
-            engine = currentEngine;
         }
 
         protected void setupEngines()
@@ -287,8 +296,9 @@ namespace WildBlueIndustries
 
                 //Make sure we haven't dipped below our fuel reserve
                 FlightGlobals.ActiveVessel.rootPart.GetConnectedResourceTotals(propellant.resourceID, out unitsObtained, out maxAmount, true);
-                if (unitsObtained / maxAmount <= reserveRatio)
+                if (unitsObtained / maxAmount <= reserveRatio && reserveRatio > 0.0f)
                 {
+                    ScreenMessages.PostScreenMessage(kFuelReserveMsg, kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                     cruiseControlIsActive = false;
                     TimeWarp.SetRate(0, false);
                     return 0;
@@ -299,13 +309,15 @@ namespace WildBlueIndustries
                 unitsObtained = this.part.RequestResource(propellant.name, demand, ResourceFlowMode.STAGE_PRIORITY_FLOW);
                 if (unitsObtained / demand < 0.0001f)
                 {
+                    ScreenMessages.PostScreenMessage(kOutOfGasMsg, kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                     cruiseControlIsActive = false;
                     TimeWarp.SetRate(0, false);
                     return 0;
                 }
 
                 //Add the resource mass to the fuel mass
-                fuelMass += unitsObtained * propellant.density;
+                if (propellant.density > 0.0f && propellant.name != "ElectricCharge")
+                    fuelMass += unitsObtained * propellant.density;
             }
 
             return fuelMass;
