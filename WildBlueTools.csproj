@@ -160,6 +160,7 @@
     <Compile Include="PropModules\WBIDanceFloor.cs" />
     <Compile Include="PropModules\WBIJukebox.cs" />
     <Compile Include="Parts\WBICruiseControl.cs" />
+    <Compile Include="Utilities\WBIPartDeprecator.cs" />
     <Compile Include="Wrappers\WBIRTWrapper.cs" />
     <Compile Include="Parts\WBIModuleDecouple.cs" />
     <Compile Include="Switchers\WBIOpsManager.cs" />

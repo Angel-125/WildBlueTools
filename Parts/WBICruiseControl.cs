@@ -265,7 +265,7 @@ namespace WildBlueIndustries
             //Just get the first engine in the list.
             else if (engines.Count > 0)
             {
-                engine = multiModeEngines.Values.ToArray()[0];
+                engine = engines[0];
             }
 
             //Get propellants
