@@ -28,6 +28,12 @@ namespace WildBlueIndustries
 
         public void DrawView()
         {
+            if (HighLogic.LoadedSceneIsFlight == false)
+            {
+                GUILayout.BeginVertical();
+                GUILayout.Label("<color=yellow>This view is unavailable in the VAB/SPH.</color>");
+                GUILayout.EndVertical();
+            }
             bool biomeUnlocked = Utils.IsBiomeUnlocked(this.part.vessel);
             GUILayout.BeginVertical();
 

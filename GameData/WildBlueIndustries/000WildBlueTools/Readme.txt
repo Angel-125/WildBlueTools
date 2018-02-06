@@ -6,6 +6,9 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.31.2
+- Bug Fixes
+
 1.39.1
 - Cruise Control fix for single-mode engines. They still need ModuleEnginesFX though.
 - Fix for deprecated parts.

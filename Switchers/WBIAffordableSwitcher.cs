@@ -250,7 +250,12 @@ namespace WildBlueIndustries
 
                 if (astronaut.HasEffect(skillRequired) == false)
                 {
-                    ScreenMessages.PostScreenMessage(kInsufficientSkill + Utils.GetTraitsWithEffect(skillRequired), 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    string[] traits = Utils.GetTraitsWithEffect(skillRequired);
+                    StringBuilder traitsList = new StringBuilder();
+                    foreach (string trait in traits)
+                        traitsList.Append(trait + ",");
+
+                    ScreenMessages.PostScreenMessage(kInsufficientSkill + traitsList.ToString().TrimEnd(new char[] {','}), 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     return false;
                 }
 

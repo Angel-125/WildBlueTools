@@ -80,6 +80,8 @@ namespace WildBlueIndustries
 
         public static bool IsBiomeUnlocked(Vessel vessel)
         {
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return false;
             if (vessel == null)
                 return false;
 
