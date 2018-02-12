@@ -29,6 +29,12 @@ namespace WildBlueIndustries
         [KSPField]
         public float repLossPerSec = 0.5f;
 
+        [KSPField(isPersistant = true)]
+        public bool initialActivationCheck = true;
+
+        [KSPField]
+        public float initialActivationRepFactor = 5.0f;
+
         bool showDebug = true;
         MultiModeEngine multiModeEngine = null;
         Dictionary<string, ModuleEnginesFX> engineMap = new Dictionary<string, ModuleEnginesFX>();
@@ -89,8 +95,8 @@ namespace WildBlueIndustries
             if (!engine.EngineIgnited || !engine.isOperational)
                 return;
 
-            //Check for throttle
-            if (engine.currentThrottle <= 0.00001f)
+            //Check for throttle. Applies after initial activation of the engine.
+            if (engine.currentThrottle <= 0.00001f && !initialActivationCheck)
             {
                 playerInformed = false;
                 return;
@@ -125,6 +131,13 @@ namespace WildBlueIndustries
 
             //Calculate rep loss
             float repLossPerFrame = repLossPerSec * TimeWarp.deltaTime;
+
+            //Account for initial activation
+            if (initialActivationCheck)
+            {
+                initialActivationCheck = false;
+                repLossPerFrame = repLossPerSec * initialActivationRepFactor;
+            }
 
             //Incur penalty
             Reputation.Instance.AddReputation(-repLossPerFrame, TransactionReasons.Any);

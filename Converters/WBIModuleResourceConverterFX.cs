@@ -34,9 +34,9 @@ namespace WildBlueIndustries
         Light[] lights;
         KSPParticleEmitter[] emitters;
 
-        public override void StartConverter()
+        public override void StartResourceConverter()
         {
-            base.StartConverter();
+            base.StartResourceConverter();
             setupLightsAndEmitters();
 
             if (!string.IsNullOrEmpty(startEffect))
@@ -45,9 +45,9 @@ namespace WildBlueIndustries
                 this.part.Effect(runningEffect, 1.0f);
         }
 
-        public override void StopConverter()
+        public override void StopResourceConverter()
         {
-            base.StopConverter();
+            base.StopResourceConverter();
             setupLightsAndEmitters();
 
             if (!string.IsNullOrEmpty(runningEffect))
@@ -80,7 +80,7 @@ namespace WildBlueIndustries
         public override void OnPartBroken(BaseQualityControl moduleQualityControl)
         {
             base.OnPartBroken(moduleQualityControl);
-            StopConverter();
+            StopResourceConverter();
         }
 
         protected void setupLightsAndEmitters()

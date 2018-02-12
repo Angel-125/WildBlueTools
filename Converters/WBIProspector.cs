@@ -30,23 +30,89 @@ namespace WildBlueIndustries
         [KSPField]
         public string ignoreResources = string.Empty;
 
+        [KSPField]
+        public bool guiVisible = false;
+
+        [KSPField]
+        public string harvestTypes = "Planetary";
+
+        [KSPField]
+        public string outputsGuiName = "Show Resource Outputs";
+
+        [KSPField(isPersistant = true)]
+        public int previousSituationID = -1;
+
         protected float inputMass;
         protected float byproductMass;
         protected float yieldMass;
         protected PartResourceDefinition byproductDef = null;
         protected string inputSources = string.Empty;
         protected string currentBiome = string.Empty;
+        protected InfoView infoView = new InfoView();
+        HarvestTypes[] harvestEnvironments;
+
+        protected void Log(string message)
+        {
+            if (WBIMainSettings.EnableDebugLogging == false)
+                return;
+
+            Debug.Log("[WBIProspector] - " + message);
+        }
+
+        [KSPEvent(guiActive = false, guiName = "Show Resource Outputs")]
+        public void GetModuleInfo()
+        {
+            if (outputList.Count == 0)
+                prepareOutputs();
+
+            infoView.WindowTitle = "Prospector";
+            infoView.ModuleInfo = base.GetInfo();
+            infoView.SetVisible(true);
+        }
 
         public override void OnStart(StartState state)
         {
+            Events["GetModuleInfo"].guiActive = guiVisible;
+            Events["GetModuleInfo"].guiName = outputsGuiName;
+
             if (HighLogic.LoadedSceneIsFlight)
             {
-                if (this.part.vessel.situation == Vessel.Situations.LANDED || this.part.vessel.situation == Vessel.Situations.SPLASHED)
+                if (this.part.vessel.situation == Vessel.Situations.LANDED || 
+                    this.part.vessel.situation == Vessel.Situations.SPLASHED || 
+                    this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
                     currentBiome = Utils.GetCurrentBiome(this.part.vessel).name;
+
+                //Get the allowed harvest types
+                string[] types = harvestTypes.Split(new char[] { ';' });
+                HarvestTypes harvestType = HarvestTypes.Planetary;
+                List<HarvestTypes> typeList = new List<HarvestTypes>();
+                for (int index = 0; index < types.Length; index++)
+                {
+                    harvestType = (HarvestTypes)Enum.Parse(typeof(HarvestTypes), types[index]);
+                    typeList.Add(harvestType);
+                }
+                harvestEnvironments = typeList.ToArray();
+
                 prepareOutputs();
             }
 
             base.OnStart(state);
+        }
+
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                int situationID = (int)this.part.vessel.situation;
+                if (situationID != previousSituationID)
+                {
+                    previousSituationID = situationID;
+                    prepareOutputs();
+                }
+
+                //Watch for biome changes
+            }
         }
 
         public override string GetInfo()
@@ -76,9 +142,9 @@ namespace WildBlueIndustries
             }
         }
 
-        protected void prepareOutputs()
+        protected virtual void prepareOutputs()
         {
-//            Debug.Log("FRED prepareOutputs called");
+            Log("prepareOutputs called");
             PartResourceDefinition inputDef = null;
 
             //Get the input mass from the list of inputs. Ignore ElectricCharge.
@@ -102,53 +168,104 @@ namespace WildBlueIndustries
                 yieldMass = inputMass;
             }
 
-//            Debug.Log("FRED inputMass: " + inputMass);
-//            Debug.Log("FRED byproductMass: " + byproductMass);
-//            Debug.Log("FRED yieldMass: " + yieldMass);
+            Log("inputMass: " + inputMass);
+            Log("byproductMass: " + byproductMass);
+            Log("yieldMass: " + yieldMass);
 
+            outputList.Clear();
             prepareOutputsByLocale();
         }
 
         protected virtual void prepareOutputsByLocale()
         {
-//            Debug.Log("FRED prepareOutputsByLocale called");
+            for (int index = 0; index < harvestEnvironments.Length; index++)
+            {
+                switch (harvestEnvironments[index])
+                {
+                    default:
+                    case HarvestTypes.Planetary:
+                        if (this.part.Landed)
+                            prepareOutputsByLocale(HarvestTypes.Planetary);
+                        break;
+
+                    case HarvestTypes.Oceanic:
+                        if (this.part.Splashed)
+                            prepareOutputsByLocale(HarvestTypes.Oceanic);
+                        break;
+
+                    case HarvestTypes.Atmospheric:
+                        if (this.part.vessel.mainBody.atmosphere && this.part.vessel.atmDensity > 0.0f)
+                            prepareOutputsByLocale(HarvestTypes.Atmospheric);
+                        break;
+
+                    case HarvestTypes.Exospheric:
+                            if (this.part.vessel.atmDensity <= 0.0f)
+                                prepareOutputsByLocale(HarvestTypes.Exospheric);
+                        break;
+                }
+            }
+        }
+
+        protected virtual void prepareOutputsByLocale(HarvestTypes harvestType)
+        {
+            Log("prepareOutputsByLocale called");
             ResourceRatio outputSource;
-            string biomeName = Utils.GetCurrentBiome(this.part.vessel).name;
             PartResourceDefinition outputDef = null;
             float totalAbundance = 0f;
             float abundance = 0f;
             float outputMass = 0f;
             float outputUnits = 0f;
-            IEnumerable<ResourceCache.AbundanceSummary> abundanceCache = ResourceCache.Instance.AbundanceCache.
-                Where(a => a.HarvestType == HarvestTypes.Planetary && a.BodyId == this.part.vessel.mainBody.flightGlobalsIndex && a.BiomeName == biomeName);
+            IEnumerable<ResourceCache.AbundanceSummary> abundanceCache;
+
+            if (harvestType == HarvestTypes.Planetary)
+                abundanceCache = ResourceCache.Instance.AbundanceCache.
+                    Where(a => a.HarvestType == harvestType && a.BodyId == this.part.vessel.mainBody.flightGlobalsIndex && a.BiomeName == currentBiome);
+            else
+                abundanceCache = ResourceCache.Instance.AbundanceCache.
+                    Where(a => a.HarvestType == harvestType && a.BodyId == this.part.vessel.mainBody.flightGlobalsIndex);
 
             foreach (ResourceCache.AbundanceSummary summary in abundanceCache)
             {
-//                Debug.Log("FRED checking " + summary.ResourceName);
+                Log("checking " + summary.ResourceName);
                 outputDef = ResourceHelper.DefinitionForResource(summary.ResourceName);
-                abundance = summary.Abundance;
+
+                abundance = ResourceMap.Instance.GetAbundance(new AbundanceRequest() {
+                    Altitude = this.vessel.altitude,
+                    BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
+                    CheckForLock = true,
+                    Latitude = this.vessel.latitude,
+                    Longitude = this.vessel.longitude,
+                    ResourceType = harvestType,
+                    ResourceName = summary.ResourceName
+                });
+
                 outputMass = abundance * yieldMass;
-                outputUnits = outputMass / outputDef.density;
+                if (outputDef.density > 0)
+                    outputUnits = outputMass / outputDef.density;
+                else
+                    outputUnits = outputMass;
+                Log("abundance: " + abundance);
+                Log("outputUnits: " + outputUnits);
 
                 //If the resource is an input resource then add its output mass to the byproductMass.
                 if (inputSources.Contains(summary.ResourceName))
                 {
-//                    Debug.Log("FRED " + summary.ResourceName + " added to byproductMass");
+                    Log(summary.ResourceName + " added to byproductMass");
                     byproductMass += outputMass;
                 }
 
                 //If the resource is on our ignore list, then add the output mass to the byproductMass.
                 else if (!string.IsNullOrEmpty(ignoreResources) && ignoreResources.Contains(summary.ResourceName))
                 {
-//                    Debug.Log("FRED " + summary.ResourceName + " ignored and added to byproductMass");
+                    Log(summary.ResourceName + " ignored and added to byproductMass");
                     byproductMass += outputMass;
                 }
 
                 //Legit!
-                else if (summary.Abundance > 0.001f)
+                else if (abundance > 0.0001f)
                 {
                     totalAbundance += abundance;
-//                    Debug.Log("FRED " + summary.ResourceName + " abundance: " + abundance + " Ratio: " + outputUnits);
+                    Log(summary.ResourceName + " abundance: " + abundance + " Ratio: " + outputUnits);
                     outputSource = new ResourceRatio { ResourceName = summary.ResourceName, Ratio = outputUnits, FlowMode = ResourceFlowMode.ALL_VESSEL_BALANCE, DumpExcess = true };
                     outputList.Add(outputSource);
                 }
@@ -161,40 +278,12 @@ namespace WildBlueIndustries
                 outputUnits = byproductMass / byproductDef.density;
                 outputSource = new ResourceRatio { ResourceName = byproduct, Ratio = outputUnits, FlowMode = ResourceFlowMode.ALL_VESSEL_BALANCE, DumpExcess = true };
                 outputList.Add(outputSource);
-//                Debug.Log("FRED added " + byproduct + " to output list");
+                Log("added " + byproduct + " to output list");
             }
 
-//            Debug.Log("FRED totalAbundance: " + totalAbundance);
-//            Debug.Log("FRED Slag Units: " + outputUnits);
-//            Debug.Log("FRED output resources added: " + outputList.Count);
-        }
-
-        protected override ConversionRecipe PrepareRecipe(double deltatime)
-        {
-            //Has the biome been unlocked?
-            if (Utils.IsBiomeUnlocked(this.part.vessel) == false)
-            {
-                this.status = "Analyze biome";
-                StopResourceConverter();
-                return base.PrepareRecipe(deltatime);
-            }
-
-            //Watch for biome changes.
-            if (HighLogic.LoadedSceneIsFlight)
-            {
-                if (this.part.vessel.situation == Vessel.Situations.LANDED || this.part.vessel.situation == Vessel.Situations.SPLASHED)
-                {
-                    string biomName = Utils.GetCurrentBiome(this.part.vessel).name;
-                    if (biomName != currentBiome)
-                    {
-                        currentBiome = biomName;
-                        outputList.Clear();
-                        prepareOutputs();
-                    }
-                }
-            }
-
-            return base.PrepareRecipe(deltatime);
+            Log("totalAbundance: " + totalAbundance);
+            Log("Byproduct Units: " + outputUnits);
+            Log("output resources added: " + outputList.Count);
         }
     }
 }

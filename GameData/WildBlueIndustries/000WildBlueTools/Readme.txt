@@ -6,6 +6,11 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.40
+- Streamlined the WBIModuleResourceConverter
+- WBIProspector now supports one or more harvest types.
+- WBIProspector can now prospect resources from the atmosphere, exosphere, ocean, and planet.
+
 1.31.2
 - Bug Fixes
 

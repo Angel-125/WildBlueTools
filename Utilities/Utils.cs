@@ -98,6 +98,8 @@ namespace WildBlueIndustries
 
         public static CBAttributeMapSO.MapAttribute GetCurrentBiome(Vessel vessel)
         {
+            if (!vessel.Landed)
+                return null;
             CelestialBody celestialBody = vessel.mainBody;
             double lattitude = ResourceUtilities.Deg2Rad(vessel.latitude);
             double longitude = ResourceUtilities.Deg2Rad(vessel.longitude);

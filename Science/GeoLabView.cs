@@ -101,6 +101,7 @@ namespace WildBlueIndustries
             request.BodyId = this.part.vessel.mainBody.flightGlobalsIndex;
             request.Longitude = longitude;
             request.Latitude = lattitude;
+            request.Altitude = this.part.vessel.altitude;
             request.CheckForLock = true;
             request.ResourceName = resourceName;
 

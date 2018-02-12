@@ -157,7 +157,7 @@ namespace WildBlueIndustries
             //Repairs
             if (isBroken)
             {
-                StopConverter();
+                StopResourceConverter();
                 status = kNeedsRepairs;
             }
 

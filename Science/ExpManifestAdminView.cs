@@ -217,7 +217,7 @@ namespace WildBlueIndustries
                     }
 
                     if (experimentSlot.isRunning && experimentLab.IsActivated == false)
-                        experimentLab.StartConverter();
+                        experimentLab.StartResourceConverter();
                 }
 
                 //Trashcan
@@ -310,11 +310,11 @@ namespace WildBlueIndustries
             if (experimentLab.IsActivated)
             {
                 if (GUILayout.Button("Stop"))
-                    experimentLab.StopConverter();
+                    experimentLab.StopResourceConverter();
             }
             else if (GUILayout.Button("Start"))
             {
-                experimentLab.StartConverter();
+                experimentLab.StartResourceConverter();
             }
         }
 

@@ -109,7 +109,7 @@ namespace WildBlueIndustries
             return null;
         }
 
-        public override void StartConverter()
+        public override void StartResourceConverter()
         {
             string absentResource = GetMissingRequiredResource();
 
@@ -127,15 +127,15 @@ namespace WildBlueIndustries
                 return;
             }
 
-            base.StartConverter();
+            base.StartResourceConverter();
             cycleStartTime = Planetarium.GetUniversalTime();
             lastUpdateTime = cycleStartTime;
             elapsedTime = 0.0f;
         }
 
-        public override void StopConverter()
+        public override void StopResourceConverter()
         {
-            base.StopConverter();
+            base.StopResourceConverter();
             progress = "None";
         }
 
@@ -175,7 +175,7 @@ namespace WildBlueIndustries
             }
             if (this.part.vessel.IsControllable == false)
             {
-                StopConverter();
+                StopResourceConverter();
                 return;
             }
             if (hoursPerCycle == 0f)
@@ -186,7 +186,7 @@ namespace WildBlueIndustries
             if (!string.IsNullOrEmpty(missingRequiredResource))
             {
                 status = requiredResource + missingRequiredResource;
-                StopConverter();
+                StopResourceConverter();
                 return;
             }
 

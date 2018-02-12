@@ -101,7 +101,6 @@ namespace WildBlueIndustries
         protected override void prepareOutputsByLocale()
         {
             ResourceRatio outputSource;
-            string biomeName = Utils.GetCurrentBiome(this.part.vessel).name;
             PartResourceDefinition outputDef = null;
             float totalAbundance = 0f;
             float abundance = 0f;
@@ -153,8 +152,8 @@ namespace WildBlueIndustries
             outputSource = new ResourceRatio { ResourceName = byproduct, Ratio = outputUnits, FlowMode = ResourceFlowMode.ALL_VESSEL_BALANCE, DumpExcess = true };
             outputList.Add(outputSource);
 
-            //            Debug.Log("FRED totalAbundance: " + totalAbundance);
-            //            Debug.Log("FRED Slag Units: " + outputUnits);
+            Log("totalAbundance: " + totalAbundance);
+            Log("Byproduct Units: " + outputUnits);
         }
 
         protected override ConversionRecipe PrepareRecipe(double deltatime)
