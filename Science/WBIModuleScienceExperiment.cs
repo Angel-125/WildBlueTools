@@ -93,6 +93,12 @@ namespace WildBlueIndustries
         [KSPField]
         public bool resultsSafetyCheck;
 
+        [KSPField]
+        public string requiredAnomalies = string.Empty;
+
+        [KSPField]
+        public float minAnomalyRange = 50.0f;
+
         [KSPField(isPersistant = true, guiName = "Status")]
         public string status = string.Empty;
 
@@ -217,6 +223,12 @@ namespace WildBlueIndustries
                     experimentResource = resourceMap[resourceMapKeys[index]];
                     requirements.Append(resourceMapKeys[index] + string.Format(" {0:f2}\r\n", experimentResource.targetAmount));
                 }
+            }
+            //Required anomalies
+            if (!string.IsNullOrEmpty(requiredAnomalies))
+            {
+                requirements.AppendLine("<b>Anomalies: </b>" + requiredAnomalies.Replace(";", ", "));
+                requirements.AppendLine(string.Format("<b>Minimum Range: </b>{0:f2}m", minAnomalyRange));
             }
 
             string requirementsInfo = requirements.ToString();
@@ -438,6 +450,16 @@ namespace WildBlueIndustries
                 }
             }
 
+            //Required anomalies
+            if (!string.IsNullOrEmpty(requiredAnomalies))
+            {
+                if (!isNearAnomaly())
+                {
+                    status = "Needs to be near " + requiredAnomalies.Replace(";", ", ");
+                    return false;
+                }
+            }
+
             //chanceOfSuccess
             if (chanceOfSuccess > 0.001f && isCompleted == false && experimentFailed == false)
             {
@@ -563,6 +585,39 @@ namespace WildBlueIndustries
             {
                 Debug.Log("[WBIModuleScienceExperiment] error while trying to run experiment completion handler: " + ex.ToString());
             }
+        }
+
+        protected bool isNearAnomaly()
+        {
+            CelestialBody mainBody = this.part.vessel.mainBody;
+            PQSSurfaceObject[] anomalies = mainBody.pqsSurfaceObjects;
+            double longitude;
+            double latitude;
+            double distance = 0f;
+
+            if (this.part.vessel.situation == Vessel.Situations.LANDED || this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
+            {
+                for (int index = 0; index < anomalies.Length; index++)
+                {
+                    if (requiredAnomalies.Contains(anomalies[index].SurfaceObjectName))
+                    {
+                        //Get the longitude and latitude of the anomaly
+                        longitude = mainBody.GetLongitude(anomalies[index].transform.position);
+                        latitude = mainBody.GetLatitude(anomalies[index].transform.position);
+
+                        //Get the distance (in meters) from the anomaly.
+                        distance = Utils.HaversineDistance(longitude, latitude,
+                            this.part.vessel.longitude, this.part.vessel.latitude, this.part.vessel.mainBody) * 1000;
+
+                        //If we're near the anomaly, then we're done
+                        if (distance <= minAnomalyRange)
+                            return true;
+                    }
+                }
+            }
+
+            //Not near anomaly or not close enough
+            return false;
         }
 
         protected virtual float performAnalysisRoll()
@@ -752,6 +807,12 @@ namespace WildBlueIndustries
             //Cost
             if (nodeDefinition.HasValue("cost"))
                 cost = float.Parse(nodeDefinition.GetValue("cost"));
+
+            //Anomalies
+            if (nodeDefinition.HasValue("requiredAnomalies"))
+                requiredAnomalies = nodeDefinition.GetValue("requiredAnomalies");
+            if (nodeDefinition.HasValue("minAnomalyRange"))
+                minAnomalyRange = float.Parse(nodeDefinition.GetValue("minAnomalyRange"));
 
             //changeOfSuccess
             if (nodeDefinition.HasValue("chanceOfSuccess"))

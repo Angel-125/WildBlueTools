@@ -208,7 +208,7 @@ namespace WildBlueIndustries
 
         protected virtual void prepareOutputsByLocale(HarvestTypes harvestType)
         {
-            Log("prepareOutputsByLocale called");
+            Log("prepareOutputsByLocale called for harvestType: " + harvestType.ToString());
             ResourceRatio outputSource;
             PartResourceDefinition outputDef = null;
             float totalAbundance = 0f;

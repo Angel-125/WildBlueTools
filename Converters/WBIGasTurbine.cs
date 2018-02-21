@@ -382,27 +382,31 @@ namespace WildBlueIndustries
             if (infoBox != null)
                 return;
 
-            getMaxTotalFuel();
-            resourceBroker = new ResourceBroker();
-            ResourceRatio[] inputs = inputList.ToArray();
-            Color clr;
-            for (int index = 0; index < inputs.Length; index++)
+            try
             {
-                if (inputs[index].ResourceName == fuelGaugeResource)
+                getMaxTotalFuel();
+                resourceBroker = new ResourceBroker();
+                ResourceRatio[] inputs = inputList.ToArray();
+                Color clr;
+                for (int index = 0; index < inputs.Length; index++)
                 {
-                    infoBox = this.part.stackIcon.StageIcon.DisplayInfo();
-                    infoBox.SetMessage(fuelGaugeResource);
-                    clr = XKCDColors.GreenYellow;  //XKCDColors.BrightOlive;
-                    clr.a = 0.55f;
-                    infoBox.SetMsgTextColor(clr);
-                    clr = XKCDColors.Asparagus;
-                    clr.a = 0.5f;
-                    infoBox.SetMsgBgColor(clr);
-                    infoBox.SetProgressBarBgColor(clr);
-                    infoBox.Collapse();
-                    break;
+                    if (inputs[index].ResourceName == fuelGaugeResource)
+                    {
+                        infoBox = this.part.stackIcon.StageIcon.DisplayInfo();
+                        infoBox.SetMessage(fuelGaugeResource);
+                        clr = XKCDColors.GreenYellow;  //XKCDColors.BrightOlive;
+                        clr.a = 0.55f;
+                        infoBox.SetMsgTextColor(clr);
+                        clr = XKCDColors.Asparagus;
+                        clr.a = 0.5f;
+                        infoBox.SetMsgBgColor(clr);
+                        infoBox.SetProgressBarBgColor(clr);
+                        infoBox.Collapse();
+                        break;
+                    }
                 }
             }
+            catch { }
         }
 
         protected void getMaxTotalFuel()

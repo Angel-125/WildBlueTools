@@ -73,8 +73,12 @@ namespace WildBlueIndustries
             setupLightsAndEmitters();
 
             //Setup running sound if the converter is running
-            if (IsActivated && !string.IsNullOrEmpty(runningEffect))
-                this.part.Effect(runningEffect, 1.0f);
+            if (IsActivated)
+            {
+                this.part.InitializeEffects();
+                if (!string.IsNullOrEmpty(runningEffect))
+                    this.part.Effect(runningEffect, 1.0f);
+            }
         }
 
         public override void OnPartBroken(BaseQualityControl moduleQualityControl)

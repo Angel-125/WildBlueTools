@@ -27,9 +27,6 @@ namespace WildBlueIndustries
         {
             base.OnStart(state);
 
-            if (HighLogic.LoadedSceneIsFlight)
-                resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
-
             setupPartModules();
             geoLabView.performBiomAnalysisDelegate = this.perfomBiomeAnalysys;
         }
@@ -37,6 +34,20 @@ namespace WildBlueIndustries
         [KSPEvent(guiActive = true, guiName = "Toggle Abundance Report")]
         public virtual void ToggleLabGUI()
         {
+            if (!geoLabView.IsVisible())
+            {
+                if (HighLogic.LoadedSceneIsFlight)
+                {
+                    if (resourceList == null)
+                        resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
+                    else if (resourceList.Count == 0)
+                        resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
+                }
+
+                geoLabView.gps = this.gps;
+                geoLabView.resourceList = this.resourceList;
+                geoLabView.part = this.part;
+            }
             geoLabView.SetVisible(!geoLabView.IsVisible());
         }
 
@@ -103,10 +114,14 @@ namespace WildBlueIndustries
             //Resource list
             if (HighLogic.LoadedSceneIsFlight)
             {
-                if (resourceList == null)
-                    resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
-                else if (resourceList.Count == 0)
-                    resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
+                try
+                {
+                    if (resourceList == null)
+                        resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
+                    else if (resourceList.Count == 0)
+                        resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
+                }
+                catch { }
             }
 
             geoLabView.gps = this.gps;

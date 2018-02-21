@@ -28,6 +28,27 @@ namespace WildBlueIndustries
         public const double secondsPerDayKerbin = 21600;
         public const double secondsPerDayEarth = 86400;
 
+        //Adapted from https://rosettacode.org/wiki/Haversine_formula#C.23
+        //Released under GNU Free Documentation License 1.2
+        //Returns kilometers
+        public static double HaversineDistance(double lon1, double lat1, double lon2, double lat2, CelestialBody body)
+        {
+            var R = body.Radius / 1000f; // In kilometers
+            var dLat = toRadians(lat2 - lat1);
+            var dLon = toRadians(lon2 - lon1);
+            lat1 = toRadians(lat1);
+            lat2 = toRadians(lat2);
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) + Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(lat1) * Math.Cos(lat2);
+            var c = 2 * Math.Asin(Math.Sqrt(a));
+            return R * 2 * Math.Asin(Math.Sqrt(a));
+        }
+
+        public static double toRadians(double angle)
+        {
+            return Math.PI * angle / 180.0;
+        }
+
         public static bool IsExperienceEnabled()
         {
             if (HighLogic.CurrentGame == null)
@@ -98,7 +119,7 @@ namespace WildBlueIndustries
 
         public static CBAttributeMapSO.MapAttribute GetCurrentBiome(Vessel vessel)
         {
-            if (!vessel.Landed)
+            if (!vessel.Landed && !vessel.Splashed)
                 return null;
             CelestialBody celestialBody = vessel.mainBody;
             double lattitude = ResourceUtilities.Deg2Rad(vessel.latitude);

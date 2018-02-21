@@ -73,6 +73,8 @@
     <Compile Include="Science\WBIGeoLab.cs" />
     <Compile Include="Contracts\WBIResearchContract.cs" />
     <Compile Include="Contracts\WBIReturnHomeParam.cs" />
+    <Compile Include="Science\WBIUnlockTechMgr.cs" />
+    <Compile Include="Science\WBIUnlockTechResult.cs" />
     <Compile Include="Switchers\WBIConvertibleMPL.cs" />
     <Compile Include="Converters\WBIModuleGreenhouse.cs" />
     <Compile Include="GUI\InfoView.cs" />
@@ -162,7 +164,6 @@
     <Compile Include="Parts\WBICruiseControl.cs" />
     <Compile Include="Utilities\WBIPartDeprecator.cs" />
     <Compile Include="Converters\WBIModuleResourceConverterFX.cs" />
-    <Compile Include="WBIMultiResourceHarvester.cs" />
     <Compile Include="Wrappers\WBIRTWrapper.cs" />
     <Compile Include="Parts\WBIModuleDecouple.cs" />
     <Compile Include="Switchers\WBIOpsManager.cs" />

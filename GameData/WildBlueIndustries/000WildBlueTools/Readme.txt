@@ -6,6 +6,13 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.41
+- Gave ElectroPlasma a small amount of density.
+- Fixed an edge case where WBIProspector would generate an NRE.
+- WBIModuleScienceExperiment can now check for proximity to an anomaly as a requirement.
+- New experiment result: WBIUnlockTechResult - You can use this experiment result to flag one or more parts as experimental. Just like with a part test contract, an experimental part can be used even if its tech node is unlocked.
+- Added new Breakthrough Research contract. It makes use of the WBIUnlockTechResult module described above.
+
 1.40
 - Streamlined the WBIModuleResourceConverter
 - WBIProspector now supports one or more harvest types.
@@ -291,6 +298,8 @@ Science System
 - Adjusted Ore and XenonGas capacities to reflect stock resource volumes.
 
 ---LICENSE---
+Some resource definitions courtesy of Community Resource Pack. License: CC-BY-NC-SA 4.0
+
 Art Assets, including .mu, .mbm, and .dds files are copyright 2014-2016 by Michael Billard, All Rights Reserved.
 
 Wild Blue Industries is trademarked by Michael Billard. All rights reserved.
