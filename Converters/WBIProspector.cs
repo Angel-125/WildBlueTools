@@ -77,22 +77,10 @@ namespace WildBlueIndustries
 
             if (HighLogic.LoadedSceneIsFlight)
             {
-                if (this.part.vessel.situation == Vessel.Situations.LANDED || 
-                    this.part.vessel.situation == Vessel.Situations.SPLASHED || 
-                    this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
-                    currentBiome = Utils.GetCurrentBiome(this.part.vessel).name;
-
                 //Get the allowed harvest types
-                string[] types = harvestTypes.Split(new char[] { ';' });
-                HarvestTypes harvestType = HarvestTypes.Planetary;
-                List<HarvestTypes> typeList = new List<HarvestTypes>();
-                for (int index = 0; index < types.Length; index++)
-                {
-                    harvestType = (HarvestTypes)Enum.Parse(typeof(HarvestTypes), types[index]);
-                    typeList.Add(harvestType);
-                }
-                harvestEnvironments = typeList.ToArray();
+                setupHarvestTypes();
 
+                //Prepare outputs
                 prepareOutputs();
             }
 
@@ -119,6 +107,9 @@ namespace WildBlueIndustries
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
+                if (harvestEnvironments == null)
+                    setupHarvestTypes();
+
                 if (this.part.vessel.situation == Vessel.Situations.SPLASHED || this.part.vessel.situation == Vessel.Situations.LANDED || this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
                 {
                     if (Utils.IsBiomeUnlocked(this.part.vessel) == false)
@@ -139,6 +130,28 @@ namespace WildBlueIndustries
             {
                 outputList.Clear();
                 return base.GetInfo() + "Varies depending upon location.";
+            }
+        }
+
+        protected void setupHarvestTypes()
+        {
+            if (this.part.vessel.situation == Vessel.Situations.LANDED ||
+                this.part.vessel.situation == Vessel.Situations.SPLASHED ||
+                this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
+                currentBiome = Utils.GetCurrentBiome(this.part.vessel).name;
+
+            string[] types = harvestTypes.Split(new char[] { ';' });
+            HarvestTypes harvestType = HarvestTypes.Planetary;
+            List<HarvestTypes> typeList = new List<HarvestTypes>();
+            for (int index = 0; index < types.Length; index++)
+            {
+                harvestType = (HarvestTypes)Enum.Parse(typeof(HarvestTypes), types[index]);
+                typeList.Add(harvestType);
+            }
+            harvestEnvironments = typeList.ToArray();
+            if (harvestEnvironments == null)
+            {
+                harvestEnvironments = new HarvestTypes[] { HarvestTypes.Planetary };
             }
         }
 
@@ -178,6 +191,8 @@ namespace WildBlueIndustries
 
         protected virtual void prepareOutputsByLocale()
         {
+            if (harvestEnvironments == null)
+                harvestEnvironments = new HarvestTypes[] { HarvestTypes.Planetary };
             for (int index = 0; index < harvestEnvironments.Length; index++)
             {
                 switch (harvestEnvironments[index])
