@@ -48,7 +48,7 @@ namespace WildBlueIndustries
         public int inflatedCrewCapacity = 0;
 
         [KSPField]
-        public bool isOneShot = true;
+        public bool isOneShot = false;
 
         //Helper objects
         public bool animationStarted = false;
