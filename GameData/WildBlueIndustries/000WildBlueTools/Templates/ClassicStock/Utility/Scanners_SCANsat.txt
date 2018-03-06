@@ -1,0 +1,113 @@
+// Purge SCANsat list
+!SCANSAT_SENSOR:HAS[#SCANtype[>62],~SCANtype[524288]]:AFTER[SCANsat] {}
+
+SCANSAT_SENSOR
+{
+	name = Hydrokarbon
+	SCANtype = 64 //2^6
+}
+SCANSAT_SENSOR
+{
+	name = Minerite
+	SCANtype = 128 //2^7
+}
+SCANSAT_SENSOR
+{
+	name = Ore
+	SCANtype = 256 //2^8
+}
+SCANSAT_SENSOR
+{
+	name = Rock
+	SCANtype = 512 //2^9
+}
+SCANSAT_SENSOR
+{
+	name = Propellium
+	SCANtype = 1024 //2^10
+}
+SCANSAT_SENSOR
+{
+	name = Hexagen
+	SCANtype = 2048 //2^11
+}
+SCANSAT_SENSOR
+{
+	name = GrayWater
+	SCANtype = 4096 //2^12
+}
+SCANSAT_SENSOR
+{
+	name = Water
+	SCANtype = 8192 //2^13
+}
+SCANSAT_SENSOR
+{
+	name = PreciousMetals
+	SCANtype = 16384 //2^14
+}
+SCANSAT_SENSOR
+{
+	name = Gemstones
+	SCANtype = 32768 //2^15
+}
+SCANSAT_SENSOR
+{
+	name = Zeonium
+	SCANtype = 65536 //2^16
+}
+SCANSAT_SENSOR
+{
+	name = Nitronite
+	SCANtype = 131072 //2^17
+}
+SCANSAT_SENSOR
+{
+	name = Blutonium
+	SCANtype = 262144 //2^18
+}
+SCANSAT_SENSOR
+{
+	name = Explodium
+	SCANtype = 1048576 //2^20
+}
+// SCANSAT_SENSOR
+// {
+	// name = 
+	// SCANtype = 2097152 //2^21
+// }
+// SCANSAT_SENSOR
+// {
+	// name = 
+	// SCANtype = 4194304 //2^22
+// }
+// SCANSAT_SENSOR
+// {
+	// name = 
+	// SCANtype = 8388608 //2^23
+// }
+// SCANSAT_SENSOR
+// {
+	// name = 
+	// SCANtype = 16777216 //2^24
+// }
+// SCANSAT_SENSOR
+// {
+	// name = 
+	// SCANtype = 33554432 //2^25
+// }
+// SCANSAT_SENSOR
+// {
+	// name = 
+	// SCANtype = 67108864 //2^26
+// }
+// SCANSAT_SENSOR
+// {
+	// name = 
+	// SCANtype = 134217728 //2^27
+// }
+// SCANSAT_SENSOR
+// {
+	// name = 
+	// SCANtype = 268435456 //2^28
+// }
