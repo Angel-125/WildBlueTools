@@ -22,14 +22,6 @@
 	MODULE
 	{
 		name = ModuleResourceScanner
-		ScannerType = 1
-		ResourceName = Explodium
-		MaxAbundanceAltitude = 5000
-		RequiresUnlock = false
-	}
-	MODULE
-	{
-		name = ModuleResourceScanner
 		ScannerType = 0
 		ResourceName = Gemstones
 		MaxAbundanceAltitude = 1000
@@ -54,14 +46,6 @@
 	MODULE
 	{
 		name = ModuleResourceScanner
-		ScannerType = 1
-		ResourceName = GrayWater
-		MaxAbundanceAltitude = 9000
-		RequiresUnlock = false
-	}
-	MODULE
-	{
-		name = ModuleResourceScanner
 		ScannerType = 0
 		ResourceName = Hexagen
 		MaxAbundanceAltitude = 1000
@@ -70,25 +54,9 @@
 	MODULE
 	{
 		name = ModuleResourceScanner
-		ScannerType = 1
-		ResourceName = Hexagen
-		MaxAbundanceAltitude = 9000
-		RequiresUnlock = false
-	}
-	MODULE
-	{
-		name = ModuleResourceScanner
 		ScannerType = 0
 		ResourceName = Hydrokarbon
 		MaxAbundanceAltitude = 1000
-		RequiresUnlock = false
-	}
-	MODULE
-	{
-		name = ModuleResourceScanner
-		ScannerType = 1
-		ResourceName = Hydrokarbon
-		MaxAbundanceAltitude = 5000
 		RequiresUnlock = false
 	}
 	MODULE
@@ -134,17 +102,51 @@
 	MODULE
 	{
 		name = ModuleResourceScanner
-		ScannerType = 1
-		ResourceName = Water
-		MaxAbundanceAltitude = 9000
+		ScannerType = 0
+		ResourceName = Zeonium
+		MaxAbundanceAltitude = 1000
 		RequiresUnlock = false
 	}
 	MODULE
 	{
 		name = ModuleResourceScanner
-		ScannerType = 0
+		ScannerType = 1
+		ResourceName = Explodium
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 1
+		ResourceName = GrayWater
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 1
+		ResourceName = Hexagen
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 1
+		ResourceName = Hydrokarbon
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 1
+		ResourceName = Water
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 1
 		ResourceName = Zeonium
-		MaxAbundanceAltitude = 1000
 		RequiresUnlock = false
 	}
 }
@@ -161,21 +163,7 @@
 	MODULE
 	{
 		name = ModuleResourceScanner
-		ScannerType = 3
-		ResourceName = GrayWater
-		RequiresUnlock = false
-	}
-	MODULE
-	{
-		name = ModuleResourceScanner
 		ScannerType = 2
-		ResourceName = Hexagen
-		RequiresUnlock = false
-	}
-	MODULE
-	{
-		name = ModuleResourceScanner
-		ScannerType = 3
 		ResourceName = Hexagen
 		RequiresUnlock = false
 	}
@@ -189,21 +177,7 @@
 	MODULE
 	{
 		name = ModuleResourceScanner
-		ScannerType = 3
-		ResourceName = Hydrokarbon
-		RequiresUnlock = false
-	}
-	MODULE
-	{
-		name = ModuleResourceScanner
 		ScannerType = 2
-		ResourceName = Propellium
-		RequiresUnlock = false
-	}
-	MODULE
-	{
-		name = ModuleResourceScanner
-		ScannerType = 3
 		ResourceName = Propellium
 		RequiresUnlock = false
 	}
@@ -233,6 +207,41 @@
 		name = ModuleResourceScanner
 		ScannerType = 2
 		ResourceName = XenonGas
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 3
+		ResourceName = GrayWater
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 3
+		ResourceName = Hexagen
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 3
+		ResourceName = Hydrokarbon
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 3
+		ResourceName = Propellium
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 3
+		ResourceName = Zeonium
 		RequiresUnlock = false
 	}
 }
