@@ -51,10 +51,24 @@ GLOBAL_RESOURCE
 	Distribution
 	{
 		PresenceChance = 100
-		MinAbundance = 0.05
+		MinAbundance = 0.1
 		MaxAbundance = 4
 		Variance = 50
 		Dispersal = 30
+	}
+}
+GLOBAL_RESOURCE
+{
+	ResourceName = Zeonium
+	ResourceType = 1
+	
+	Distribution
+	{
+		PresenceChance = 100
+		MinAbundance = 0.1
+		MaxAbundance = 4
+		Variance = 10
+		Dispersal = 0
 	}
 }
 GLOBAL_RESOURCE

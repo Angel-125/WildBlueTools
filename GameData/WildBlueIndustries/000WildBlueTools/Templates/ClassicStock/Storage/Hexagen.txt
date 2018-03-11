@@ -67,8 +67,8 @@ GLOBAL_RESOURCE
         PresenceChance = 100
         MinAbundance = 0.01
         MaxAbundance = 0.05
-        MinAltitude = 0.5
-        MaxAltitude = 0.5
+        MinAltitude = 2
+        MaxAltitude = 2
         MinRange = 100
         MaxRange = 100  
         Variance = 20
@@ -97,8 +97,8 @@ PLANETARY_RESOURCE
 	Distribution
 	{
 		PresenceChance = 100
-		MinAbundance = 200
-		MaxAbundance = 200
+		MinAbundance = 20
+		MaxAbundance = 20
 		Variance = 50
 	}
 }
@@ -111,8 +111,8 @@ PLANETARY_RESOURCE
     Distribution
     {
         PresenceChance = 100
-        MinAbundance = 5000
-        MaxAbundance = 5000
+        MinAbundance = 500
+        MaxAbundance = 500
         MinAltitude = 10
         MaxAltitude = 10
         MinRange = 20
