@@ -66,7 +66,9 @@
     <Compile Include="Contracts\WBIKerbalStayParam.cs" />
     <Compile Include="Converters\WBIGasTurbine.cs" />
     <Compile Include="KIS\WBIKISInventoryManager.cs" />
+    <Compile Include="Parts\WBIModuleAsteroidResource.cs" />
     <Compile Include="PlayModes\PlayModesWindow.cs" />
+    <Compile Include="ResourceRefinery\WBIResourceAdder.cs" />
     <Compile Include="Science\GeoLabView.cs" />
     <Compile Include="Contracts\WBIExpCompleteParam.cs" />
     <Compile Include="Science\WBIEnhancedExperiment.cs" />
@@ -164,6 +166,12 @@
     <Compile Include="Parts\WBICruiseControl.cs" />
     <Compile Include="Utilities\WBIPartDeprecator.cs" />
     <Compile Include="Converters\WBIModuleResourceConverterFX.cs" />
+    <Compile Include="ResourceRefinery\WBIRefinery.cs" />
+    <Compile Include="ResourceRefinery\WBIRefineryResource.cs" />
+    <Compile Include="ResourceRefinery\WBIRefineryAppButton.cs" />
+    <Compile Include="ResourceRefinery\WBIRefineryView.cs" />
+    <Compile Include="ToolTips\WBIToolTipManager.cs" />
+    <Compile Include="ToolTips\WBIToolTipView.cs" />
     <Compile Include="Wrappers\WBIRTWrapper.cs" />
     <Compile Include="Parts\WBIModuleDecouple.cs" />
     <Compile Include="Switchers\WBIOpsManager.cs" />
@@ -191,6 +199,7 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
