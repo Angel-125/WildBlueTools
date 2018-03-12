@@ -1,113 +1,187 @@
 // Purge SCANsat list
-!SCANSAT_SENSOR:HAS[#SCANtype[>62],~SCANtype[524288]]:AFTER[SCANsat] {}
+@SCANSAT_SENSOR:HAS[#SCANtype[64]]:BEFORE[SCANsat]
+{
+	@name = Hydrokarbon
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[128]]:BEFORE[SCANsat]
+{
+	@name = Minerite
+}
+// @SCANSAT_SENSOR:HAS[#SCANtype[256]]:BEFORE[SCANsat]
+// {
+	// @name = Ore
+// }
+@SCANSAT_SENSOR:HAS[#SCANtype[512]]:BEFORE[SCANsat]
+{
+	@name = Rock
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[1024]]:BEFORE[SCANsat]
+{
+	@name = Propellium
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[2048]]:BEFORE[SCANsat]
+{
+	@name = Hexagen
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[4096]]:BEFORE[SCANsat]
+{
+	@name = GrayWater
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[8192]]:BEFORE[SCANsat]
+{
+	@name = Water
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[16384]]:BEFORE[SCANsat]
+{
+	@name = PreciousMetals
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[32768]]:BEFORE[SCANsat]
+{
+	@name = Gemstones
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[65536]]:BEFORE[SCANsat]
+{
+	@name = Zeonium
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[131072]]:BEFORE[SCANsat]
+{
+	@name = Nitronite
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[262144]]:BEFORE[SCANsat]
+{
+	@name = Blutonium
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[1048576]]:BEFORE[SCANsat]
+{
+	@name = Explodium
+}
+@SCANSAT_SENSOR:HAS[#SCANtype[2097152]]:BEFORE[SCANsat]
+{
+	@name = GeoEnergy
+}
 
-SCANSAT_SENSOR
+!SCANSAT_SENSOR:HAS[#SCANtype[>2097152]]:BEFORE[SCANsat] {}
+
+@SCAN_Color_Config:BEFORE[SCANsat]
 {
-	name = Hydrokarbon
-	SCANtype = 64 //2^6
+	@SCANsat_Resources
+	{
+		@Item[Karbonite]
+		{
+			@name = Blutonium
+			@Resource_Planetary_Config
+			{
+				@Item,*
+				{
+					@resourceName = Blutonium
+				}
+			}
+		}
+		@Item[MetallicOre]
+		{
+			@name = Minerite
+			@Resource_Planetary_Config
+			{
+				@Item,*
+				{
+					@resourceName = Minerite
+				}
+			}
+		}
+		@Item[Minerals]
+		{
+			@name = Gemstones
+			@Resource_Planetary_Config
+			{
+				@Item,*
+				{
+					@resourceName = Gemstones
+				}
+			}
+		}
+		@Item[Substrate]
+		{
+			@name = Zeonium
+			@Resource_Planetary_Config
+			{
+				@Item,*
+				{
+					@resourceName = Zeonium
+				}
+			}
+		}
+		@Item[Uraninite]
+		{
+			@name = Propellium
+			@Resource_Planetary_Config
+			{
+				@Item,*
+				{
+					@resourceName = Propellium
+				}
+			}
+		}
+		@Item[MetalOre]
+		{
+			@name = Nitronite
+			@Resource_Planetary_Config
+			{
+				@Item,*
+				{
+					@resourceName = Nitronite
+				}
+			}
+		}
+		@Item[Dirt]
+		{
+			@name = Hydrokarbon
+			@Resource_Planetary_Config
+			{
+				@Item,*
+				{
+					@resourceName = Hydrokarbon
+				}
+			}
+		}
+		@Item[ExoticMinerals]
+		{
+			@name = Hexagen
+			@Resource_Planetary_Config
+			{
+				@Item,*
+				{
+					@resourceName = Hexagen
+				}
+			}
+		}
+		@Item[Gypsum]
+		{
+			@name = Rock
+			@Resource_Planetary_Config
+			{
+				@Item,*
+				{
+					@resourceName = Rock
+				}
+			}
+		}
+		@Item[Hydrates]
+		{
+			@name = GrayWater
+			@Resource_Planetary_Config
+			{
+				@Item,*
+				{
+					@resourceName = GrayWater
+				}
+			}
+		}
+		!Item[RareMetals] {}
+		!Item[Alumina] {}
+		!Item[Borate] {}
+		!Item[Monazite] {}
+		!Item[SaltWater] {}
+		!Item[Silicates] {}
+		!Item[SolarWind] {}
+	}
 }
-SCANSAT_SENSOR
-{
-	name = Minerite
-	SCANtype = 128 //2^7
-}
-SCANSAT_SENSOR
-{
-	name = Ore
-	SCANtype = 256 //2^8
-}
-SCANSAT_SENSOR
-{
-	name = Rock
-	SCANtype = 512 //2^9
-}
-SCANSAT_SENSOR
-{
-	name = Propellium
-	SCANtype = 1024 //2^10
-}
-SCANSAT_SENSOR
-{
-	name = Hexagen
-	SCANtype = 2048 //2^11
-}
-SCANSAT_SENSOR
-{
-	name = GrayWater
-	SCANtype = 4096 //2^12
-}
-SCANSAT_SENSOR
-{
-	name = Water
-	SCANtype = 8192 //2^13
-}
-SCANSAT_SENSOR
-{
-	name = PreciousMetals
-	SCANtype = 16384 //2^14
-}
-SCANSAT_SENSOR
-{
-	name = Gemstones
-	SCANtype = 32768 //2^15
-}
-SCANSAT_SENSOR
-{
-	name = Zeonium
-	SCANtype = 65536 //2^16
-}
-SCANSAT_SENSOR
-{
-	name = Nitronite
-	SCANtype = 131072 //2^17
-}
-SCANSAT_SENSOR
-{
-	name = Blutonium
-	SCANtype = 262144 //2^18
-}
-SCANSAT_SENSOR
-{
-	name = Explodium
-	SCANtype = 1048576 //2^20
-}
-// SCANSAT_SENSOR
-// {
-	// name = 
-	// SCANtype = 2097152 //2^21
-// }
-// SCANSAT_SENSOR
-// {
-	// name = 
-	// SCANtype = 4194304 //2^22
-// }
-// SCANSAT_SENSOR
-// {
-	// name = 
-	// SCANtype = 8388608 //2^23
-// }
-// SCANSAT_SENSOR
-// {
-	// name = 
-	// SCANtype = 16777216 //2^24
-// }
-// SCANSAT_SENSOR
-// {
-	// name = 
-	// SCANtype = 33554432 //2^25
-// }
-// SCANSAT_SENSOR
-// {
-	// name = 
-	// SCANtype = 67108864 //2^26
-// }
-// SCANSAT_SENSOR
-// {
-	// name = 
-	// SCANtype = 134217728 //2^27
-// }
-// SCANSAT_SENSOR
-// {
-	// name = 
-	// SCANtype = 268435456 //2^28
-// }

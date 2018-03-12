@@ -191,13 +191,6 @@
 	MODULE
 	{
 		name = ModuleResourceScanner
-		ScannerType = 3
-		ResourceName = Rock
-		RequiresUnlock = false
-	}
-	MODULE
-	{
-		name = ModuleResourceScanner
 		ScannerType = 2
 		ResourceName = Water
 		RequiresUnlock = false
@@ -249,6 +242,13 @@
 		name = ModuleResourceScanner
 		ScannerType = 3
 		ResourceName = Propellium
+		RequiresUnlock = false
+	}
+	MODULE
+	{
+		name = ModuleResourceScanner
+		ScannerType = 3
+		ResourceName = Rock
 		RequiresUnlock = false
 	}
 	MODULE
