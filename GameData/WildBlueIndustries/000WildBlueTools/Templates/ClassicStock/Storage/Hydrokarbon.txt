@@ -1,6 +1,6 @@
 RESOURCE_DEFINITION
 {
-	name = Hydrokarbon // LqdMethane
+	name = Hydrokarbon
 	displayName = Hydrokarbon
 	abbreviation = HK
 	density = 0.00042561
@@ -17,7 +17,7 @@ RESOURCE_DEFINITION
 
 RESOURCE_DEFINITION
 {
-	name = RHK1 // Karbonite
+	name = RHK1
 	displayName = RHK-1
 	density = 0.0025
 	unitCost = 0.32
@@ -32,7 +32,6 @@ STORAGE_TEMPLATE
 {
 	name = Hydrokarbon
 	author = JadeOfMaar
-	shortName = Hydrokarbon
 	logoPanel = WildBlueIndustries/000WildBlueTools/Decals/Propellium
 	glowPanel = WildBlueIndustries/000WildBlueTools/Decals/PropelliumGlow
 	description = This kit stores Hydrokarbon, a very rare, very potent natural gas.
@@ -50,7 +49,6 @@ STORAGE_TEMPLATE
 {
 	name = RHK1
 	author = JadeOfMaar
-	shortName = Hydrokarbon
 	logoPanel = WildBlueIndustries/000WildBlueTools/Decals/LiquidFuel
 	glowPanel = WildBlueIndustries/000WildBlueTools/Decals/LiquidFuelGlow
 	description = This kit stores "Refined Hydrokarbon 1," distilled, liquefied hydrokarbon. It burns clean and enables superior rocketry.

@@ -25,8 +25,8 @@ STORAGE_TEMPLATE
 	RESOURCE
 	{
 		name = Zeonium
-		amount = 56000
-		maxAmount = 56000
+		amount = 5600
+		maxAmount = 5600
 	}
 
 }
