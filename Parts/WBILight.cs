@@ -32,19 +32,19 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public double ecRequired;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "red")]
         [UI_FloatRange(stepIncrement = 0.05f, maxValue = 1f, minValue = 0f)]
         public float red;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "green")]
         [UI_FloatRange(stepIncrement = 0.05f, maxValue = 1f, minValue = 0f)]
         public float green;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "blue")]
         [UI_FloatRange(stepIncrement = 0.05f, maxValue = 1f, minValue = 0f)]
         public float blue;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "level")]
         [UI_FloatRange(stepIncrement = 0.05f, maxValue = 1f, minValue = 0f)]
         public float level = -1f;
 

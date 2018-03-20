@@ -1,3 +1,4 @@
+//A.K.A. Liquid oxygen
 RESOURCE_DEFINITION
 {
 	name = Oxium

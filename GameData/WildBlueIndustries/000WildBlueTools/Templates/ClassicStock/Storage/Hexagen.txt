@@ -19,7 +19,7 @@ STORAGE_TEMPLATE
 	author = Angel-125
 	logoPanel = WildBlueIndustries/000WildBlueTools/Decals/Hexagen
 	glowPanel = WildBlueIndustries/000WildBlueTools/Decals/Hexagen
-	description = This kit stores Hexagen, an inert gas with high energy density. It is great for production of NuclearFuel and use as propellant in fusion engines.
+	description = This kit stores Hexagen, an inert liquid with high energy density. It is great for production of NuclearFuel and use as propellant in fusion engines.
 	templateTags = stowage
 
 	RESOURCE
