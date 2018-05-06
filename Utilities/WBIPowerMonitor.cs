@@ -32,15 +32,18 @@ namespace WildBlueIndustries
             base.OnStart(state);
 
             converter = this.part.FindModuleImplementing<ModuleResourceConverter>();
-            ResourceRatio[] outputs = converter.outputList.ToArray();
-            ResourceRatio output;
-            for (int index = 0; index < outputs.Length; index++)
+            if (converter != null)
             {
-                output = outputs[index];
-                if (output.ResourceName == "ElectricCharge")
+                ResourceRatio[] outputs = converter.outputList.ToArray();
+                ResourceRatio output;
+                for (int index = 0; index < outputs.Length; index++)
                 {
-                    ecBaseOutput = output.Ratio;
-                    break;
+                    output = outputs[index];
+                    if (output.ResourceName == "ElectricCharge")
+                    {
+                        ecBaseOutput = output.Ratio;
+                        break;
+                    }
                 }
             }
         }
@@ -49,6 +52,8 @@ namespace WildBlueIndustries
         {
             base.OnUpdate();
 
+            if (converter == null)
+                return;
             if (!converter.IsActivated)
             {
                 powerOutputDisplay = "n/a";

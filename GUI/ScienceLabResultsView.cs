@@ -143,9 +143,18 @@ namespace WildBlueIndustries
             List<string> results = new List<string>();
             string situation = ScienceUtil.GetExperimentSituation(part.vessel).ToString();
             ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment(scienceLab.experimentID);
+            if (experiment == null)
+            {
+                resultsText = "You've done some basic research.";
+                return;
+            }
             string resultKey;
 
-            this.WindowTitle = experiment.experimentTitle + " from " + this.part.vessel.mainBody.name + "'s " + Utils.GetCurrentBiome(this.part.vessel).name;
+            string biomeName = "";
+            CBAttributeMapSO.MapAttribute biome = Utils.GetCurrentBiome(this.part.vessel);
+            if (biome != null)
+                biomeName = "'s " + biomeName;
+            this.WindowTitle = experiment.experimentTitle + " from " + this.part.vessel.mainBody.name + biomeName;
 
             foreach (string key in experiment.Results.Keys)
             {

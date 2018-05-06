@@ -22,6 +22,9 @@ namespace WildBlueIndustries
         protected ModuleGPS gps;
         protected List<PlanetaryResource> resourceList;
         protected GeoLabView geoLabView = new GeoLabView();
+        IEnumerable<ResourceCache.AbundanceSummary> abundanceCache;
+        string currentBiome = string.Empty;
+        Dictionary<string, float> abundanceSummary = new Dictionary<string, float>();
 
         public override void OnStart(StartState state)
         {
@@ -37,18 +40,57 @@ namespace WildBlueIndustries
             if (!geoLabView.IsVisible())
             {
                 if (HighLogic.LoadedSceneIsFlight)
-                {
-                    if (resourceList == null)
-                        resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
-                    else if (resourceList.Count == 0)
-                        resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
-                }
+                    rebuildAbundanceSummary();
 
                 geoLabView.gps = this.gps;
-                geoLabView.resourceList = this.resourceList;
+                geoLabView.abundanceSummary = this.abundanceSummary;
                 geoLabView.part = this.part;
             }
             geoLabView.SetVisible(!geoLabView.IsVisible());
+        }
+
+        protected void rebuildAbundanceSummary()
+        {
+            Log("rebuildAbundanceSummary called");
+            PartResourceDefinition resourceDef = null;
+            float abundance = 0f;
+
+            if (this.part.vessel.situation == Vessel.Situations.LANDED ||
+                this.part.vessel.situation == Vessel.Situations.SPLASHED ||
+                this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
+                currentBiome = Utils.GetCurrentBiome(this.part.vessel).name;
+
+            if (!ResourceMap.Instance.IsPlanetScanned(this.part.vessel.mainBody.flightGlobalsIndex) && !ResourceMap.Instance.IsBiomeUnlocked(this.part.vessel.mainBody.flightGlobalsIndex, currentBiome))
+            {
+                Log("Planet not scanned or biome still locked. Exiting");
+                return;
+            }
+            abundanceSummary.Clear();
+            abundanceCache = ResourceCache.Instance.AbundanceCache.
+                Where(a => a.HarvestType == HarvestTypes.Planetary && a.BodyId == this.part.vessel.mainBody.flightGlobalsIndex && a.BiomeName == currentBiome);
+
+            foreach (ResourceCache.AbundanceSummary summary in abundanceCache)
+            {
+                Log("Getting abundance for " + summary.ResourceName);
+                resourceDef = ResourceHelper.DefinitionForResource(summary.ResourceName);
+                if (resourceDef == null)
+                    continue;
+
+                abundance = ResourceMap.Instance.GetAbundance(new AbundanceRequest()
+                {
+                    Altitude = this.vessel.altitude,
+                    BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
+                    CheckForLock = true,
+                    Latitude = this.vessel.latitude,
+                    Longitude = this.vessel.longitude,
+                    ResourceType = HarvestTypes.Planetary,
+                    ResourceName = summary.ResourceName
+                });
+
+                abundanceSummary.Add(resourceDef.displayName, abundance);
+                Log("Added abundance for " + summary.ResourceName + ": " + abundance);
+            }
+            Log("Found abundances for " + abundanceSummary.Keys.Count + " resources");
         }
 
         protected virtual bool perfomBiomeAnalysys()
@@ -75,8 +117,8 @@ namespace WildBlueIndustries
 
             //Run the analysis
             biomeScanner.RunAnalysis();
-            resourceList = ResourceMap.Instance.GetResourceItemList(HarvestTypes.Planetary, this.part.vessel.mainBody);
-            geoLabView.resourceList = this.resourceList;
+            rebuildAbundanceSummary();
+            geoLabView.abundanceSummary = this.abundanceSummary;
             return true;
         }
 
@@ -125,7 +167,6 @@ namespace WildBlueIndustries
             }
 
             geoLabView.gps = this.gps;
-            geoLabView.resourceList = this.resourceList;
             geoLabView.part = this.part;
         }
 
@@ -145,6 +186,13 @@ namespace WildBlueIndustries
 
         public virtual void SetParentView(IParentView parentView)
         {
+            //We're using SetParentView as a kind of initializer...
+            if (HighLogic.LoadedSceneIsFlight)
+                rebuildAbundanceSummary();
+
+            geoLabView.gps = this.gps;
+            geoLabView.abundanceSummary = this.abundanceSummary;
+            geoLabView.part = this.part;
         }
 
         public virtual void SetContextGUIVisible(bool isVisible)
@@ -156,5 +204,14 @@ namespace WildBlueIndustries
         {
             return this.part.partInfo.title;
         }
+
+        protected void Log(string message)
+        {
+            if (WBIMainSettings.EnableDebugLogging == false)
+                return;
+
+            Debug.Log("[WBIGeoLab] - " + message);
+        }
+
     }
 }

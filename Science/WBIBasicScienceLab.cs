@@ -161,6 +161,11 @@ namespace WildBlueIndustries
                 status = kNeedsRepairs;
             }
 
+            else if (isMothballed)
+            {
+                StopResourceConverter();
+            }
+
             else
             {
                 status = "";

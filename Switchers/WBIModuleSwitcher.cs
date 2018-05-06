@@ -249,8 +249,20 @@ namespace WildBlueIndustries
                     module.OnActive();
 
                     //Load up the config
-                    loadModuleSettings(module, moduleNode, addedPartModules.Count - 1);
-                    module.Load(moduleNode);
+                    //If we don't have a WBIMODULE node then load from the template
+                    int settingsIndex = addedPartModules.Count - 1;
+                    if (settingsIndex > moduleSettings.Count - 1)
+                    {
+                        loadModuleSettings(module, moduleNode, settingsIndex);
+                        module.Load(moduleNode);
+                    }
+                    //Load from WBIMODULE
+                    else
+                    {
+                        ConfigNode nodeSettings = moduleSettings[settingsIndex];
+                        loadModuleSettings(module, nodeSettings, settingsIndex);
+                        module.Load(nodeSettings);
+                    }
 
                     //Start it up
                     if (HighLogic.LoadedSceneIsFlight)

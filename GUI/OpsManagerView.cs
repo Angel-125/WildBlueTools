@@ -32,6 +32,7 @@ namespace WildBlueIndustries
     {
         public SetActiveConverterCountDelegate setActiveConverterCount;
         public bool isBroken;
+        public bool isMothballed;
         public bool hasDecals;
         public int activeConverterCount;
         public Part part;
@@ -412,6 +413,13 @@ namespace WildBlueIndustries
             if (isBroken)
             {
                 GUILayout.Label("<color=yellow><b>" + BARISBridge.MsgBodyThis + this.part.partInfo.title + BARISBridge.MsgBodyBroken1 + qualityControl.GetRepairCost() + BARISBridge.MsgBodyBroken2 + "</b></color>");
+                GUILayout.EndVertical();
+                return;
+            }
+
+            else if (isMothballed)
+            {
+                GUILayout.Label("<color=yellow><b>" + BARISBridge.MsgBodyThis + this.part.partInfo.title + BARISBridge.MsgBodyMothballed + "</b></color>");
                 GUILayout.EndVertical();
                 return;
             }

@@ -14,7 +14,7 @@ namespace WildBlueIndustries
     {
         public Part part;
         public ModuleGPS gps;
-        public List<PlanetaryResource> resourceList;
+        public Dictionary<string, float> abundanceSummary = new Dictionary<string, float>();
         public PerformAnalysisDelegate performBiomAnalysisDelegate;
         public DrawViewDelegate drawView;
 
@@ -62,14 +62,16 @@ namespace WildBlueIndustries
         protected void drawAbundanceGUI(bool biomeUnlocked)
         {
             GUILayout.BeginVertical();
-            if (biomeUnlocked)
+            if (biomeUnlocked && abundanceSummary != null)
             {
-                if (resourceList.Count > 0)
+                int count = abundanceSummary.Keys.Count;
+                if (count > 0)
                 {
+                    string[] keys = abundanceSummary.Keys.ToArray();
                     scrollPosResources = GUILayout.BeginScrollView(scrollPosResources, new GUIStyle(GUI.skin.textArea));
-                    foreach (PlanetaryResource resource in resourceList)
+                    for (int index = 0; index < count; index++)
                     {
-                        GUILayout.Label("<color=white>" + resource.resourceName + " abundance: " + getAbundance(resource.resourceName) + "</color>");
+                        GUILayout.Label("<color=white>" + keys[index] + " abundance: " + getAbundance(abundanceSummary[keys[index]]) + "</color>");
                     }
                 }
                 else
@@ -91,26 +93,14 @@ namespace WildBlueIndustries
             GUILayout.EndVertical();
         }
 
-        protected string getAbundance(string resourceName)
+        protected string getAbundance(float abundance)
         {
-            AbundanceRequest request = new AbundanceRequest();
-            double lattitude = ResourceUtilities.Deg2Rad(this.part.vessel.latitude);
-            double longitude = ResourceUtilities.Deg2Rad(this.part.vessel.longitude);
+            float displayAbundance = abundance * 100.0f;
 
-            request.BiomeName = Utils.GetCurrentBiome(this.part.vessel).name;
-            request.BodyId = this.part.vessel.mainBody.flightGlobalsIndex;
-            request.Longitude = longitude;
-            request.Latitude = lattitude;
-            request.Altitude = this.part.vessel.altitude;
-            request.CheckForLock = true;
-            request.ResourceName = resourceName;
-
-            float abundance = ResourceMap.Instance.GetAbundance(request) * 100.0f;
-
-            if (abundance > 0.001)
-                return string.Format("{0:f2}%", abundance);
+            if (displayAbundance > 0.001)
+                return string.Format("{0:f2}%", displayAbundance);
             else
-                return "Unknown";
+                return "None present.";
         }
     }
 

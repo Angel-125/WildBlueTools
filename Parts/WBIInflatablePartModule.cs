@@ -127,6 +127,10 @@ namespace WildBlueIndustries
             try
             {
                 SetupAnimations();
+
+                //KIS inventories
+//                if (isInflatable && this.part.CrewCapacity == 0 && inflatedCrewCapacity > 0 && WBIKISWrapper.IsKISInstalled())
+//                    WBIKISAddonConfig.AddPodInventories(this.part, inflatedCrewCapacity);
             }
 
             catch (Exception ex)
@@ -168,8 +172,8 @@ namespace WildBlueIndustries
             SetupAnimations();
             setupColliders();
             //setupInventories();
-            if (isInflatable && isDeployed == false && HighLogic.LoadedSceneIsFlight)
-                this.part.DespawnIVA();
+//            if (isInflatable && isDeployed == false && HighLogic.LoadedSceneIsFlight)
+//                this.part.DespawnIVA();
 
             if (string.IsNullOrEmpty(animationName))
             {

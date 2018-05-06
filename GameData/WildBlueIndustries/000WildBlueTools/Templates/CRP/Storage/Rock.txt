@@ -10,7 +10,7 @@ RESOURCE_DEFINITION:NEEDS[!CommunityResourcePack]
 	isVisible = true
 	unitCost = 0.00001
 	color = 0.63, 0.5, 0.25
-	volume = 1
+	volume = 5
 }
 
 STORAGE_TEMPLATE:NEEDS[!CommunityResourcePack]

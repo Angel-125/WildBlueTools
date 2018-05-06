@@ -233,16 +233,24 @@ namespace WildBlueIndustries
             IEnumerable<ResourceCache.AbundanceSummary> abundanceCache;
 
             if (harvestType == HarvestTypes.Planetary)
+            {
+                if (!ResourceMap.Instance.IsPlanetScanned(this.part.vessel.mainBody.flightGlobalsIndex) && !ResourceMap.Instance.IsBiomeUnlocked(this.part.vessel.mainBody.flightGlobalsIndex, currentBiome))
+                    return;
                 abundanceCache = ResourceCache.Instance.AbundanceCache.
                     Where(a => a.HarvestType == harvestType && a.BodyId == this.part.vessel.mainBody.flightGlobalsIndex && a.BiomeName == currentBiome);
+            }
             else
+            {
                 abundanceCache = ResourceCache.Instance.AbundanceCache.
                     Where(a => a.HarvestType == harvestType && a.BodyId == this.part.vessel.mainBody.flightGlobalsIndex);
+            }
 
             foreach (ResourceCache.AbundanceSummary summary in abundanceCache)
             {
                 Log("checking " + summary.ResourceName);
                 outputDef = ResourceHelper.DefinitionForResource(summary.ResourceName);
+                if (outputDef == null)
+                    continue;
 
                 abundance = ResourceMap.Instance.GetAbundance(new AbundanceRequest() {
                     Altitude = this.vessel.altitude,

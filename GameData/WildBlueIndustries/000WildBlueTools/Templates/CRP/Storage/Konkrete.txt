@@ -1,3 +1,18 @@
+//Density based on an average of 2400kg/m3
+//https://en.wikipedia.org/wiki/Properties_of_concrete
+RESOURCE_DEFINITION
+{
+	name = Konkrete
+	displayName = Konkrete
+	density = 0.0024
+	unitCost = 1.5
+	flowMode = ALL_VESSEL 
+	transfer = PUMP
+	isTweakable = true
+	isVisible = true
+	volume = 1
+}
+
 STORAGE_TEMPLATE
 {
 	name = Konkrete

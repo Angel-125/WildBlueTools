@@ -1,3 +1,14 @@
+RESOURCE_DEFINITION
+{
+	name = ResearchKits
+	density = 0.000216
+	unitCost = 0.15
+	flowMode = STAGE_PRIORITY_FLOW
+	transfer = PUMP
+	isTweakable = true
+	volume = 1
+}
+
 STORAGE_TEMPLATE
 {
 	name = ResearchKits

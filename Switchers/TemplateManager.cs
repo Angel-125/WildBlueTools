@@ -247,7 +247,27 @@ namespace WildBlueIndustries
             return CanUseTemplate(templateNodes[index]);
         }
 
-        public int FindIndexOfTemplate(string templateName)
+        public bool TemplateTagsMatch(ConfigNode nodeTemplate)
+        {
+            if (string.IsNullOrEmpty(templateTags) == false)
+            {
+                if (nodeTemplate.HasValue("templateTags") == false)
+                    return false;
+
+                string value = nodeTemplate.GetValue("templateTags");
+                string[] tags = value.Split(new char[] { ';' });
+                foreach (string tag in tags)
+                {
+                    if (templateTags.Contains(tag))
+                        return true;
+                }
+                return false;
+            }
+
+            return true;
+        }
+
+        public int FindIndexOfTemplate(string templateName, string fieldName = "name")
         {
             int templateIndex = -1;
             int totalTemplates = -1;
@@ -262,7 +282,7 @@ namespace WildBlueIndustries
             //the GUI friendly nameOfTemplate
             for (templateIndex = 0; templateIndex < totalTemplates; templateIndex++)
             {
-                nameOfTemplate = this.templateNodes[templateIndex].GetValue("name");
+                nameOfTemplate = this.templateNodes[templateIndex].GetValue(fieldName);
                 if (!string.IsNullOrEmpty(nameOfTemplate))
                 {
                     if (nameOfTemplate == templateName)

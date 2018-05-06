@@ -18,6 +18,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
+    public delegate void GetReconfigureResourcesDelegate();
+
     public class WBIAffordableSwitcher : WBIModuleSwitcher
     {
         public const string kIgnoreMaterialModField = "ignoreMaterialModifier";
@@ -32,6 +34,9 @@ namespace WildBlueIndustries
 
         [KSPField]
         public float materialCostModifier = 1.0f;
+
+        //Events
+        public event GetReconfigureResourcesDelegate OnGetReconfigureResources;
 
         protected float recycleBase = 0.7f;
         protected float baseSkillModifier = 0.05f;
@@ -182,6 +187,36 @@ namespace WildBlueIndustries
                         inputList.Add(resourceName, amount);
                 }
             }
+
+            //Ask listeners to contribute their resource requirements
+            if (OnGetReconfigureResources != null)
+                OnGetReconfigureResources();
+        }
+
+        public virtual bool payForReconfigure(string resourceName, double resourceCost)
+        {
+            double amountPaid = this.part.RequestResource(resourceName, resourceCost);
+
+            if (amountPaid >= resourceCost)
+                Log("Paid " + resourceCost + " units of " + resourceName);
+            else
+                return false;
+
+            return true;
+        }
+
+        public virtual bool canAffordResource(string resourceName, double resourceCost)
+        {
+            PartResourceDefinition resourceDefiniton;
+            double currentAmount, maxAmount;
+
+            resourceDefiniton = ResourceHelper.DefinitionForResource(resourceName);
+            this.part.vessel.resourcePartSet.GetConnectedResourceTotals(resourceDefiniton.id, out currentAmount, out maxAmount, true);
+
+            if (currentAmount >= resourceCost)
+                return true;
+            else
+                return false;
         }
 
         protected override bool canAffordReconfigure(string templateName, bool deflatedModulesAutoPass = true)

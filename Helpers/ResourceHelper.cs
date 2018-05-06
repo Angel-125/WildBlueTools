@@ -80,7 +80,7 @@ namespace WildBlueIndustries
             }
         }
 
-        public static void AddResource(string resourceName, float amount, float maxAmount, Part part)
+        public static void AddResource(string resourceName, double amount, double maxAmount, Part part)
         {
             PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
 

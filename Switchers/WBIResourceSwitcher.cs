@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
+    public delegate void DeployStateChangedEvent(bool deployed);
     public delegate void ModuleRedecoratedEvent(ConfigNode templateNode);
     public delegate void ResourcesDumpedEvent();
 
@@ -65,9 +66,14 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public float capacityFactor = 0f;
 
+        //Resources added by an omni storage
+        [KSPField(isPersistant = true)]
+        public string omniStorageResources = string.Empty;
+
         //Events
         public event ModuleRedecoratedEvent onModuleRedecorated;
         public event ResourcesDumpedEvent onResourcesDumped;
+        public event DeployStateChangedEvent onDeployStateChanged;
 
         [KSPField(isPersistant = true)]
         public float partMass = 0f;
@@ -88,6 +94,7 @@ namespace WildBlueIndustries
         public string logoPanelTransforms = string.Empty;
 
         //Helper objects
+        public Dictionary<string, double> resourceMaxAmounts = new Dictionary<string, double>();
         protected string techRequiredToReconfigure;
         protected string capacityFactorTypes;
         protected bool confirmResourceSwitch = false;
@@ -96,7 +103,6 @@ namespace WildBlueIndustries
         protected int originalCrewCapacity;
         protected TemplateManager templateManager;
         protected Dictionary<string, ConfigNode> parameterOverrides = new Dictionary<string, ConfigNode>();
-        protected Dictionary<string, double> resourceMaxAmounts = new Dictionary<string, double>();
         protected List<PartResource> templateResources = new List<PartResource>();
         private bool _switchClickedOnce = false;
         protected Dictionary<string, double> keptResources = null;
@@ -639,6 +645,10 @@ namespace WildBlueIndustries
                     Utils.SetField("maxVolume", 1, inventory);
                 }
             }
+
+            //Fire event
+            if (onDeployStateChanged != null)
+                onDeployStateChanged(isDeployed);
         }
 
         public virtual bool HasResources()
@@ -819,6 +829,11 @@ namespace WildBlueIndustries
                 if (!string.IsNullOrEmpty(resourcesToKeep))
                 {
                     if (resourcesToKeep.Contains(res.resourceName))
+                        continue;
+                }
+                if (!string.IsNullOrEmpty(omniStorageResources))
+                {
+                    if (omniStorageResources.Contains(res.resourceName))
                         continue;
                 }
 

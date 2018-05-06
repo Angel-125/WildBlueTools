@@ -40,6 +40,9 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool isBroken;
 
+        [KSPField(isPersistant = true)]
+        public bool isMothballed;
+
         protected OpsManagerView opsManagerView = new OpsManagerView();
         protected BaseQualityControl qualityControl = null;
 
@@ -59,6 +62,7 @@ namespace WildBlueIndustries
         {
             qualityControl.onPartBroken -= OnPartBroken;
             qualityControl.onPartFixed -= OnPartFixed;
+            qualityControl.onMothballStateChanged -= onMothballStateChanged;
         }
 
         protected void setActiveConverterCount(int count)
@@ -97,6 +101,7 @@ namespace WildBlueIndustries
             qualityControl = this.part.FindModuleImplementing<BaseQualityControl>();
             qualityControl.onPartBroken += OnPartBroken;
             qualityControl.onPartFixed += OnPartFixed;
+            qualityControl.onMothballStateChanged += onMothballStateChanged;
         }
 
         public void OnPartFixed(BaseQualityControl moduleQualityControl)
@@ -113,6 +118,20 @@ namespace WildBlueIndustries
             List<ModuleResourceConverter> converters = this.part.FindModulesImplementing<ModuleResourceConverter>();
             foreach (ModuleResourceConverter converter in converters)
                 converter.StopResourceConverter();
+        }
+
+        public void onMothballStateChanged(bool isMothballed)
+        {
+            this.isMothballed = isMothballed;
+
+            opsManagerView.isMothballed = this.isMothballed;
+
+            if (isMothballed)
+            {
+                List<ModuleResourceConverter> converters = this.part.FindModulesImplementing<ModuleResourceConverter>();
+                foreach (ModuleResourceConverter converter in converters)
+                    converter.StopResourceConverter();
+            }
         }
         #endregion
 

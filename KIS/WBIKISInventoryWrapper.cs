@@ -20,45 +20,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
-    public class WBIKISWrapper
-    {
-        public static Assembly kisAssembly;
-
-        public static void Init()
-        {
-            if (kisAssembly == null)
-            {
-                //Get the assembly
-                foreach (AssemblyLoader.LoadedAssembly loadedAssembly in AssemblyLoader.loadedAssemblies)
-                {
-                    if (loadedAssembly.name == "KIS")
-                    {
-                        kisAssembly = loadedAssembly.assembly;
-                        break;
-                    }
-
-                }
-                if (kisAssembly == null)
-                    return;
-
-                //Now init classes
-                WBIKISInventoryWrapper.InitClass(kisAssembly);
-                WBIKISItem.InitClass(kisAssembly);
-                WBIKISIcon.InitClass(kisAssembly);
-            }
-        }
-
-        public static bool IsKISInstalled()
-        {
-            Init();
-
-            if (kisAssembly != null)
-                return true;
-            else
-                return false;
-        }
-    }
-
     public class WBIKISInventoryWrapper
     {
         static Type typeModuleKISInventory;
