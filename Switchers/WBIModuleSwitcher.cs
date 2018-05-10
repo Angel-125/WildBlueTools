@@ -250,14 +250,13 @@ namespace WildBlueIndustries
 
                     //Load up the config
                     //If we don't have a WBIMODULE node then load from the template
+                    //Load from the template first. This gives us our baseline.
                     int settingsIndex = addedPartModules.Count - 1;
-                    if (settingsIndex > moduleSettings.Count - 1)
-                    {
-                        loadModuleSettings(module, moduleNode, settingsIndex);
-                        module.Load(moduleNode);
-                    }
-                    //Load from WBIMODULE
-                    else
+//                    loadModuleSettings(module, moduleNode, settingsIndex);
+                    module.Load(moduleNode);
+
+                    //Now load from WBIMODULE. This covers persistent data.
+                    if (settingsIndex <= moduleSettings.Count - 1)
                     {
                         ConfigNode nodeSettings = moduleSettings[settingsIndex];
                         loadModuleSettings(module, nodeSettings, settingsIndex);
