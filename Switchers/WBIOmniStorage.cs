@@ -191,6 +191,8 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+
+            //Setup the delete icon
             if (deleteIcon == null)
                 deleteIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/Pathfinder/Icons/TrashCan", false);
 
@@ -235,11 +237,8 @@ namespace WildBlueIndustries
             //Setup default resources if needed
             if (resourceAmounts.Count == 0 && !isEmpty)
                 setupDefaultResources();
-            else if (HighLogic.LoadedSceneIsEditor)
-            {
+            else
                 clearDefaultResources();
-                reconfigureStorage();
-            }
         }
         #endregion
 
@@ -610,7 +609,7 @@ namespace WildBlueIndustries
                 if (node.HasValue("name"))
                 {
                     resourceName = nodes[index].GetValue("name");
-                    if (this.part.Resources.Contains(resourceName))
+                    if (this.part.Resources.Contains(resourceName) && !resourceAmounts.ContainsKey(resourceName))
                         this.part.Resources.Remove(resourceName);
                 }
             }

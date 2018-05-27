@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Reflection;
+using UnityEngine;
+using KSP.IO;
 
 /*
 Source code copyright 2018, by Michael Billard (Angel-125)
@@ -258,6 +259,7 @@ namespace WildBlueIndustries
                     //Now load from WBIMODULE. This covers persistent data.
                     if (settingsIndex <= moduleSettings.Count - 1)
                     {
+                        Debug.Log("loading from WBIModule...");
                         ConfigNode nodeSettings = moduleSettings[settingsIndex];
                         loadModuleSettings(module, nodeSettings, settingsIndex);
                         module.Load(nodeSettings);

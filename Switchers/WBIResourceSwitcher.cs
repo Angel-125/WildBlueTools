@@ -32,7 +32,7 @@ namespace WildBlueIndustries
         public float currentVolume;
 
         //Name of the template nodes.
-        [KSPField(isPersistant = true)]
+        [KSPField()]
         public string templateNodes = string.Empty;
 
         //Name of the template types allowed
@@ -1344,9 +1344,9 @@ namespace WildBlueIndustries
         #region IPartMassModifier
         public virtual float CalculatePartMass(float defaultMass, float currentPartMass)
         {
-            if (partMass > 0.001f && isInflatable == false)
-                return partMass;
-            else if (partMass > 0.001f && isInflatable && isDeployed)
+            if (isInflatable && !isDeployed)
+                return 0;
+            if (partMass > 0.001f)
                 return partMass;
             else
                 return 0;

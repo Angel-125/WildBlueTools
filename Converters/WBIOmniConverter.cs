@@ -99,11 +99,9 @@ namespace WildBlueIndustries
         #region Resource Conversion
         protected void setupTemplateManager()
         {
-            if (templateManager != null)
-                return;
-
             //Create the templateManager
-            templateManager = new TemplateManager(this.part, this.vessel, new LogDelegate(Log), templateNodes, templateTags);
+            if (templateManager == null)
+                templateManager = new TemplateManager(this.part, this.vessel, new LogDelegate(Log), templateNodes, templateTags);
 
             //Get the current template
             if (string.IsNullOrEmpty(currentTemplateName))

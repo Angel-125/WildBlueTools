@@ -104,10 +104,17 @@ namespace WildBlueIndustries
             //If the experiment has been completed then stop the experiment from running.
             if (isCompleted)
             {
+                StopExperiment();
                 isRunning = false;
                 Events["StopExperiment"].active = false;
                 Events["ReviewDataEvent"].active = true;
                 Events["TransferDataEvent"].active = true;
+                status = "Completed";
+                if (autoRestartExperiment)
+                {
+                    ResetExperiment();
+                    StartExperiment();
+                }
                 return;
             }
 
@@ -163,6 +170,7 @@ namespace WildBlueIndustries
 
             //Setup experiment GUI
             Fields["status"].guiActive = true;
+            Fields["autoRestartExperiment"].guiActive = true;
             Events["ReviewDataEvent"].active = isCompleted;
             Events["TransferDataEvent"].active = isCompleted;
             if (isRunning)
