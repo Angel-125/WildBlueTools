@@ -69,8 +69,9 @@ namespace ContractsPlus.Contracts
             //Find destination candidates
             if (destinationCandidates.Count == 0)
                 getDestinationCandidates();
-            if (destinationCandidates.Count == 0) 
+            if (destinationCandidates.Count == 0)
                 return false;
+            Log("Found " + destinationCandidates.Count + " destinationCandidates.");
 
             //Determine which candidate to use
             int candidateID = UnityEngine.Random.Range(0, destinationCandidates.Count);
@@ -220,6 +221,8 @@ namespace ContractsPlus.Contracts
 
         protected override void OnLoad(ConfigNode node)
         {
+            if (!node.HasValue("contractID"))
+                return;
             contractID = node.GetValue("contractID");
             if (int.TryParse("versionNumber", out versionNumber) == false)
                 versionNumber = CurrentContractVersion;
@@ -386,30 +389,48 @@ namespace ContractsPlus.Contracts
             destinationCandidates.Clear();
 
             //Loaded vessels
-            int vesselCount = FlightGlobals.VesselsLoaded.Count;
             Vessel vessel;
-            for (int index = 0; index < vesselCount; index++)
+            int vesselCount = FlightGlobals.VesselsLoaded.Count;
+            if (vesselCount > 0)
             {
-                vessel = FlightGlobals.VesselsLoaded[index];
-                if (vessel.vesselType == VesselType.Debris || vessel.vesselType == VesselType.Flag || vessel.vesselType == VesselType.SpaceObject || vessel.vesselType == VesselType.Unknown)
-                    continue;
-                if (vessel.mainBody.isHomeWorld && prestige != ContractPrestige.Trivial)
-                    continue;
-                if (vessel.GetCrewCapacity() >= MaxTourists)
-                    destinationCandidates.Add(vessel);
+                Log("There are " + vesselCount + " loaded vessels.");
+                for (int index = 0; index < vesselCount; index++)
+                {
+                    vessel = FlightGlobals.VesselsLoaded[index];
+                    if (vessel.vesselType == VesselType.Debris || vessel.vesselType == VesselType.Flag || vessel.vesselType == VesselType.SpaceObject || vessel.vesselType == VesselType.Unknown || vessel.vesselType == VesselType.EVA)
+                    {
+                        Log("Skipping vessel " + vessel.vesselName + " of type " + vessel.vesselType);
+                        continue;
+                    }
+                    if (vessel.mainBody.isHomeWorld && prestige != ContractPrestige.Trivial)
+                    {
+                        continue;
+                    }
+                    if (vessel.GetCrewCapacity() >= MaxTourists)
+                        destinationCandidates.Add(vessel);
+                }
             }
 
             //Unloaded vessels
             vesselCount = FlightGlobals.VesselsUnloaded.Count;
-            for (int index = 0; index < vesselCount; index++)
+            if (vesselCount > 0)
             {
-                vessel = FlightGlobals.VesselsUnloaded[index];
-                if (vessel.vesselType == VesselType.Debris || vessel.vesselType == VesselType.Flag || vessel.vesselType == VesselType.SpaceObject || vessel.vesselType == VesselType.Unknown)
-                    continue;
-                if (vessel.mainBody.isHomeWorld && prestige != ContractPrestige.Trivial)
-                    continue;
-                if (vessel.protoVessel.crewableParts >= 1)
-                    destinationCandidates.Add(vessel);
+                Log("There are " + vesselCount + " unloaded vessels.");
+                for (int index = 0; index < vesselCount; index++)
+                {
+                    vessel = FlightGlobals.VesselsUnloaded[index];
+                    if (vessel.vesselType == VesselType.Debris || vessel.vesselType == VesselType.Flag || vessel.vesselType == VesselType.SpaceObject || vessel.vesselType == VesselType.Unknown || vessel.vesselType == VesselType.EVA)
+                    {
+                        Log("Skipping vessel " + vessel.vesselName + " of type " + vessel.vesselType);
+                        continue;
+                    }
+                    if (vessel.mainBody.isHomeWorld && prestige != ContractPrestige.Trivial)
+                    {
+                        continue;
+                    }
+                    if (vessel.protoVessel.crewableParts >= 1)
+                        destinationCandidates.Add(vessel);
+                }
             }
 
             //Did we find any?

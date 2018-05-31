@@ -106,6 +106,11 @@ namespace WildBlueIndustries
             }
             eventFired = true;
 
+            if (toolTipView == null)
+                toolTipView = new WBIToolTipView();
+            if (toolTipView.IsVisible())
+                return;
+
             if (toolTips.ContainsKey(part.name))
                 ShowToolTip(part.name);
         }
@@ -128,6 +133,7 @@ namespace WildBlueIndustries
         }
 
         string showToolTipName = string.Empty;
+        WBIToolTipView toolTipView = null;
         public void ShowToolTip(string toolTipName)
         {
             if (!showToolTips)
@@ -142,15 +148,14 @@ namespace WildBlueIndustries
             if (askToShowTips)
             {
                 askToShowTips = false;
-                WBIToolTipView firstTipView = new WBIToolTipView();
-                firstTipView.title = kAskToShowTipsTitle;
-                firstTipView.toolTip = kAskToShowTipsText;
-                firstTipView.okButtonText = WBIToolTipView.kYesText;
-                firstTipView.showCancelButton = true;
-                firstTipView.cancelButtonText = WBIToolTipView.kNoText;
-                firstTipView.okDelegate = OnOkPressed;
-                firstTipView.cancelDelegate = OnCancelPressed;
-                firstTipView.SetVisible(true);
+                toolTipView.title = kAskToShowTipsTitle;
+                toolTipView.toolTip = kAskToShowTipsText;
+                toolTipView.okButtonText = WBIToolTipView.kYesText;
+                toolTipView.showCancelButton = true;
+                toolTipView.cancelButtonText = WBIToolTipView.kNoText;
+                toolTipView.okDelegate = OnOkPressed;
+                toolTipView.cancelDelegate = OnCancelPressed;
+                toolTipView.SetVisible(true);
 
                 showToolTipName = toolTipName;
             }
@@ -158,7 +163,6 @@ namespace WildBlueIndustries
             //Just show the tool tip
             else
             {
-                WBIToolTipView toolTipView = new WBIToolTipView();
                 toolTipView.LoadConfig(toolTips[toolTipName]);
                 toolTipView.showCancelButton = false;
                 toolTipView.okButtonText = WBIToolTipView.kGotItText;

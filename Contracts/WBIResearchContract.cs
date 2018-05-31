@@ -126,6 +126,8 @@ namespace ContractsPlus.Contracts
 
         protected override void OnLoad(ConfigNode node)
         {
+            if (!node.HasValue("targetBody"))
+                return;
             int bodyID = int.Parse(node.GetValue("targetBody"));
             foreach (var body in FlightGlobals.Bodies)
             {
@@ -400,7 +402,6 @@ namespace ContractsPlus.Contracts
                 if (targetBody == null)
                 {
                     targetBody = Planetarium.fetch.Home;
-                    Debug.LogWarning("targetBody could not be computed, using homeworld");
                 }
 
                 experimentNode = getRandomExperiment();
