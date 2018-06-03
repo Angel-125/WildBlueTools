@@ -64,7 +64,8 @@ namespace WildBlueIndustries
         {
             WBIMainSettings.PayToReconfigure = playModesWindow.payToRemodel;
             WBIMainSettings.RequiresSkillCheck = playModesWindow.requireSkillCheck;
-            BARISBridge.Instance.UpdatePlayMode(playModesWindow.partsCanBreak, playModesWindow.repairsRequireResources);
+            if (BARISBridge.Instance != null)
+                BARISBridge.Instance.UpdatePlayMode(playModesWindow.partsCanBreak, playModesWindow.repairsRequireResources);
         }
     }
 

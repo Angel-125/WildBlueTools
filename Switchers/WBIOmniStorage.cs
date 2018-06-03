@@ -235,6 +235,7 @@ namespace WildBlueIndustries
             loadResourceCombos();
 
             //Setup default resources if needed
+            Debug.Log("[WBIOmniStorage] - OnStart called. resourceAmounts.Count: " + resourceAmounts.Count);
             if (resourceAmounts.Count == 0 && !isEmpty)
                 setupDefaultResources();
             else
