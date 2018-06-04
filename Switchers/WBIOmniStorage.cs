@@ -78,6 +78,12 @@ namespace WildBlueIndustries
         /// </summary>
         [KSPField]
         public string opsViewTitle = "Reconfigure Storage";
+
+        /// <summary>
+        /// Configuration of resources owned by the OmniStorage.
+        /// </summary>
+        [KSPField(isPersistant = true)]
+        public string omniResources = string.Empty;
         #endregion
 
         #region Housekeeping
@@ -155,42 +161,19 @@ namespace WildBlueIndustries
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);
-
-            ConfigNode[] resourceNodes = node.GetNodes("OMNIRESOURCE");
-            double value;
-            string resourceName;
-            for (int index = 0; index < resourceNodes.Length; index++)
-            {
-                resourceName = resourceNodes[index].GetValue("name");
-
-                double.TryParse(resourceNodes[index].GetValue("maxAmount"), out value);
-                resourceAmounts.Add(resourceName, value);
-                previewResources.Add(resourceName, value);
-
-                double.TryParse(resourceNodes[index].GetValue("ratio"), out value);
-                previewRatios.Add(resourceName, (float)value);
-            }
+            loadOmniResourceConfigs();
         }
 
         public override void OnSave(ConfigNode node)
         {
+            buildOmniResourceConfigs();
             base.OnSave(node);
-
-            ConfigNode resourceNode;
-            string[] keys = resourceAmounts.Keys.ToArray();
-            for (int index = 0; index < keys.Length; index++)
-            {
-                resourceNode = new ConfigNode("OMNIRESOURCE");
-                resourceNode.AddValue("name", keys[index]);
-                resourceNode.AddValue("maxAmount", resourceAmounts[keys[index]]);
-                resourceNode.AddValue("ratio", previewRatios[keys[index]]);
-                node.AddNode(resourceNode);
-            }
         }
 
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+            loadOmniResourceConfigs();
 
             //Setup the delete icon
             if (deleteIcon == null)
@@ -463,6 +446,54 @@ namespace WildBlueIndustries
         #endregion
 
         #region Helpers
+        protected void loadOmniResourceConfigs()
+        {
+            if (!string.IsNullOrEmpty(omniResources))
+            {
+                resourceAmounts.Clear();
+                previewRatios.Clear();
+                previewResources.Clear();
+
+                double maxAmount;
+                float ratio;
+                string resourceName;
+                string[] resourceConfigs = omniResources.Split(new char[] { ';' });
+                string resourceConfig;
+                string[] resourceParams;
+                for (int index = 0; index < resourceConfigs.Length; index++)
+                {
+                    resourceConfig = resourceConfigs[index];
+                    resourceParams = resourceConfig.Split(new char[] { ',' });
+                    resourceName = resourceParams[0];
+                    double.TryParse(resourceParams[1], out maxAmount);
+                    float.TryParse(resourceParams[2], out ratio);
+                    resourceAmounts.Add(resourceName, maxAmount);
+                    previewResources.Add(resourceName, maxAmount);
+                    previewRatios.Add(resourceName, ratio);
+                }
+            }
+        }
+
+        protected void buildOmniResourceConfigs()
+        {
+//            Debug.Log("buildOmniResourceConfigs called. resource keys: " + resourceAmounts.Keys.Count);
+            if (resourceAmounts.Keys.Count == 0)
+                return;
+            string[] keys = resourceAmounts.Keys.ToArray();
+            StringBuilder resourceConfigs = new StringBuilder();
+            for (int index = 0; index < keys.Length; index++)
+            {
+                resourceConfigs.Append(keys[index]);
+                resourceConfigs.Append(",");
+                resourceConfigs.Append(resourceAmounts[keys[index]]);
+                resourceConfigs.Append(",");
+                resourceConfigs.Append(previewRatios[keys[index]]);
+                resourceConfigs.Append(";");
+            }
+            omniResources = resourceConfigs.ToString();
+            omniResources = omniResources.Substring(0, omniResources.Length - 1);
+        }
+
         protected void loadResourceCombos()
         {
             ConfigNode[] comboNodes = GameDatabase.Instance.GetConfigNodes("OMNIRESOURCECOMBO");
@@ -766,7 +797,8 @@ namespace WildBlueIndustries
                 previewResources[resourceName] = (litersPerResource * previewRatios[resourceName]) + litersDelta;
 
                 //Account for units per liter
-                previewResources[resourceName] = previewResources[resourceName] / definition.volume;
+                if (resourceName != kKISResource)
+                    previewResources[resourceName] = previewResources[resourceName] / definition.volume;
             }
 
             //Adjust units to account for resource combos.
@@ -891,14 +923,19 @@ namespace WildBlueIndustries
                     else
                         switcher.omniStorageResources += resourceName + ";";
 
-                    if ((switcher.isInflatable && switcher.isDeployed) || !switcher.isInflatable)
+                    if (this.part.Resources.Contains(resourceName))
+                        this.part.Resources[resourceName].maxAmount = resourceAmounts[resourceName];
+                    else if ((switcher.isInflatable && switcher.isDeployed) || !switcher.isInflatable)
                         ResourceHelper.AddResource(resourceName, currentAmount, resourceAmounts[resourceName], this.part);
                     else
                         ResourceHelper.AddResource(resourceName, 0, 1.0f, this.part);
                 }
                 else
                 {
-                    ResourceHelper.AddResource(resourceName, currentAmount, resourceAmounts[resourceName], this.part);
+                    if (this.part.Resources.Contains(resourceName))
+                        this.part.Resources[resourceName].maxAmount = resourceAmounts[resourceName];
+                    else
+                        ResourceHelper.AddResource(resourceName, currentAmount, resourceAmounts[resourceName], this.part);
                 }
             }
 
@@ -912,6 +949,9 @@ namespace WildBlueIndustries
                 else
                     inventory.maxVolume = 0.001f;
             }
+
+            //Build the sorage configuration
+            buildOmniResourceConfigs();
 
             //Dirty the GUI
             MonoUtilities.RefreshContextWindows(this.part);
