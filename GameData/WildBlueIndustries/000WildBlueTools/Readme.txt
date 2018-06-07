@@ -6,6 +6,9 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.55.6
+- Fixes issue where resources were consumed when trying to reconfigure a disassembled module.
+
 1.55.5
 - Fixes to OmniStorage.
 

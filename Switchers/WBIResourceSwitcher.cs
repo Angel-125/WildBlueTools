@@ -585,6 +585,7 @@ namespace WildBlueIndustries
                 Log("ToggleInflation: Not deflating module.");
                 return;
             }
+            
             base.ToggleInflation();
             deflateConfirmed = false;
 
@@ -1325,7 +1326,7 @@ namespace WildBlueIndustries
         {
         }
 
-        protected virtual bool payPartsCost(int templateIndex)
+        protected virtual bool payPartsCost(int templateIndex, bool deflatedModulesAutoPass = true)
         {
              return true;
         }
