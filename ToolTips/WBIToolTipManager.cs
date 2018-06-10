@@ -39,6 +39,7 @@ namespace WildBlueIndustries
         {
             base.OnAwake();
             GameEvents.onEditorPartEvent.Add(onEditorPartEvent);
+            toolTipView = new WBIToolTipView();
         }
 
         public void Destroy()
@@ -106,8 +107,6 @@ namespace WildBlueIndustries
             }
             eventFired = true;
 
-            if (toolTipView == null)
-                toolTipView = new WBIToolTipView();
             if (toolTipView.IsVisible())
                 return;
 

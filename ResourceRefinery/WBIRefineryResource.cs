@@ -97,6 +97,11 @@ namespace WildBlueIndustries
         public PartResourceDefinition resourceDef = null;
 
         /// <summary>
+        /// Sends the resource to the refinery instead of recovering and selling it.
+        /// </summary>
+        public bool sendToRefinery = false;
+
+        /// <summary>
         /// Current tier level. 0-based. -1 means no tiers have been unlocked.
         /// </summary>
         public int currentTier = -1;
@@ -222,6 +227,9 @@ namespace WildBlueIndustries
 
             if (node.HasValue("infiniteProduction"))
                 bool.TryParse(node.GetValue("infiniteProduction"), out isRunning);
+
+            if (node.HasValue("sendToRefinery"))
+                bool.TryParse(node.GetValue("sendToRefinery"), out sendToRefinery);
         }
 
         /// <summary>
@@ -244,6 +252,7 @@ namespace WildBlueIndustries
             node.AddValue("isRunning", isRunning);
             node.AddValue("unitsToProduce", unitsToProduce);
             node.AddValue("limitProduction", limitProduction);
+            node.AddValue("sendToRefinery", sendToRefinery);
 
             return node;
         }

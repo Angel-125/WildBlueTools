@@ -24,6 +24,9 @@ namespace WildBlueIndustries
         const float repLossDuration = 5.0f;
 
         [KSPField]
+        public string repLossEngineIDs;
+
+        [KSPField]
         public string repLossMessage = "Using this engine in the home world atmosphere or near other crewed vessels is making you unpopular!";
 
         [KSPField]
@@ -36,8 +39,7 @@ namespace WildBlueIndustries
         public float initialActivationRepFactor = 5.0f;
 
         bool showDebug = true;
-        MultiModeEngine multiModeEngine = null;
-        Dictionary<string, ModuleEnginesFX> engineMap = new Dictionary<string, ModuleEnginesFX>();
+        List<ModuleEnginesFX> engineList;
         bool playerInformed = false;
 
         void debugLog(string message)
@@ -52,19 +54,8 @@ namespace WildBlueIndustries
         {
             base.OnStart(state);
 
-            multiModeEngine = this.part.FindModuleImplementing<MultiModeEngine>();
-
             //Grab all the engines
-            List<ModuleEnginesFX> engineList = this.part.FindModulesImplementing<ModuleEnginesFX>();
-            foreach (ModuleEnginesFX engine in engineList)
-            {
-                if (!string.IsNullOrEmpty(engine.engineID))
-                {
-                    engineMap.Add(engine.engineID, engine);
-                }
-                debugLog("Added engine: " + engine.engineID);
-            }
-            debugLog("Engine count: " + engineMap.Values.Count);
+            engineList = this.part.FindModulesImplementing<ModuleEnginesFX>();
         }
 
         public void FixedUpdate()
@@ -73,26 +64,23 @@ namespace WildBlueIndustries
                 return;
             if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER)
                 return;
-            if (engineMap.Values.Count < 0)
+            if (engineList.Count == 0)
                 return;
             
             //Get current engine
             ModuleEnginesFX engine = null;
-            if (multiModeEngine == null)
+            ModuleEnginesFX checkEngine = null;
+            int count = engineList.Count;
+            for (int index = 0; index < count; index++)
             {
-                string[] keys = engineMap.Keys.ToArray();
-                engine = engineMap[keys[0]];
+                checkEngine = engineList[index];
+                if (checkEngine.EngineIgnited && checkEngine.isOperational && repLossEngineIDs.Contains(checkEngine.engineID))
+                {
+                    engine = engineList[index];
+                    break;
+                }
             }
-            else
-            {
-                if (multiModeEngine.runningPrimary)
-                    engine = engineMap[multiModeEngine.primaryEngineID];
-                else
-                    engine = engineMap[multiModeEngine.secondaryEngineID];
-            }
-
-            //Check for engine running
-            if (!engine.EngineIgnited || !engine.isOperational)
+            if (engine == null)
                 return;
 
             //Check for throttle. Applies after initial activation of the engine.

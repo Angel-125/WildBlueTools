@@ -22,6 +22,7 @@ namespace WildBlueIndustries
     {
         const string kKISResource = "KIS Inventory";
         const string kDefaultBlacklist = "GeoEnergy;ElectroPlasma;CoreHeat;Atmosphere;CompressedAtmosphere;LabTime;ExposureTime;ScopeTime;SolarReports;SimulatorTime;GravityWaves;IntakeLqd;IntakeAir;StaticCharge;EVA Propellant;Plants";
+        const string kDefaultRestrictedList = "Graviolium";
 
         #region Fields
         /// <summary>
@@ -68,10 +69,16 @@ namespace WildBlueIndustries
         public float requiredAmount;
 
         /// <summary>
-        /// List of resources that the container cannot contain.
+        /// List of resources that the container cannot contain. Separate resources by a semicolon.
         /// </summary>
         [KSPField]
         public string resourceBlacklist = kDefaultBlacklist;
+
+        /// <summary>
+        /// List of resources that cannot be set to the max amount in the editor. Seperate resources by a semicolon.
+        /// </summary>
+        [KSPField]
+        public string restrictedResourceList = kDefaultRestrictedList;
 
         /// <summary>
         /// Title of the GUI window.
@@ -223,6 +230,9 @@ namespace WildBlueIndustries
                 setupDefaultResources();
             else
                 clearDefaultResources();
+
+            //Add any resources that are restricted.
+            addRestrictedResources();
         }
         #endregion
 
@@ -336,6 +346,13 @@ namespace WildBlueIndustries
                 if (GUILayout.Button(deleteIcon, buttonOptions))
                     doomedResources.Add(resourceName);
                 GUILayout.EndHorizontal();
+
+                //Restricted resource warning
+                if (HighLogic.LoadedSceneIsEditor)
+                {
+                    if (restrictedResourceList.Contains(keys[index]))
+                        GUILayout.Label("<color=yellow>" + displayName + " cannot be added in the VAB/SPH, it will be added at launch.</color>");
+                }
 
                 //Slider to adjust max amount
                 float ratio = GUILayout.HorizontalSlider(previewRatios[resourceName], 0.01f, 1.0f);
@@ -476,7 +493,6 @@ namespace WildBlueIndustries
 
         protected void buildOmniResourceConfigs()
         {
-//            Debug.Log("buildOmniResourceConfigs called. resource keys: " + resourceAmounts.Keys.Count);
             if (resourceAmounts.Keys.Count == 0)
                 return;
             string[] keys = resourceAmounts.Keys.ToArray();
@@ -872,6 +888,39 @@ namespace WildBlueIndustries
             }
         }
 
+        protected void addRestrictedResources()
+        {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+
+            string[] keys = resourceAmounts.Keys.ToArray();
+            string resourceName;
+            for (int index = 0; index < keys.Length; index++)
+            {
+                resourceName = keys[index];
+                if (!restrictedResourceList.Contains(resourceName))
+                    continue;
+
+                if (switcher != null)
+                {
+                    if (this.part.Resources.Contains(resourceName))
+                        this.part.Resources[resourceName].maxAmount = resourceAmounts[resourceName];
+                    else if ((switcher.isInflatable && switcher.isDeployed) || !switcher.isInflatable)
+                        ResourceHelper.AddResource(resourceName, 0, resourceAmounts[resourceName], this.part);
+                    else
+                        ResourceHelper.AddResource(resourceName, 0, 1.0f, this.part);
+                }
+
+                else
+                {
+                    if (this.part.Resources.Contains(resourceName))
+                        this.part.Resources[resourceName].maxAmount = resourceAmounts[resourceName];
+                    else
+                        ResourceHelper.AddResource(resourceName, 0, resourceAmounts[resourceName], this.part);
+                }
+            }
+        }
+
         public void reconfigureStorage(bool reconfigureSymmetryParts = false)
         {
             if (reconfigureSymmetryParts)
@@ -905,6 +954,22 @@ namespace WildBlueIndustries
                 isEmpty = false;
                 resourceName = keys[index];
                 resourceAmounts.Add(resourceName, previewResources[resourceName]);
+
+                //If the resource is on the restricted list then it'll be added in flight.
+                if (restrictedResourceList.Contains(resourceName))
+                {
+                    if (switcher != null)
+                    {
+                        //Add to the list of omni storage resources
+                        if (string.IsNullOrEmpty(switcher.omniStorageResources))
+                            switcher.omniStorageResources = resourceName;
+                        else
+                            switcher.omniStorageResources += resourceName + ";";
+                    }
+                    continue;
+                }
+
+                //Set current amount.
                 if (HighLogic.LoadedSceneIsEditor)
                     currentAmount = resourceAmounts[resourceName];
                 else

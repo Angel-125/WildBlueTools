@@ -133,7 +133,9 @@ namespace WildBlueIndustries
 
                 //Flight: Show current/max amounts and controls to fill/drain the vessel's tanks.
                 else if (HighLogic.LoadedSceneIsFlight)
-                    drawFlightRefinery(refineryResource, resourceDef);
+                    drawFlightRefinery(ref refineryResource, resourceDef);
+
+                refinery.refineryResources[index] = refineryResource;
             }
 
             GUILayout.EndScrollView();
@@ -141,12 +143,15 @@ namespace WildBlueIndustries
             GUILayout.EndVertical();
         }
 
-        protected void drawFlightRefinery(WBIRefineryResource refineryResource, PartResourceDefinition resourceDef)
+        protected void drawFlightRefinery(ref WBIRefineryResource refineryResource, PartResourceDefinition resourceDef)
         {
             GUILayout.BeginVertical(guiStyles["blockBackground"]);
 
             //Resource name
             GUILayout.Label(string.Format(refineryResource.kResourceName, resourceDef.displayName), guiStyles["stdText"]);
+
+            //Send to refinery
+            refineryResource.sendToRefinery = GUILayout.Toggle(refineryResource.sendToRefinery, WBIRefinery.ksendToRefinery, guiStyles["toggleButton"]);
 
             //Current/Max amounts
             GUILayout.Label(string.Format(WBIRefinery.kStorage, refineryResource.amount, refineryResource.maxAmount), guiStyles["productionStat"], unitCostOptions);
@@ -227,6 +232,9 @@ namespace WildBlueIndustries
 
             //Production Tier
             GUILayout.Label(string.Format(refineryResource.kProductionLevel, refineryResource.currentTier + 1), guiStyles["stdText"]);
+
+            //Send to refinery
+            refineryResource.sendToRefinery = GUILayout.Toggle(refineryResource.sendToRefinery, WBIRefinery.ksendToRefinery, guiStyles["toggleButton"]);
 
             //Limited production run
             if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER && refineryResource.IsUnlocked)
