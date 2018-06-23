@@ -24,7 +24,7 @@ namespace WildBlueIndustries
         [KSPField]
         public bool fieldEVAConfigurable = true;
 
-        protected ConvertibleStorageView storageView = new ConvertibleStorageView();
+        protected ConvertibleStorageView storageView;
 
         [KSPEvent(guiActiveEditor = true, guiActive = true, guiActiveUnfocused = true, unfocusedRange = 5.0f, guiName = "Reconfigure Storage")]
         public virtual void ReconfigureStorage()
@@ -36,6 +36,7 @@ namespace WildBlueIndustries
 
         public override void OnStart(StartState state)
         {
+            storageView = new ConvertibleStorageView();
             base.OnStart(state);
             storageView.part = this.part;
             hideEditorButtons();

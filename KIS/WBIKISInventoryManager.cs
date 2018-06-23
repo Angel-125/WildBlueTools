@@ -22,7 +22,7 @@ namespace WildBlueIndustries
     public class WBIKISInventoryManager : PartModule, IOpsView
     {
         List<WBIKISInventoryWrapper> inventories = new List<WBIKISInventoryWrapper>();
-        WBIKISInventoryView inventoryView = new WBIKISInventoryView();
+        WBIKISInventoryView inventoryView;
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = true, guiName = "View Crew Inventories")]
         public void ToggleInventories()
@@ -50,6 +50,7 @@ namespace WildBlueIndustries
                     }
                 }
             }
+            inventoryView = new WBIKISInventoryView();
             inventoryView.inventories = this.inventories;
             inventoryView.part = this.part;
         }

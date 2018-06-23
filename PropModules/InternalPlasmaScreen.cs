@@ -36,7 +36,7 @@ namespace WildBlueIndustries
 
         public string imagePath;
 
-        protected PlasmaScreenView screenView = new PlasmaScreenView();
+        protected PlasmaScreenView screenView;
         protected WBIPropStateHelper propStateHelper;
         protected bool enableRandomImages;
         protected double cycleStartTime;
@@ -49,7 +49,7 @@ namespace WildBlueIndustries
         {
             if (HighLogic.LoadedSceneIsFlight == false)
                 return;
-
+            screenView = new PlasmaScreenView();
             getDefaultTexture();
 
             //Get the screen's render material

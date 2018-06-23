@@ -30,7 +30,7 @@ namespace WildBlueIndustries
 
         public WBIModuleScienceExperiment[] experimentSlots = null;
 
-        private ExpManifestAdminView manifestAdmin = new ExpManifestAdminView();
+        private ExpManifestAdminView manifestAdmin;
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Show Manifest")]
         public void ShowManifestGUI()
@@ -43,6 +43,7 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+            manifestAdmin = new ExpManifestAdminView();
             GetExperimentSlots();
             manifestAdmin.SetupView(this.part, false, false);
         }

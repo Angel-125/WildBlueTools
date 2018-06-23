@@ -29,7 +29,7 @@ namespace WildBlueIndustries
         [KSPField]
         public string decalPath = string.Empty;
 
-        protected InfoView infoView = new InfoView();
+        protected InfoView infoView;
 
         [KSPEvent(guiName = "Show Synopsis", guiActiveEditor = true, guiActive = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void ShowSynopsis()
@@ -69,7 +69,7 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-
+            infoView = new InfoView();
             setupGUI();
 
             if (HighLogic.LoadedSceneIsEditor)
