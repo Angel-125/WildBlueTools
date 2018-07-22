@@ -48,7 +48,7 @@ namespace WildBlueIndustries
         protected PartResourceDefinition byproductDef = null;
         protected string inputSources = string.Empty;
         protected string currentBiome = string.Empty;
-        protected InfoView infoView = new InfoView();
+        protected InfoView infoView;
         HarvestTypes[] harvestEnvironments;
 
         protected void Log(string message)
@@ -72,6 +72,7 @@ namespace WildBlueIndustries
 
         public override void OnStart(StartState state)
         {
+            infoView = new InfoView();
             Events["GetModuleInfo"].guiActive = guiVisible;
             Events["GetModuleInfo"].guiName = outputsGuiName;
 

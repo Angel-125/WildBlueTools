@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.EDITOR, GameScenes.FLIGHT, GameScenes.TRACKSTATION)]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.EDITOR)]
     public class WBIToolTipManager : ScenarioModule
     {
         public const string kToolTip = "PART_TIP";
@@ -34,6 +34,9 @@ namespace WildBlueIndustries
         private bool showToolTips = true;
         private bool askToShowTips = true;
         private List<string> tipsShown = new List<string>();
+        private Part attachedPart;
+        private string showToolTipName = string.Empty;
+        private WBIToolTipView toolTipView = null;
 
         public override void OnAwake()
         {
@@ -95,23 +98,39 @@ namespace WildBlueIndustries
             }
         }
 
-        static bool eventFired;
+        public void FixedUpdate()
+        {
+            //We use fixed update to show the tip window because the editor part event spams us with events
+            //and even if we set flags to stop processing, they act like they're never set. So when the event
+            //is triggered, we just record the part so that during fixed update, we can address the tool tip.
+            if (attachedPart == null)
+                return;
+            if (toolTipView.IsVisible())
+                return;
+
+            string toolTipName = attachedPart.name;
+            attachedPart = null;
+
+            ShowToolTip(toolTipName);
+        }
+
         public void onEditorPartEvent(ConstructionEventType eventType, Part part)
         {
             if (eventType != ConstructionEventType.PartAttached)
                 return;
-            if (eventFired)
-            {
-                eventFired = false;
-                return;
-            }
-            eventFired = true;
 
-            if (toolTipView.IsVisible())
+            //Check to see if the tool tip exists and has been shown
+            string toolTipName = part.name;
+            if (!showToolTips)
+                return;
+            if (ToolTipViewed(toolTipName))
+                return;
+            if (!toolTips.ContainsKey(toolTipName))
                 return;
 
+            //Because the event gets triggered a LOT, just record the part so we can display the tip later.
             if (toolTips.ContainsKey(part.name))
-                ShowToolTip(part.name);
+                attachedPart = part;
         }
 
         public bool ToolTipViewed(string toolTipName)
@@ -131,8 +150,6 @@ namespace WildBlueIndustries
                 tipsShown.Remove(toolTipName);
         }
 
-        string showToolTipName = string.Empty;
-        WBIToolTipView toolTipView = null;
         public void ShowToolTip(string toolTipName)
         {
             if (!showToolTips)

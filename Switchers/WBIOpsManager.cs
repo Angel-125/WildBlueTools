@@ -43,11 +43,12 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool isMothballed;
 
-        protected OpsManagerView opsManagerView = new OpsManagerView();
+        protected OpsManagerView opsManagerView;
         protected BaseQualityControl qualityControl = null;
 
         public override void OnStart(StartState state)
         {
+            opsManagerView = new OpsManagerView();
             if (logoPanelTransforms != null)
                 opsManagerView.hasDecals = true;
             opsManagerView.part = this.part;

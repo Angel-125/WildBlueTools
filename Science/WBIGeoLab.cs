@@ -21,7 +21,7 @@ namespace WildBlueIndustries
         protected ModuleBiomeScanner biomeScanner = null;
         protected ModuleGPS gps;
         protected List<PlanetaryResource> resourceList;
-        protected GeoLabView geoLabView = new GeoLabView();
+        protected GeoLabView geoLabView;
         IEnumerable<ResourceCache.AbundanceSummary> abundanceCache;
         string currentBiome = string.Empty;
         Dictionary<string, float> abundanceSummary = new Dictionary<string, float>();
@@ -31,6 +31,7 @@ namespace WildBlueIndustries
             base.OnStart(state);
 
             setupPartModules();
+            geoLabView = new GeoLabView();
             geoLabView.performBiomAnalysisDelegate = this.perfomBiomeAnalysys;
         }
 

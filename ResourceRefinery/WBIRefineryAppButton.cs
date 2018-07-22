@@ -27,10 +27,11 @@ namespace WildBlueIndustries
 
         static protected ApplicationLauncherButton appLauncherButton = null;
 
-        WBIRefineryView refineryView = new WBIRefineryView();
+        WBIRefineryView refineryView;
 
         public void Awake()
         {
+            refineryView = new WBIRefineryView();
             //TODO: Load a settings config to get the icon.
             appIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/Refinery", false);
             GameEvents.onGUIApplicationLauncherReady.Add(SetupGUI);
