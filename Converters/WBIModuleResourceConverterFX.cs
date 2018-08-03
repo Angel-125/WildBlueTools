@@ -34,6 +34,15 @@ namespace WildBlueIndustries
         Light[] lights;
         KSPParticleEmitter[] emitters;
 
+        public override void OnInactive()
+        {
+            base.OnInactive();
+            StopResourceConverter();
+            this.part.Effect(runningEffect, 0f);
+            this.part.Effect(stopEffect, 0f);
+            this.part.Effect(startEffect, 0f);
+        }
+
         public override void StartResourceConverter()
         {
             base.StartResourceConverter();

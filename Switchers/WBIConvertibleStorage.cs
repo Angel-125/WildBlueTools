@@ -24,7 +24,7 @@ namespace WildBlueIndustries
         [KSPField]
         public bool fieldEVAConfigurable = true;
 
-        protected ConvertibleStorageView storageView = new ConvertibleStorageView();
+        protected ConvertibleStorageView storageView;
 
         [KSPEvent(guiActiveEditor = true, guiActive = true, guiActiveUnfocused = true, unfocusedRange = 5.0f, guiName = "Reconfigure Storage")]
         public virtual void ReconfigureStorage()
@@ -36,8 +36,10 @@ namespace WildBlueIndustries
 
         public override void OnStart(StartState state)
         {
+            storageView = new ConvertibleStorageView();
             base.OnStart(state);
             storageView.part = this.part;
+            base.OnStart(state);
             hideEditorButtons();
             Events["ReconfigureStorage"].guiActiveUnfocused = fieldEVAConfigurable;
             Events["ReconfigureStorage"].guiActive = fieldReconfigurable;
@@ -91,6 +93,11 @@ namespace WildBlueIndustries
             storageView.previewTemplate = PreviewTemplate;
             storageView.setTemplate = SwitchTemplateType;
             storageView.setupView = SetupView;
+            Debug.Log("initModuleGUI() called");
+            if (this.templateManager == null)
+                Debug.Log("templateManager is null!");
+            else
+                Debug.Log("templateManager is not null at this point");
             storageView.templateManager = this.templateManager;
         }
 
@@ -348,6 +355,7 @@ namespace WildBlueIndustries
 
         public virtual void DrawOpsWindow(string buttonLabel)
         {
+            storageView.part = this.part;
             storageView.DrawView();
         }
         #endregion

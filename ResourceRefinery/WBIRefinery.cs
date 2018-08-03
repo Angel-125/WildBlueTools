@@ -46,6 +46,7 @@ namespace WildBlueIndustries
         public static string kLimitProduction = "Limit production";
         public static string kFillTanks = "Fill tanks";
         public static string kEmptyTanks = "Empty tanks";
+        public static string ksendToRefinery = "Send resource to the Refinery upon vessel recovery.";
         #endregion
 
         #region Housekeeping
@@ -220,23 +221,28 @@ namespace WildBlueIndustries
                         //Get the refinery resource
                         refineryResource = refineryResourceMap[resource.resourceName];
 
-                        //Scoop up the resources that we can hold
-                        if (resource.amount + refineryResource.amount <= refineryResource.maxAmount)
+                        //Send resource to the Refinery if we're allowed to.
+                        if (refineryResource.sendToRefinery)
                         {
-                            refineryResource.amount += resource.amount;
-                            resource.amount = 0f;
-                        }
+                            Debug.Log("[WBIRefinery] - Sending resource to refinery: " + refineryResource.resourceName);
+                            //Scoop up the resources that we can hold
+                            if (resource.amount + refineryResource.amount <= refineryResource.maxAmount)
+                            {
+                                refineryResource.amount += resource.amount;
+                                resource.amount = 0f;
+                            }
 
-                        //Take what we can up to the max. Leave the rest.
-                        else
-                        {
-                            amount = refineryResource.maxAmount - refineryResource.amount;
-                            refineryResource.amount = refineryResource.maxAmount;
-                            resource.amount -= amount;
-                        }
+                            //Take what we can up to the max. Leave the rest.
+                            else
+                            {
+                                amount = refineryResource.maxAmount - refineryResource.amount;
+                                refineryResource.amount = refineryResource.maxAmount;
+                                resource.amount -= amount;
+                            }
 
-                        //Update the map
-                        refineryResourceMap[resource.resourceName] = refineryResource;
+                            //Update the map
+                            refineryResourceMap[resource.resourceName] = refineryResource;
+                        }
                     }
                 }
             }

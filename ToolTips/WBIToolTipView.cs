@@ -65,6 +65,8 @@ namespace WildBlueIndustries
         {
             base.SetVisible(newValue);
 
+            scrollPos = Vector2.zero;
+
             if (!string.IsNullOrEmpty(title))
                 WindowTitle = title;
         }

@@ -120,6 +120,13 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool isRunning = true;
 
+        [KSPField()]
+        public bool clearResourcesAfterCompleted;
+
+        [KSPField(guiName = "Restart after completion")]
+        [UI_Toggle(enabledText = "Yes", disabledText = "No")]
+        public bool autoRestartExperiment;
+
         public event ExperimentTransferedEvent onExperimentTransfered;
         public event TransferReceivedEvent onExperimentReceived;
 
@@ -155,6 +162,14 @@ namespace WildBlueIndustries
 
             //Required resources
             rebuildResourceMap();
+
+            //Clear resources if needed
+            if (clearResourcesAfterCompleted && isCompleted)
+            {
+                PartResource[] resources = this.part.Resources.ToArray();
+                for (int resourceIndex = 0; resourceIndex < resources.Length; resourceIndex++)
+                    resources[resourceIndex].amount = 0f;
+            }
         }
 
         public override void OnUpdate()
@@ -252,9 +267,10 @@ namespace WildBlueIndustries
             Actions["DeployAction"].active = false;
 
             //Our events and actions
+            Fields["autoRestartExperiment"].guiActive = false;
         }
 
-        public bool CheckCompletion()
+        public virtual bool CheckCompletion()
         {
             float resultRoll = 100f;
             int totalCount;
@@ -482,6 +498,13 @@ namespace WildBlueIndustries
                 status = "Completed";
             runCompletionHandler(experimentID, chanceOfSuccess, resultRoll);
             sendResultsMessage();
+
+            if (clearResourcesAfterCompleted)
+            {
+                PartResource[] resources = this.part.Resources.ToArray();
+                for (int resourceIndex = 0; resourceIndex < resources.Length; resourceIndex++)
+                    resources[resourceIndex].amount = 0f;
+            }
             if (Deployed == false)
                 DeployExperiment();
             return true;

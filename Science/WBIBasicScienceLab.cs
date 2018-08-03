@@ -80,7 +80,7 @@ namespace WildBlueIndustries
         protected bool failedLastAttempt;
         protected float successBonus;
         protected float dataAmount;
-        protected TransmitHelper transmitHelper = new TransmitHelper();
+        protected TransmitHelper transmitHelper;
         protected ScienceLabResultsView scienceLabView = new ScienceLabResultsView("Science Lab");
 
         #region Actions And Events
@@ -143,6 +143,7 @@ namespace WildBlueIndustries
                 return;
 
             //Setup
+            transmitHelper = new TransmitHelper();
             transmitHelper.part = this.part;
             transmitHelper.transmitCompleteDelegate = TransmitComplete;
             scienceLabView.part = this.part;

@@ -45,7 +45,7 @@ namespace WildBlueIndustries
         protected string biomeName;
         protected int planetID = -1;
         protected HarvestTypes harvestID;
-        protected InfoView infoView = new InfoView();
+        protected InfoView infoView;
         protected WBIModuleSwitcher moduleSwitcher = null;
         protected float originalCriticalSuccess;
 
@@ -84,6 +84,7 @@ namespace WildBlueIndustries
             base.OnStart(state);
             if (HighLogic.LoadedSceneIsFlight == false)
                 return;
+            infoView = new InfoView();
             CBAttributeMapSO.MapAttribute biome = Utils.GetCurrentBiome(this.part.vessel);
             biomeName = biome.name;
 

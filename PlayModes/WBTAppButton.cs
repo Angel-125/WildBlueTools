@@ -27,10 +27,11 @@ namespace WildBlueIndustries
     {
         static protected Texture2D appIcon = null;
         static protected ApplicationLauncherButton appLauncherButton = null;
-        public static PlayModesWindow playModesWindow = new PlayModesWindow();
+        public static PlayModesWindow playModesWindow;
 
         public void Awake()
         {
+            playModesWindow = new PlayModesWindow();
             appIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/WildBlueLogo", false);
             GameEvents.onGUIApplicationLauncherReady.Add(SetupGUI);
             playModesWindow.changePlayModeDelegate = changePlayMode;
@@ -64,7 +65,8 @@ namespace WildBlueIndustries
         {
             WBIMainSettings.PayToReconfigure = playModesWindow.payToRemodel;
             WBIMainSettings.RequiresSkillCheck = playModesWindow.requireSkillCheck;
-            BARISBridge.Instance.UpdatePlayMode(playModesWindow.partsCanBreak, playModesWindow.repairsRequireResources);
+            if (BARISBridge.Instance != null)
+                BARISBridge.Instance.UpdatePlayMode(playModesWindow.partsCanBreak, playModesWindow.repairsRequireResources);
         }
     }
 

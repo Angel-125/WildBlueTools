@@ -87,7 +87,7 @@ namespace WildBlueIndustries
                     //Pay the reconfigure cost
                     //reconfigureCost = adjustedPartCost;
                     canDeploy = true;
-                    payPartsCost(CurrentTemplateIndex);
+                    payPartsCost(CurrentTemplateIndex, false);
 
                     // Toggle after payment.
                     base.ToggleInflation();

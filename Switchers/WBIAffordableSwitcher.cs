@@ -106,7 +106,7 @@ namespace WildBlueIndustries
             this.part.RequestResource(resourceName, -recycleAmount, ResourceFlowMode.ALL_VESSEL);
         }
 
-        protected override bool payPartsCost(int templateIndex)
+        protected override bool payPartsCost(int templateIndex, bool deflatedModulesAutoPass = true)
         {
             if (HighLogic.LoadedSceneIsFlight == false)
                 return true;
@@ -117,6 +117,8 @@ namespace WildBlueIndustries
                 Log("No resources to pay");
                 return true;
             }
+            if (isInflatable && !isDeployed && deflatedModulesAutoPass)
+                return true;
 
             //Double check that we have enough resources
             string[] keys = inputList.Keys.ToArray();
@@ -205,10 +207,12 @@ namespace WildBlueIndustries
             return true;
         }
 
-        public virtual bool canAffordResource(string resourceName, double resourceCost)
+        public virtual bool canAffordResource(string resourceName, double resourceCost, bool deflatedModulesAutoPass = true)
         {
             PartResourceDefinition resourceDefiniton;
             double currentAmount, maxAmount;
+            if (isInflatable && !isDeployed && deflatedModulesAutoPass)
+                return true;
 
             resourceDefiniton = ResourceHelper.DefinitionForResource(resourceName);
             this.part.vessel.resourcePartSet.GetConnectedResourceTotals(resourceDefiniton.id, out currentAmount, out maxAmount, true);
@@ -224,6 +228,8 @@ namespace WildBlueIndustries
             if (HighLogic.LoadedSceneIsFlight == false)
                 return true;
             if (!WBIMainSettings.PayToReconfigure)
+                return true;
+            if (isInflatable && !isDeployed && deflatedModulesAutoPass)
                 return true;
 
             //Build the input list

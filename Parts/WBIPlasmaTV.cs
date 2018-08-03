@@ -30,7 +30,7 @@ namespace WildBlueIndustries
         [KSPField]
         public string aspectRatio;
 
-        protected PlasmaScreenView screenView = new PlasmaScreenView();
+        protected PlasmaScreenView screenView;
 
         [KSPEvent(guiName = "Toggle GUI", guiActive = true, guiActiveEditor = true, guiActiveUnfocused = true, unfocusedRange = 5.0f)]
         public void ToggleGUI()
@@ -45,6 +45,7 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+            screenView = new PlasmaScreenView();
 
             screenView.part = this.part;
             screenView.showImageDelegate = ShowImage;
