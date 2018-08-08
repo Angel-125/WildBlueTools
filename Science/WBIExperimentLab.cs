@@ -72,7 +72,7 @@ namespace WildBlueIndustries
         public Dictionary<string, double> currentAmounts = new Dictionary<string, double>();
 
         private WBIResourceSwitcher switcher = null;
-        private ExpManifestAdminView manifestAdmin = new ExpManifestAdminView();
+        private ExpManifestAdminView manifestAdmin;
         private double elapsedDistributionTime;
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Show Manifest")]
@@ -127,6 +127,7 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+            manifestAdmin = new ExpManifestAdminView();
             GetExperimentSlots();
             switcher = this.part.FindModuleImplementing<WBIResourceSwitcher>();
             manifestAdmin.SetupView(this.part, !HighLogic.LoadedSceneIsEditor, !HighLogic.LoadedSceneIsEditor, this);

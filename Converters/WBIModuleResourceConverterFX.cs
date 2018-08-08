@@ -34,6 +34,20 @@ namespace WildBlueIndustries
         Light[] lights;
         KSPParticleEmitter[] emitters;
 
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+
+            if (!IsActivated)
+            {
+                this.part.Effect(runningEffect, 0f);
+                this.part.Effect(stopEffect, 0f);
+                this.part.Effect(startEffect, 0f);
+            }
+        }
+
         public override void OnInactive()
         {
             base.OnInactive();

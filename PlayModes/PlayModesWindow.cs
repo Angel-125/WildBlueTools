@@ -66,6 +66,9 @@ namespace WildBlueIndustries
                 //Get the current play mode.
                 selectedIndex = playModeHelper.GetCurrentModeIndex();
                 currentIndex = selectedIndex;
+
+                //Get current mode
+                currentPlayMode = playModeNames[currentIndex];
             }
         }
 
@@ -78,6 +81,8 @@ namespace WildBlueIndustries
             GUILayout.BeginHorizontal();
 
             GUILayout.BeginVertical();
+
+            GUILayout.Label("<color=lightblue><b>Current Mode: " + currentPlayMode + "</b></color>");
 
             _scrollPos = GUILayout.BeginScrollView(_scrollPos, new GUILayoutOption[] { GUILayout.Width(375) });
             selectedIndex = GUILayout.SelectionGrid(selectedIndex, playModeNames, 1);

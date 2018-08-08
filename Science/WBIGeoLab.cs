@@ -29,9 +29,9 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+            geoLabView = new GeoLabView();
 
             setupPartModules();
-            geoLabView = new GeoLabView();
             geoLabView.performBiomAnalysisDelegate = this.perfomBiomeAnalysys;
         }
 
