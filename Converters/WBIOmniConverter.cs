@@ -111,6 +111,14 @@ namespace WildBlueIndustries
             this.Events["ToggleOpsView"].guiName = "Setup " + managedName;
             this.Events["ToggleOpsView"].active = showOpsView;
         }
+
+        public override void OnSave(ConfigNode node)
+        {
+            base.OnSave(node);
+
+            if (node.HasValue("currentTemplateName"))
+                node.SetValue("currentTemplateName", currentTemplateName);
+        }
         #endregion
 
         #region Resource Conversion

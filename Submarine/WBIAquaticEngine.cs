@@ -21,10 +21,46 @@ namespace WildBlueIndustries
 {
     public delegate bool RequirementsDelegate(WBIAquaticEngine aquaticEngine);
 
+    /// <summary>
+    /// This class is an engine that only runs underwater. It needs no resource intake; if underwater then it'll auto-replenish the part's resource reserves.
+    /// </summary>
     public class WBIAquaticEngine: ModuleEnginesFX
     {
+        /// <summary>
+        /// Flag to indicate whether or not the engine is in reverse-thrust mode.
+        /// </summary>
+        [KSPField(isPersistant = true)]
+        public bool isReverseThrust;
+
+        #region Housekeeping
         public RequirementsDelegate checkRequirements;
         public bool isUnderwater;
+        #endregion
+
+        #region Events
+        [KSPEvent(guiActive = true, guiName = "Reverse Thrust")]
+        public void ToggleReverseThrust()
+        {
+            isReverseThrust = !isReverseThrust;
+            reverseThrustTransform();
+            updateGUI();
+        }
+
+        [KSPAction("Toggle forward/reverse thrust")]
+        public void ToggleReverseThrustAction(KSPActionParam param)
+        {
+            ToggleReverseThrust();
+        }
+        #endregion
+
+        #region Overrides
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            if (isReverseThrust)
+                reverseThrustTransform();
+            updateGUI();
+        }
 
         public override bool CheckDeprived(double requiredPropellant, out string propName)
         {
@@ -72,10 +108,16 @@ namespace WildBlueIndustries
             for (int index = 0; index < count; index++)
             {
                 partResource = this.part.Resources[index];
+
+                if (partResource.resourceName == "ElectricCharge")
+                    continue;
+
                 partResource.amount = partResource.maxAmount;
             }
         }
+        #endregion
 
+        #region Helpers
         protected bool checkUnderwater()
         {
             if (!HighLogic.LoadedSceneIsFlight)
@@ -93,5 +135,22 @@ namespace WildBlueIndustries
             }
             return true;
         }
+
+        protected void updateGUI()
+        {
+            Events["ToggleReverseThrust"].guiName = isReverseThrust ? "Set Forward Thrust" : "Set Reverse Thrust";
+        }
+
+        protected void reverseThrustTransform()
+        {
+            int count = thrustTransforms.Count;
+            Transform transform;
+            for (int index = 0; index < count; index++)
+            {
+                transform = thrustTransforms[index];
+                transform.Rotate(0, 180.0f, 0);
+            }
+        }
+        #endregion
     }
 }

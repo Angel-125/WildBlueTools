@@ -152,6 +152,10 @@ namespace WildBlueIndustries
 
             //Now call the base class.
             base.OnSave(node);
+
+            //For some reason accumulatedResources isn't being updated properly when saved, so we'll do it explicitly.
+            if (node.HasValue("accumulatedResources"))
+                node.SetValue("accumulatedResources", accumulatedResources);
         }
 
         public override void OnStart(StartState state)

@@ -19,6 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
+    [KSPModule("Dive Computer")]
     public class WBIDiveComputer: PartModule
     {
         #region Constants
@@ -40,6 +41,12 @@ namespace WildBlueIndustries
         /// </summary>
         [KSPField(guiActive = true, guiName = "Dive State")]
         public string diveStateString = kDiveStateIdle;
+
+        /// <summary>
+        /// Display string for current state of the dive computer
+        /// </summary>
+        [KSPField(guiActive = true, guiName = "Hull Integrity", guiFormat = "f1", guiUnits = "%")]
+        public double hullIntegrity;
 
         /// <summary>
         /// Indicates whether or not to automatically keep the boat level.
@@ -84,6 +91,16 @@ namespace WildBlueIndustries
         /// </summary>
         [KSPField(isPersistant = true)]
         public BallastVentStates ventState;
+
+        /// <summary>
+        /// Override maximum pressure in kPA. Parts have a default of 4000kPA, which gives them a collapse death of 400m.
+        /// This override gives you a way to alter that collapse depth without modifying individual parts. If multiple
+        /// dive computers are found on the boat, then the highest max pressure will be used.
+        /// If there is a mismatch between the part's maxPressure and the dive computer's maxPressureOverride, then both
+        /// will be set to the highest value.
+        /// </summary>
+        [KSPField]
+        public double maxPressureOverride = 6000.0f;
         #endregion
 
         #region Housekeeping
@@ -203,8 +220,25 @@ namespace WildBlueIndustries
         #endregion
 
         #region Overrides
+        public override string GetInfo()
+        {
+            StringBuilder info = new StringBuilder();
+
+            info.AppendLine("Controls ballast tanks. Can maintain depth and level pitch. Improves hull integrity.");
+            info.AppendLine(" ");
+            info.AppendLine(string.Format("<b>Improved Max Pressure:</b> {0:f1} kPA", this.maxPressureOverride));
+
+            return info.ToString();
+        }
+
         public override void OnStart(StartState state)
         {
+            //Get max pressure
+            if (this.part.maxPressure > this.maxPressureOverride)
+                this.maxPressureOverride = this.part.maxPressure;
+            else if (this.maxPressureOverride > this.part.maxPressure)
+                this.part.maxPressure = maxPressureOverride;
+
             base.OnStart(state);
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
@@ -252,6 +286,16 @@ namespace WildBlueIndustries
 
             //Update keel depth
             depthBelowKeel = this.part.vessel.heightFromTerrain;
+
+            //Hull integrity
+            if (this.part.vessel.Splashed)
+            {
+                hullIntegrity = (this.part.staticPressureAtm * 100 / this.part.maxPressure) * 100.0f;
+            }
+            else
+            {
+                hullIntegrity = 100.0f;
+            }
         }
         #endregion
 
@@ -262,7 +306,16 @@ namespace WildBlueIndustries
             GUILayout.Label("<color=lightblue><b>" + this.part.partInfo.title + "</b></color>");
 
             GUILayout.Label("<color=white><b>Status: </b>" + diveStateString + "</color>");
-            GUILayout.Label(string.Format("<color=white><b>Depth to bottom: </b>{0:f1}m</color>", depthBelowKeel));
+            if (this.part.vessel.Splashed)
+            {
+                GUILayout.Label(string.Format("<color=white><b>Depth to bottom: </b>{0:f1}m</color>", depthBelowKeel));
+                GUILayout.Label(string.Format("<color=white><b>Hull Pressure: </b>{0:n1}/{1:n2} kPA</color>", this.part.staticPressureAtm * 100.0f, this.part.maxPressure));
+            }
+            else
+            {
+                GUILayout.Label("<color=white><b>Depth to bottom: </b>N/A</color>");
+                GUILayout.Label("<color=white><b>Hull Pressure: </b>N/A</color>");
+            }
 
             GUILayout.BeginHorizontal();
             //Dive
@@ -500,6 +553,7 @@ namespace WildBlueIndustries
             Fields["pitchAngle"].guiActive = guiVisible;
             Fields["maintainDepth"].guiActive = guiVisible;
             Fields["depthBelowKeel"].guiActive = guiVisible;
+            Fields["hullIntegrity"].guiActive = guiVisible;
 
             //Setup icons
             if (diveIcon != null)

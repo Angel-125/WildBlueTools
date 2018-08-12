@@ -33,6 +33,7 @@ namespace WildBlueIndustries
         VentingBallast
     }
 
+    [KSPModule("Ballast Tank")]
     public class WBIBallastTank: PartModule
     {
         #region Constants
@@ -237,6 +238,17 @@ namespace WildBlueIndustries
         #endregion
 
         #region Overrides
+        public override string GetInfo()
+        {
+            StringBuilder info = new StringBuilder();
+
+            info.AppendLine("Controls vessel buoyancy by flooding and venting intake liquids into and out of its tank.");
+            info.AppendLine(" ");
+            info.AppendLine("Can be setup as a forward or aft trim tank to help keep a boat level.");
+
+            return info.ToString();
+        }
+
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
