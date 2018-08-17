@@ -299,6 +299,8 @@ namespace WildBlueIndustries
                 this.part.Effect(ventBallastEffect, 0.0f);
                 return;
             }
+            if (this.part.ShieldedFromAirstream)
+                return;
 
             //Update our bouyancy
             if (resourceBallast != null)

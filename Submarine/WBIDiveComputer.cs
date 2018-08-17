@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using KSP.IO;
+using System.Reflection;
 
 /*
 Source code copyrighgt 2018, by Michael Billard (Angel-125)
@@ -106,16 +107,23 @@ namespace WildBlueIndustries
         #region Housekeeping
         public bool vesselIsManeuvering;
 
-        List<WBIBallastTank> ballastTanks;
-        int partCount;
-        double pitchTriggerUp = 91.5f;
-        double pitchTriggerDown = 88.5f;
-        FlightInputCallback inputCallback;
+        static Assembly kaAssembly;
+        static MethodInfo miAddCustomDrawController;
+        static MethodInfo miRemoveCustomDrawController;
 
         GUILayoutOption[] buttonOptions = new GUILayoutOption[] { GUILayout.Height(48), GUILayout.Width(48) };
         public static Texture diveIcon = null;
         public static Texture surfaceIcon = null;
         public static Texture emergencySurfaceIcon = null;
+
+        public bool wasMaintainingDepth;
+        public bool wasAutoTrimming;
+
+        List<WBIBallastTank> ballastTanks;
+        int partCount;
+        double pitchTriggerUp = 91.5f;
+        double pitchTriggerDown = 88.5f;
+        FlightInputCallback inputCallback;
         #endregion
 
         #region Events
@@ -139,6 +147,7 @@ namespace WildBlueIndustries
                 ballastTanks[index].SetVentState(ventState);
 
             updateGUI();
+            updateDiveComputers();
         }
 
         /// <summary>
@@ -171,6 +180,7 @@ namespace WildBlueIndustries
                 ballastTanks[index].SetVentState(ventState);
 
             updateGUI();
+            updateDiveComputers();
         }
 
         /// <summary>
@@ -200,6 +210,7 @@ namespace WildBlueIndustries
             }
 
             updateGUI();
+            updateDiveComputers();
         }
 
         /// <summary>
@@ -216,6 +227,19 @@ namespace WildBlueIndustries
             int count = ballastTanks.Count;
             for (int index = 0; index < count; index++)
                 ballastTanks[index].ventState = BallastVentStates.Closed;
+        }
+        #endregion
+
+        #region API
+        public void SetStandbyMode()
+        {
+            this.maintainDepth = false;
+            this.wasMaintainingDepth = false;
+            this.enableAutoTrim = false;
+            this.wasAutoTrimming = false;
+            this.ventState = BallastVentStates.Closed;
+
+            updateGUI();
         }
         #endregion
 
@@ -243,6 +267,13 @@ namespace WildBlueIndustries
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
+            //Init wrapper for Kerbal Actuators
+            initKAWrapper();
+            if (kaAssembly != null)
+            {
+                miAddCustomDrawController.Invoke(null, new object[] { this, "DrawControllerGUI" });
+            }
+
             //Get ballast tanks
             ballastTanks = this.part.vessel.FindPartModulesImplementing<WBIBallastTank>();
 
@@ -253,7 +284,19 @@ namespace WildBlueIndustries
             pitchTriggerDown = 90.0f - autoTrimAngleTrigger;
             pitchTriggerUp = 90 + autoTrimAngleTrigger;
 
+            //Previous states
+            wasAutoTrimming = enableAutoTrim;
+            wasMaintainingDepth = maintainDepth;
+
             setupGUI();
+        }
+
+        public void Destroy()
+        {
+            if (kaAssembly != null)
+            {
+                miRemoveCustomDrawController.Invoke(null, new object[] { this, "DrawControllerGUI" });
+            }
         }
 
         public void FixedUpdate()
@@ -300,7 +343,25 @@ namespace WildBlueIndustries
         #endregion
 
         #region Helpers
-        protected void DrawControllerGUI()
+        protected void updateDiveComputers()
+        {
+            WBIDiveComputer computer;
+            List<WBIDiveComputer> diveComputers = this.part.vessel.FindPartModulesImplementing<WBIDiveComputer>();
+            int count = diveComputers.Count;
+
+            //Set other dive computers to idle and turn off their ballast and trim control because this dive computer is now running the show.
+            for (int index = 0; index < count; index++)
+            {
+                computer = diveComputers[index];
+                if (computer == this)
+                    continue;
+
+                computer.SetStandbyMode();
+            }
+        }
+
+        [KSPEvent(guiActive = false, guiActiveUnfocused = false, guiActiveEditor = false)]
+        public void DrawControllerGUI()
         {
             GUILayout.BeginVertical();
             GUILayout.Label("<color=lightblue><b>" + this.part.partInfo.title + "</b></color>");
@@ -426,6 +487,12 @@ namespace WildBlueIndustries
 
         protected void updateDepthState()
         {
+            if (maintainDepth != wasMaintainingDepth)
+            {
+                wasMaintainingDepth = maintainDepth;
+                updateDiveComputers();
+                updateGUI();
+            }
             if (!maintainDepth)
                 return;
             if (vesselIsManeuvering)
@@ -469,6 +536,12 @@ namespace WildBlueIndustries
 
         protected void updateTrimState()
         {
+            if (enableAutoTrim != wasAutoTrimming)
+            {
+                wasAutoTrimming = enableAutoTrim;
+                updateDiveComputers();
+                updateGUI();
+            }
             if (!enableAutoTrim)
                 return;
             if (vesselIsManeuvering)
@@ -585,6 +658,29 @@ namespace WildBlueIndustries
                 case BallastVentStates.VentingBallast:
                     diveStateString = kDiveStateSurfacing;
                     break;
+            }
+        }
+
+        protected void initKAWrapper()
+        {
+            if (kaAssembly == null)
+            {
+                foreach (AssemblyLoader.LoadedAssembly loadedAssembly in AssemblyLoader.loadedAssemblies)
+                {
+                    if (loadedAssembly.name == "KerbalActuators")
+                    {
+                        kaAssembly = loadedAssembly.assembly;
+                        break;
+                    }
+                }
+
+                if (kaAssembly == null)
+                    return;
+
+                //Init methods
+                Type vtolMagagerType = kaAssembly.GetTypes().First(t => t.Name.Equals("WBIVTOLManager"));
+                miAddCustomDrawController = vtolMagagerType.GetMethods().First(t => t.Name.Equals("AddCustomDrawController"));
+                miRemoveCustomDrawController = vtolMagagerType.GetMethods().First(t => t.Name.Equals("RemoveCustomDrawController"));
             }
         }
         #endregion
