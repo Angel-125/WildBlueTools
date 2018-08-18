@@ -129,6 +129,46 @@ namespace WildBlueIndustries
             return biome;
         }
 
+        public static IEnumerable<ResourceCache.AbundanceSummary> GetAbundances(Vessel vessel, HarvestTypes harvestType)
+        {
+            string biomeName = Utils.GetCurrentBiome(vessel).name;
+            int flightGlobalsIndex = vessel.mainBody.flightGlobalsIndex;
+            IEnumerable<ResourceCache.AbundanceSummary> abundanceCache;
+
+            //First, try getting from the current biome.
+            abundanceCache = ResourceCache.Instance.AbundanceCache.
+                Where(a => a.HarvestType == harvestType && a.BodyId == flightGlobalsIndex && a.BiomeName == biomeName);
+
+            //No worky? Try using vessel situation.
+            if (abundanceCache.Count() == 0)
+            {
+                switch (harvestType)
+                {
+                    case HarvestTypes.Atmospheric:
+                        biomeName = "FLYING";
+                        break;
+
+                    case HarvestTypes.Oceanic:
+                        biomeName = "SPLASHED";
+                        break;
+
+                    case HarvestTypes.Exospheric:
+                        biomeName = "ORBITING";
+                        break;
+
+                    default:
+                        biomeName = "PLANETARY";
+                        break;
+                }
+
+                //Give it another shot.
+                abundanceCache = ResourceCache.Instance.AbundanceCache.
+                    Where(a => a.HarvestType == harvestType && a.BodyId == flightGlobalsIndex && a.BiomeName == biomeName);
+            }
+
+            return abundanceCache;
+        }
+
         public static bool HasResearchedNode(string techNode)
         {
             if (string.IsNullOrEmpty(techNode))

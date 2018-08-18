@@ -431,6 +431,9 @@ namespace WildBlueIndustries
             int totalCount;
             int activeConverters = 0;
 
+            if (converters.Count == 0)
+                UpdateConverters();
+
             _scrollPosConverters = GUILayout.BeginScrollView(_scrollPosConverters, new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
             if (converters.Count == 0)
             {

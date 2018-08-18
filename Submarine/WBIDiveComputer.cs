@@ -363,7 +363,9 @@ namespace WildBlueIndustries
         [KSPEvent(guiActive = false, guiActiveUnfocused = false, guiActiveEditor = false)]
         public void DrawControllerGUI()
         {
-            GUILayout.BeginVertical();
+            GUIStyle style = new GUIStyle(GUI.skin.textArea);
+
+            GUILayout.BeginVertical(style);
             GUILayout.Label("<color=lightblue><b>" + this.part.partInfo.title + "</b></color>");
 
             GUILayout.Label("<color=white><b>Status: </b>" + diveStateString + "</color>");
