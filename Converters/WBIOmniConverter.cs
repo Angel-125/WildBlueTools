@@ -49,6 +49,18 @@ namespace WildBlueIndustries
         public float BaseEfficiency = 1.0f;
         #endregion
 
+        /// <summary>
+        /// Title of the GUI window.
+        /// </summary>
+        [KSPField]
+        public string opsViewTitle = "Reconfigure Converter";
+
+        [KSPField]
+        public string opsButtonLabel = "Converters";
+
+        [KSPField]
+        public bool showOpsView = false;
+
         #region Housekeeping
         public ConfigNode currentTemplate;
         public ConfigNode viewedTemplate;
@@ -60,6 +72,7 @@ namespace WildBlueIndustries
         private string converterInfo;
         private bool confirmedReconfigure;
         private WBIAffordableSwitcher switcher;
+        private WBISingleOpsView opsView;
         #endregion
 
         #region Overrides
@@ -93,6 +106,18 @@ namespace WildBlueIndustries
             switcher = this.part.FindModuleImplementing<WBIAffordableSwitcher>();
             if (switcher != null)
                 switcher.OnGetReconfigureResources += GetRequiredResources;
+
+            //GUI button
+            this.Events["ToggleOpsView"].guiName = "Setup " + managedName;
+            this.Events["ToggleOpsView"].active = showOpsView;
+        }
+
+        public override void OnSave(ConfigNode node)
+        {
+            base.OnSave(node);
+
+            if (node.HasValue("currentTemplateName"))
+                node.SetValue("currentTemplateName", currentTemplateName);
         }
         #endregion
 
@@ -134,7 +159,7 @@ namespace WildBlueIndustries
             if (currentTemplate.HasValue("StartActionName"))
                 StartActionName = currentTemplate.GetValue("StartActionName");
             if (currentTemplate.HasValue("StopActionName"))
-                StartActionName = currentTemplate.GetValue("StopActionName");
+                StopActionName = currentTemplate.GetValue("StopActionName");
             if (currentTemplate.HasValue("ToggleActionName"))
                 ToggleActionName = currentTemplate.GetValue("ToggleActionName");
 
@@ -316,6 +341,20 @@ namespace WildBlueIndustries
         #endregion
 
         #region IOpsView
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Setup Converter")]
+        public void ToggleOpsView()
+        {
+            //Setup the ops view
+            if (opsView == null)
+            {
+                opsView = new WBISingleOpsView();
+                opsView.WindowTitle = opsViewTitle;
+                opsView.buttonLabel = opsButtonLabel;
+                opsView.opsView = this;
+            }
+            opsView.SetVisible(!opsView.IsVisible());
+        }
+
         public List<string> GetButtonLabels()
         {
             List<string> buttonLabels = new List<string>();

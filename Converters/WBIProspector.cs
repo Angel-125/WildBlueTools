@@ -237,13 +237,11 @@ namespace WildBlueIndustries
             {
                 if (!ResourceMap.Instance.IsPlanetScanned(this.part.vessel.mainBody.flightGlobalsIndex) && !ResourceMap.Instance.IsBiomeUnlocked(this.part.vessel.mainBody.flightGlobalsIndex, currentBiome))
                     return;
-                abundanceCache = ResourceCache.Instance.AbundanceCache.
-                    Where(a => a.HarvestType == harvestType && a.BodyId == this.part.vessel.mainBody.flightGlobalsIndex && a.BiomeName == currentBiome);
+                abundanceCache = Utils.GetAbundances(this.part.vessel, harvestType);
             }
             else
             {
-                abundanceCache = ResourceCache.Instance.AbundanceCache.
-                    Where(a => a.HarvestType == harvestType && a.BodyId == this.part.vessel.mainBody.flightGlobalsIndex);
+                abundanceCache = Utils.GetAbundances(this.part.vessel, harvestType);
             }
 
             foreach (ResourceCache.AbundanceSummary summary in abundanceCache)

@@ -123,7 +123,7 @@ namespace WildBlueIndustries
         [KSPField()]
         public bool clearResourcesAfterCompleted;
 
-        [KSPField(guiName = "Restart after completion")]
+        [KSPField(guiName = "Restart after completion", isPersistant = true)]
         [UI_Toggle(enabledText = "Yes", disabledText = "No")]
         public bool autoRestartExperiment;
 
@@ -152,12 +152,20 @@ namespace WildBlueIndustries
 
             //Now call the base class.
             base.OnSave(node);
+
+            //For some reason accumulatedResources isn't being updated properly when saved, so we'll do it explicitly.
+            if (node.HasValue("accumulatedResources"))
+                node.SetValue("accumulatedResources", accumulatedResources);
         }
 
         public override void OnStart(StartState state)
         {
             if (HighLogic.LoadedSceneIsFlight)
                 base.OnStart(state);
+
+            if (!string.IsNullOrEmpty(overrideExperimentID))
+                LoadFromDefinition(overrideExperimentID);
+
             SetGUIVisible(isGUIVisible);
 
             //Required resources
@@ -267,7 +275,8 @@ namespace WildBlueIndustries
             Actions["DeployAction"].active = false;
 
             //Our events and actions
-            Fields["autoRestartExperiment"].guiActive = false;
+            Fields["autoRestartExperiment"].guiActive = guiVisible;
+            Fields["autoRestartExperiment"].guiActiveEditor = guiVisible;
         }
 
         public virtual bool CheckCompletion()

@@ -314,7 +314,8 @@ namespace WildBlueIndustries
                         if (filePathName.EndsWith(".cfg"))
                         {
                             renamedFile = filePathName.Replace(".cfg", ".txt");
-                            System.IO.File.Move(filePathName, renamedFile);
+                            if (!System.IO.File.Exists(filePathName))
+                                System.IO.File.Move(filePathName, renamedFile);
 //                            Debug.Log("[WBIPlayModeHelper] - renameFiles: renaming " + filePathName + " to " + renamedFile);
                         }
                     }
@@ -323,7 +324,8 @@ namespace WildBlueIndustries
                         if (filePathName.EndsWith(".txt"))
                         {
                             renamedFile = filePathName.Replace(".txt", ".cfg");
-                            System.IO.File.Move(filePathName, renamedFile);
+                            if (!System.IO.File.Exists(filePathName))
+                                System.IO.File.Move(filePathName, renamedFile);
 //                            Debug.Log("[WBIPlayModeHelper] - renameFiles: renaming " + filePathName + " to " + renamedFile);
                         }
                     }

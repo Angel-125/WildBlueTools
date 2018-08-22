@@ -253,7 +253,7 @@ namespace WildBlueIndustries
                     //If we don't have a WBIMODULE node then load from the template
                     //Load from the template first. This gives us our baseline.
                     int settingsIndex = addedPartModules.Count - 1;
-//                    loadModuleSettings(module, moduleNode, settingsIndex);
+                    loadModuleSettings(module, moduleNode, settingsIndex);
                     module.Load(moduleNode);
 
                     //Now load from WBIMODULE. This covers persistent data.

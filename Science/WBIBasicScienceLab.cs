@@ -81,7 +81,7 @@ namespace WildBlueIndustries
         protected float successBonus;
         protected float dataAmount;
         protected TransmitHelper transmitHelper;
-        protected ScienceLabResultsView scienceLabView = new ScienceLabResultsView("Science Lab");
+        protected ScienceLabResultsView scienceLabView;
 
         #region Actions And Events
         [KSPEvent(guiActive = true, guiActiveUnfocused = true, unfocusedRange = 3.0f, guiName = "Review Data")]
@@ -143,6 +143,7 @@ namespace WildBlueIndustries
                 return;
 
             //Setup
+            scienceLabView = new ScienceLabResultsView("Science Lab");
             transmitHelper = new TransmitHelper();
             transmitHelper.part = this.part;
             transmitHelper.transmitCompleteDelegate = TransmitComplete;
