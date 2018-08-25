@@ -90,7 +90,18 @@ namespace WildBlueIndustries
             string playModeName = helper.GetPlayModeFromFile();
             int index = helper.GetPlayModeIndex(playModeName);
             if (index == -1)
-                return;
+            {
+                //No config file so let's see if CRP is installed.
+                string playModeFile = KSPUtil.ApplicationRootPath.Replace("\\", "/") + "GameData/CommunityResourcePack/CRP.version";
+
+                //If the file exists then find the CRP play mode
+                if (System.IO.File.Exists(playModeFile))
+                {
+                    index = helper.GetPlayModeIndex("CRP");
+                    if (index == -1)
+                        return;
+                }
+            }
 
             //Now auto-detect the current mode.
             int autoDetectIndex = helper.AutodetectMode();

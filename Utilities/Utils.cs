@@ -105,10 +105,15 @@ namespace WildBlueIndustries
                 return false;
             if (vessel == null)
                 return false;
+            if (!vessel.Landed && !vessel.Splashed)
+                return true;
 
             //ResourceMap.Instance.IsBiomeUnlocked is borked. Need to use an alternate method...
             CBAttributeMapSO.MapAttribute biome = Utils.GetCurrentBiome(vessel);
             List<BiomeLockData> biomeLockData = ResourceScenario.Instance.gameSettings.GetBiomeLockInfo();
+
+            if (biome == null)
+                return false;
 
             foreach (BiomeLockData data in biomeLockData)
                 if (data.BiomeName == biome.name)
@@ -119,8 +124,6 @@ namespace WildBlueIndustries
 
         public static CBAttributeMapSO.MapAttribute GetCurrentBiome(Vessel vessel)
         {
-            if (!vessel.Landed && !vessel.Splashed)
-                return null;
             CelestialBody celestialBody = vessel.mainBody;
             double lattitude = ResourceUtilities.Deg2Rad(vessel.latitude);
             double longitude = ResourceUtilities.Deg2Rad(vessel.longitude);
@@ -129,9 +132,34 @@ namespace WildBlueIndustries
             return biome;
         }
 
+        public static string GetCurrentBiomeName(Vessel vessel)
+        {
+            CBAttributeMapSO.MapAttribute biome = Utils.GetCurrentBiome(vessel);
+
+            if (biome != null)
+                return biome.name;
+
+            switch (vessel.situation)
+            {
+                case Vessel.Situations.FLYING:
+                    return "FLYING";
+
+                case Vessel.Situations.ORBITING:
+                case Vessel.Situations.ESCAPING:
+                case Vessel.Situations.SUB_ORBITAL:
+                    return "ORBITING";
+
+                case Vessel.Situations.SPLASHED:
+                    return "SPLASHED";
+
+                default:
+                    return "LANDED";
+            }
+        }
+
         public static IEnumerable<ResourceCache.AbundanceSummary> GetAbundances(Vessel vessel, HarvestTypes harvestType)
         {
-            string biomeName = Utils.GetCurrentBiome(vessel).name;
+            string biomeName = Utils.GetCurrentBiomeName(vessel);
             int flightGlobalsIndex = vessel.mainBody.flightGlobalsIndex;
             IEnumerable<ResourceCache.AbundanceSummary> abundanceCache;
 

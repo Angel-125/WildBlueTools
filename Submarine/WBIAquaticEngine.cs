@@ -133,7 +133,7 @@ namespace WildBlueIndustries
                 if (FlightGlobals.getAltitudeAtPos((Vector3d)thrustTransforms[index].position, this.part.vessel.mainBody) <= 0.0f)
                     return true;
             }
-            return true;
+            return false;
         }
 
         protected void updateGUI()

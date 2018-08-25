@@ -424,6 +424,13 @@ namespace WildBlueIndustries
                 return;
             }
 
+            else if (HighLogic.LoadedSceneIsEditor)
+            {
+                GUILayout.Label("<color=yellow>Converter controls disabled in the editor.</color>");
+                GUILayout.EndVertical();
+                return;
+            }
+
             string converterName = "??";
             string converterStatus = "??";
             bool isActivated;

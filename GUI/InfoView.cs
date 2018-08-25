@@ -30,6 +30,7 @@ namespace WildBlueIndustries
 
         protected override void DrawWindowContents(int windowId)
         {
+            _info = ModuleInfo.Replace("<br>", "\r\n");
             _scrollPos = GUILayout.BeginScrollView(_scrollPos);
             if (moduleLabel != null)
             {
