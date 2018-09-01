@@ -33,7 +33,7 @@ namespace WildBlueIndustries
         /// </summary>
         #region Fields
         [KSPField]
-        public string harvestTypes = "Planetary";
+        public string harvestTypes = string.Empty;
         #endregion
 
         #region Housekeeping
@@ -85,14 +85,24 @@ namespace WildBlueIndustries
 
             //Setup the harvest types
             harvestTypeList = new List<HarvestTypes>();
-            HarvestTypes type;
-            string[] types = harvestTypes.Split(new char[] { ';' });
-            for (int index = 0; index < types.Length; index++)
+            if (!string.IsNullOrEmpty(harvestTypes))
             {
-                type = (HarvestTypes)Enum.Parse(typeof(HarvestTypes), types[index]);
-                harvestTypeList.Add(type);
+                HarvestTypes type;
+                string[] types = harvestTypes.Split(new char[] { ';' });
+                for (int index = 0; index < types.Length; index++)
+                {
+                    type = (HarvestTypes)Enum.Parse(typeof(HarvestTypes), types[index]);
+                    harvestTypeList.Add(type);
+                }
             }
 
+            //Use HarvesterType
+            else
+            {
+                harvestTypeList.Add((HarvestTypes)this.HarvesterType);
+            }
+
+            //If in flight then setup the harvester
             if (HighLogic.LoadedSceneIsFlight)
             {
                 this.currentHarvestType = getHarvestSituation();

@@ -68,6 +68,12 @@ namespace WildBlueIndustries
 
         protected void setActiveConverterCount(int count)
         {
+            if (qualityControl == null)
+            {
+                activeConverters = count;
+                return;
+            }
+
             //If the active converter count != the current count and
             //at least one converter is active, then perform a quality check
             if (activeConverters != count && count > 0)
