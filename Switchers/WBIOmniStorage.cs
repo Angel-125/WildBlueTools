@@ -956,7 +956,7 @@ namespace WildBlueIndustries
                 resourceAmounts.Add(resourceName, previewResources[resourceName]);
 
                 //If the resource is on the restricted list then it'll be added in flight.
-                if (restrictedResourceList.Contains(resourceName))
+                if (restrictedResourceList.Contains(resourceName) && HighLogic.LoadedSceneIsEditor)
                 {
                     if (switcher != null)
                     {
