@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WildBlueTools", "WildBlueTools.csproj", "{CC0BDF1A-9641-4628-9F0F-3500DDC99534}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DSEVUtils", "..\DSEV\DSEVUtils\DSEVUtils.csproj", "{9A537D7D-39FB-486D-AFB2-16509AB9753D}"
@@ -182,5 +184,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EF5CDA0D-6E4A-47B7-BA55-35C4401998AA}
 	EndGlobalSection
 EndGlobal

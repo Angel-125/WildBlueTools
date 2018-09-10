@@ -301,7 +301,6 @@ namespace WildBlueIndustries
                 return;
 
             string[] filePathNames;
-            string renamedFile;
 
             //Check file list.
             filePathNames = Directory.GetFiles(filePath);
@@ -309,25 +308,13 @@ namespace WildBlueIndustries
             {
                 foreach (string filePathName in filePathNames)
                 {
-                    if (asTextFile)
+                    if (asTextFile && filePathName.EndsWith(".cfg"))
                     {
-                        if (filePathName.EndsWith(".cfg"))
-                        {
-                            renamedFile = filePathName.Replace(".cfg", ".txt");
-                            if (!System.IO.File.Exists(filePathName))
-                                System.IO.File.Move(filePathName, renamedFile);
-//                            Debug.Log("[WBIPlayModeHelper] - renameFiles: renaming " + filePathName + " to " + renamedFile);
-                        }
+                        System.IO.File.Move(filePathName, Path.ChangeExtension(filePathName, ".txt"));
                     }
-                    else
+                    else if (filePathName.EndsWith(".txt"))
                     {
-                        if (filePathName.EndsWith(".txt"))
-                        {
-                            renamedFile = filePathName.Replace(".txt", ".cfg");
-                            if (!System.IO.File.Exists(filePathName))
-                                System.IO.File.Move(filePathName, renamedFile);
-//                            Debug.Log("[WBIPlayModeHelper] - renameFiles: renaming " + filePathName + " to " + renamedFile);
-                        }
+                        System.IO.File.Move(filePathName, Path.ChangeExtension(filePathName, ".cfg"));
                     }
 
                 }

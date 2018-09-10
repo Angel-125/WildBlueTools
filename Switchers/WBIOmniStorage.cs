@@ -101,6 +101,7 @@ namespace WildBlueIndustries
         private bool confirmedReconfigure;
         private WBIAffordableSwitcher switcher;
         private PartResourceDefinitionList definitions;
+        private List<String> sortedResourceNames;
         private Dictionary<string, double> resourceAmounts = new Dictionary<string, double>();
         private Dictionary<string, double> previewResources = new Dictionary<string, double>();
         private Dictionary<string, float> previewRatios = new Dictionary<string, float>();
@@ -209,6 +210,10 @@ namespace WildBlueIndustries
 
             //Get our resource definitions.
             definitions = PartResourceLibrary.Instance.resourceDefinitions;
+            List<String> resourceNames = new List<string>();
+            foreach (PartResourceDefinition def in definitions)
+                resourceNames.Add(def.name);
+            sortedResourceNames = resourceNames.OrderBy(q => q).ToList();
 
             //Find the KIS inventory if any
             foreach (PartModule partModule in this.part.Modules)
@@ -431,8 +436,11 @@ namespace WildBlueIndustries
             string resourceName;
             definitions = PartResourceLibrary.Instance.resourceDefinitions;
             int definitionCount = definitions.Count;
-            foreach (PartResourceDefinition def in definitions)
+            PartResourceDefinition def;
+            foreach (string sortedResourceName in sortedResourceNames)
             {
+                def = definitions[sortedResourceName];
+
                 //Ignore items on the blacklist
                 if (resourceBlacklist.Contains(def.name))
                     continue;
