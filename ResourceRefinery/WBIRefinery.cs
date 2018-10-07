@@ -263,7 +263,9 @@ namespace WildBlueIndustries
                 return;
             ShipConstruct ship = EditorLogic.fetch.ship;
 
-            //Clear refinery resources in the ship
+            //Clear refinery resources in the ship (Career only)
+            if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER)
+                return;
             int partCount = ship.parts.Count;
             Part part;
             PartResource resource;

@@ -44,13 +44,14 @@ namespace WildBlueIndustries
         List<ResourceRatio> outputRatios;
         List<HarvestTypes> harvestTypeList;
         HarvestTypes currentHarvestType;
-        protected InfoView infoView;
+        protected HarvestView infoView;
         #endregion
 
         #region events
         [KSPEvent(guiActive = true, guiName = "Show Resource Outputs")]
         public void ShowResourceOutputs()
         {
+            setupHarvester();
             infoView.SetVisible(true);
         }
         #endregion
@@ -74,8 +75,10 @@ namespace WildBlueIndustries
             base.OnStart(state);
 
             //Setup info view
-            infoView = new InfoView();
+            infoView = new HarvestView();
             infoView.WindowTitle = this.part.partInfo.title;
+            infoView.part = this.part;
+            infoView.onBiomeUnlocked = setupHarvester;
 
             //Setup the resource ratio list
             resourceRatios = new List<ResourceRatio>();

@@ -40,7 +40,11 @@ namespace WildBlueIndustries
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
-            if (!IsActivated)
+            if (IsActivated)
+            {
+                this.part.Effect(runningEffect, 1.0f);
+            }
+            else
             {
                 this.part.Effect(runningEffect, 0f);
                 this.part.Effect(stopEffect, 0f);
@@ -52,9 +56,6 @@ namespace WildBlueIndustries
         {
             base.OnInactive();
             StopResourceConverter();
-            this.part.Effect(runningEffect, 0f);
-            this.part.Effect(stopEffect, 0f);
-            this.part.Effect(startEffect, 0f);
         }
 
         public override void StartResourceConverter()

@@ -18,6 +18,8 @@ namespace WildBlueIndustries
         [KSPField]
         public string researchSkill = "ScienceSkill";
 
+        public static EventVoid onBiomeUnlocked = new EventVoid("OnBiomeUnlocked");
+
         protected ModuleBiomeScanner biomeScanner = null;
         protected ModuleGPS gps;
         protected List<PlanetaryResource> resourceList;
@@ -120,6 +122,7 @@ namespace WildBlueIndustries
             biomeScanner.RunAnalysis();
             rebuildAbundanceSummary();
             geoLabView.abundanceSummary = this.abundanceSummary;
+            onBiomeUnlocked.Fire();
             return true;
         }
 
@@ -182,6 +185,8 @@ namespace WildBlueIndustries
 
         public virtual void DrawOpsWindow(string buttonLabel)
         {
+            if (geoLabView.performBiomAnalysisDelegate == null)
+                geoLabView.performBiomAnalysisDelegate = this.perfomBiomeAnalysys;
             geoLabView.DrawView();
         }
 

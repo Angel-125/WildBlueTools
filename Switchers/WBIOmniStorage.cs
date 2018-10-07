@@ -95,7 +95,13 @@ namespace WildBlueIndustries
 
         #region Housekeeping
         public static Texture deleteIcon = null;
+        public static Texture copyIcon = null;
+        public static Texture pasteIcon = null;
         GUILayoutOption[] buttonOptions = new GUILayoutOption[] { GUILayout.Width(32), GUILayout.Height(32) };
+
+        //Clipboard
+        public static Dictionary<string, double> clipboardResources = new Dictionary<string, double>();
+        public static Dictionary<string, float> clipboardRatios = new Dictionary<string, float>();
 
         private Vector2 scrollPos, scrollPosResources;
         private bool confirmedReconfigure;
@@ -109,6 +115,8 @@ namespace WildBlueIndustries
         private WBISingleOpsView opsView;
         private float adjustedVolume = 0.0f;
         private List<Dictionary<string, float>> resourceCombos = new List<Dictionary<string, float>>();
+        private string searchText = string.Empty;
+        private bool updateSymmetry;
         #endregion
 
         #region Events
@@ -185,7 +193,11 @@ namespace WildBlueIndustries
 
             //Setup the delete icon
             if (deleteIcon == null)
-                deleteIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/Pathfinder/Icons/TrashCan", false);
+            {
+                deleteIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/TrashCan", false);
+                copyIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/CopyIcon", false);
+                pasteIcon = GameDatabase.Instance.GetTexture("WildBlueIndustries/000WildBlueTools/Icons/PasteIcon", false);
+            }
 
             //Get the switcher
             adjustedVolume = storageVolume;
@@ -353,7 +365,7 @@ namespace WildBlueIndustries
                 GUILayout.EndHorizontal();
 
                 //Restricted resource warning
-                if (HighLogic.LoadedSceneIsEditor)
+                if (HighLogic.LoadedSceneIsEditor && HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
                 {
                     if (restrictedResourceList.Contains(keys[index]))
                         GUILayout.Label("<color=yellow>" + displayName + " cannot be added in the VAB/SPH, it will be added at launch.</color>");
@@ -384,6 +396,9 @@ namespace WildBlueIndustries
 
         protected void drawReconfigureButton()
         {
+            updateSymmetry = GUILayout.Toggle(updateSymmetry, "Update Symmetry Parts");
+            GUILayout.BeginHorizontal();
+
             if (GUILayout.Button("Reconfigure"))
             {
                 //In flight mode, we need to make sure that we can afford to reconfigure the container and that
@@ -403,7 +418,7 @@ namespace WildBlueIndustries
                         else
                         {
                             payForReconfigure();
-                            reconfigureStorage(true);
+                            reconfigureStorage(updateSymmetry);
                         }
                     }
                 }
@@ -411,25 +426,77 @@ namespace WildBlueIndustries
                 //Not in flight so just reconfigure
                 else
                 {
-                    reconfigureStorage(true);
+                    reconfigureStorage(updateSymmetry);
                 }
             }
+
+            //Copy to clipboard
+            if (GUILayout.Button(copyIcon, buttonOptions))
+            {
+                //Clear the clipboard
+                clipboardRatios.Clear();
+                clipboardResources.Clear();
+
+                //Add the resource ratios
+                foreach (string key in previewRatios.Keys)
+                    clipboardRatios.Add(key, previewRatios[key]);
+
+                //Add the resource amounts
+                foreach (string key in previewResources.Keys)
+                    clipboardResources.Add(key, previewResources[key]);
+            }
+
+            //Paste from clipboard
+            if (GUILayout.Button(pasteIcon, buttonOptions))
+            {
+                if (clipboardRatios.Keys.Count == 0)
+                    return;
+
+                //Clear our cache
+                previewResources.Clear();
+                previewRatios.Clear();
+
+                //Load from clipboard
+                foreach (string key in clipboardRatios.Keys)
+                    previewRatios.Add(key, clipboardRatios[key]);
+
+                foreach (string key in clipboardResources.Keys)
+                    previewResources.Add(key, clipboardResources[key]);
+
+                //Update max amounts
+                foreach (string key in previewRatios.Keys)
+                    updateMaxAmounts(key);
+
+                //Finally, reconfigure storage
+                reconfigureStorage(updateSymmetry);
+            }
+
+            GUILayout.EndHorizontal();
         }
 
         protected void drawResourceList()
         {
+            //Search field
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("<color=white>Search</color>");
+            searchText = GUILayout.TextField(searchText).ToLower();
+            GUILayout.EndHorizontal();
+
             scrollPos = GUILayout.BeginScrollView(scrollPos);
 
             //Add button for KIS inventory (if any)
             if (inventory != null)
             {
-                if (GUILayout.Button(kKISResource))
+                if ((!string.IsNullOrEmpty(searchText) && kKISResource.ToLower().Contains(searchText)) || string.IsNullOrEmpty(searchText))
                 {
-                    previewResources.Add(kKISResource, 0);
-                    previewRatios.Add(kKISResource, 1.0f);
+                    if (GUILayout.Button(kKISResource))
+                    {
+                        previewResources.Add(kKISResource, 0);
+                        previewRatios.Add(kKISResource, 1.0f);
 
-                    //recalculate max amounts
-                    recalculateMaxAmounts();
+                        //recalculate max amounts
+                        recalculateMaxAmounts();
+                    }
                 }
             }
 
@@ -441,7 +508,7 @@ namespace WildBlueIndustries
             {
                 def = definitions[sortedResourceName];
 
-                //Ignore items on the blacklist
+                //Ignore items on the blacklist and resources not shown to the user.
                 if (resourceBlacklist.Contains(def.name))
                     continue;
                 if (def.isVisible == false)
@@ -451,6 +518,13 @@ namespace WildBlueIndustries
                 resourceName = def.displayName;
                 if (string.IsNullOrEmpty(resourceName))
                     resourceName = def.name;
+
+                //Skip resource if it doesn't contain the search text.
+                if (!string.IsNullOrEmpty(searchText))
+                {
+                    if (!resourceName.ToLower().Contains(searchText))
+                        continue;
+                }
 
                 //Add resource to our list if needed.
                 if (GUILayout.Button(resourceName))
@@ -964,7 +1038,7 @@ namespace WildBlueIndustries
                 resourceAmounts.Add(resourceName, previewResources[resourceName]);
 
                 //If the resource is on the restricted list then it'll be added in flight.
-                if (restrictedResourceList.Contains(resourceName) && HighLogic.LoadedSceneIsEditor)
+                if (restrictedResourceList.Contains(resourceName) && HighLogic.LoadedSceneIsEditor && HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
                 {
                     if (switcher != null)
                     {

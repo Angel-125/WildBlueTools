@@ -73,6 +73,8 @@ namespace WildBlueIndustries
         private bool confirmedReconfigure;
         private WBIAffordableSwitcher switcher;
         private WBISingleOpsView opsView;
+        private string searchText = string.Empty;
+        private Dictionary<string, string> searchableTexts;
         #endregion
 
         #region Overrides
@@ -122,6 +124,86 @@ namespace WildBlueIndustries
         #endregion
 
         #region Resource Conversion
+        protected void setupSearchTexts()
+        {
+            if (searchableTexts != null)
+                return;
+            searchableTexts = new Dictionary<string, string>();
+
+            ConfigNode templateNode;
+            ConfigNode[] resourceNodes;
+            ConfigNode resourceNode;
+            StringBuilder searchableText;
+            string converterName;
+            for (int index = 0; index < templateManager.templateNodes.Length; index++)
+            {
+                searchableText = new StringBuilder();
+
+                templateNode = templateManager[index];
+
+                //converter name
+                if (templateNode.HasValue("ConverterName"))
+                {
+                    converterName = templateNode.GetValue("ConverterName");
+                    searchableText.Append(converterName.ToLower());
+                }
+                else
+                {
+                    converterName = string.Empty;
+                }
+
+                //Inputs
+                if (templateNode.HasNode("INPUT_RESOURCE"))
+                {
+                    resourceNodes = templateNode.GetNodes("INPUT_RESOURCE");
+
+                    for (int nodeIndex = 0; nodeIndex < resourceNodes.Length; nodeIndex++)
+                    {
+                        resourceNode = resourceNodes[nodeIndex];
+
+                        if (resourceNode.HasValue("ResourceName"))
+                            searchableText.Append(resourceNode.GetValue("ResourceName").ToLower());
+                    }
+                }
+
+                //Outputs
+                if (templateNode.HasNode("OUTPUT_RESOURCE"))
+                {
+                    resourceNodes = templateNode.GetNodes("OUTPUT_RESOURCE");
+
+                    for (int nodeIndex = 0; nodeIndex < resourceNodes.Length; nodeIndex++)
+                    {
+                        resourceNode = resourceNodes[nodeIndex];
+
+                        if (resourceNode.HasValue("ResourceName"))
+                            searchableText.Append(resourceNode.GetValue("ResourceName").ToLower());
+                    }
+                }
+
+                //Required
+                if (templateNode.HasNode("REQUIRED_RESOURCE"))
+                {
+                    resourceNodes = templateNode.GetNodes("REQUIRED_RESOURCE");
+
+                    for (int nodeIndex = 0; nodeIndex < resourceNodes.Length; nodeIndex++)
+                    {
+                        resourceNode = resourceNodes[nodeIndex];
+
+                        if (resourceNode.HasValue("ResourceName"))
+                            searchableText.Append(resourceNode.GetValue("ResourceName").ToLower());
+                    }
+                }
+
+                //Experience trait
+                if (templateNode.HasValue("ExperienceEffect"))
+                    searchableText.Append(templateNode.GetValue("ExperienceEffect").ToLower());
+
+                //Done
+                if (!string.IsNullOrEmpty(converterName))
+                    searchableTexts.Add(converterName, searchableText.ToString());
+            }
+        }
+
         protected void setupTemplateManager()
         {
             //Create the templateManager
@@ -267,7 +349,7 @@ namespace WildBlueIndustries
                     if (definition != null)
                     {
                         info.AppendLine("<b>" + definition.displayName + "</b>: " + formatRate(resourceRatio.Ratio));
-                        info.AppendLine("Flow mode: " + resourceRatio.FlowMode.displayDescription());
+                        info.AppendLine("Flow mode: " + getFlowModeDescription(resourceRatio.FlowMode));
                         info.AppendLine("Dumps excess: " + resourceRatio.DumpExcess);
                     }
                     else
@@ -291,7 +373,7 @@ namespace WildBlueIndustries
                     if (definition != null)
                     {
                         info.AppendLine("<b>" + definition.displayName + "</b>: " + formatRate(resourceRatio.Ratio));
-                        info.AppendLine("Flow mode: " + resourceRatio.FlowMode.displayDescription());
+                        info.AppendLine("Flow mode: " + getFlowModeDescription(resourceRatio.FlowMode));
                         info.AppendLine("Dumps excess: " + resourceRatio.DumpExcess);
                     }
                     else
@@ -314,7 +396,7 @@ namespace WildBlueIndustries
                     if (definition != null)
                     {
                         info.AppendLine("<b>" + definition.displayName + "</b>: " + formatRate(resourceRatio.Ratio));
-                        info.AppendLine("Flow mode: " + resourceRatio.FlowMode.displayDescription());
+                        info.AppendLine("Flow mode: " + getFlowModeDescription(resourceRatio.FlowMode));
                         info.AppendLine("Dumps excess: " + resourceRatio.DumpExcess);
                     }
                     else
@@ -364,6 +446,7 @@ namespace WildBlueIndustries
 
         public void DrawOpsWindow(string buttonLabel)
         {
+            setupSearchTexts();
             GUILayout.BeginHorizontal();
 
             //Current configuration
@@ -381,17 +464,37 @@ namespace WildBlueIndustries
             if (!string.IsNullOrEmpty(reconfigureSkill))
                 GUILayout.Label("<color=white><b>Reconfigure Trait(s): </b>" + getRequiredTraits() + "</color>");
 
+            //Search field
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("<color=white>Search</color>");
+            searchText = GUILayout.TextField(searchText).ToLower();
+            GUILayout.EndHorizontal();
+
             //Draw the converter options
             ConfigNode template;
             scrollPos = GUILayout.BeginScrollView(scrollPos);
+            string searchableText;
+            string converterName;
             for (int index = 0; index < templateManager.templateNodes.Length; index++)
             {
+                template = templateManager.templateNodes[index];
+
+                converterName = template.GetValue("ConverterName");
+                searchableText = searchableTexts[converterName];
+
+                //Skip the template if it doesn't contain the search text.
+                if (!string.IsNullOrEmpty(searchText) && !string.IsNullOrEmpty(searchableText))
+                {
+                    if (!searchableText.Contains(searchText))
+                        continue;
+                }
+
                 template = templateManager.templateNodes[index];
                 if (templateManager.TemplateTagsMatch(template))
                 {
                     if (TemplateManager.TemplateTechResearched(template))
                     {
-                        if (GUILayout.Button(template.GetValue("ConverterName")))
+                        if (GUILayout.Button(converterName))
                         {
                             converterInfo = null;
                             previewTemplate(template);
@@ -400,7 +503,7 @@ namespace WildBlueIndustries
                     }
                     else
                     {
-                        GUILayout.Label("<color=#959595>" + template.GetValue("ConverterName") + ":\r\nNeeds " + TemplateManager.GetTechTreeTitle(template) + "</color>");
+                        GUILayout.Label("<color=#959595>" + converterName + ":\r\nNeeds " + TemplateManager.GetTechTreeTitle(template) + "</color>");
                     }
                 }
             }
@@ -476,6 +579,37 @@ namespace WildBlueIndustries
         #endregion
 
         #region Helpers
+        protected string getFlowModeDescription(ResourceFlowMode flowMode)
+        {
+            switch (flowMode)
+            {
+                default:
+                case ResourceFlowMode.NO_FLOW:
+                    return "None";
+
+                case ResourceFlowMode.ALL_VESSEL:
+                    return "All Vessel";
+
+                case ResourceFlowMode.STAGE_PRIORITY_FLOW:
+                    return "Stage Priority Flow";
+
+                case ResourceFlowMode.STACK_PRIORITY_SEARCH:
+                    return "Stage Priority Search";
+
+                case ResourceFlowMode.STAGE_PRIORITY_FLOW_BALANCE:
+                    return "Stage Prioroity Flow (Balanced)";
+
+                case ResourceFlowMode.ALL_VESSEL_BALANCE:
+                    return "All Vessel (Balanced)";
+
+                case ResourceFlowMode.STAGE_STACK_FLOW:
+                    return "Stack Flow";
+
+                case ResourceFlowMode.STAGE_STACK_FLOW_BALANCE:
+                    return "Stack Flow (Balanced)";
+            }
+        }
+
         //Switchers will ask us for the resources needed to reconfigure the converter.
         protected void GetRequiredResources()
         {

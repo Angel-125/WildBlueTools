@@ -94,8 +94,11 @@ namespace WildBlueIndustries
 
             _scrollPos2 = GUILayout.BeginScrollView(_scrollPos2, new GUILayoutOption[] { GUILayout.Width(425) });
 
-            nodePlayMode = playModeNodes[selectedIndex];
-            loadConfig();
+            if (nodePlayMode != playModeNodes[selectedIndex])
+            {
+                nodePlayMode = playModeNodes[selectedIndex];
+                loadConfig();
+            }
 
             GUILayout.Label(description);
 
@@ -114,8 +117,12 @@ namespace WildBlueIndustries
             StringBuilder desc = new StringBuilder();
 
             //Name
+            string playModeName = string.Empty;
             if (nodePlayMode.HasValue("name"))
-                desc.AppendLine("<color=LightBlue><b>" + nodePlayMode.GetValue("name") + "</b></color>");
+            {
+                playModeName = nodePlayMode.GetValue("name");
+                desc.AppendLine("<color=LightBlue><b>" + playModeName + "</b></color>");
+            }
 
             //Description
             if (nodePlayMode.HasValue("description"))
@@ -143,10 +150,30 @@ namespace WildBlueIndustries
                 partsCanBreak = true;
 
             desc.AppendLine(" ");
-            desc.AppendLine("<color=white><b>Parts can break: </b>" + partsCanBreak + "</color>");
-            desc.AppendLine("<color=white><b>Repairs require resources: </b>" + repairsRequireResources + "</color>");
-            desc.AppendLine("<color=white><b>Pay to reconfigure/assemble modules: </b>" + payToRemodel + "</color>");
-            desc.AppendLine("<color=white><b>Reconfiguration/assembly requires skill: </b>" + requireSkillCheck + "</color>");
+            //            desc.AppendLine("<color=white><b>Parts can break: </b>" + partsCanBreak + "</color>");
+            //            desc.AppendLine("<color=white><b>Repairs require resources: </b>" + repairsRequireResources + "</color>");
+            //            desc.AppendLine("<color=white><b>Pay to reconfigure/assemble modules: </b>" + payToRemodel + "</color>");
+            //            desc.AppendLine("<color=white><b>Reconfiguration/assembly requires skill: </b>" + requireSkillCheck + "</color>");
+
+            desc.AppendLine("<color=LightBlue><b>Supported Mods</b></color>");
+            ConfigNode[] playNodes = GameDatabase.Instance.GetConfigNodes("WBIPLAYMODEEXT");
+            string modName;
+            string extensionName = string.Empty;
+            for (int index = 0; index < playNodes.Length; index++)
+            {
+                if (playNodes[index].HasValue("name"))
+                    extensionName = playNodes[index].GetValue("name");
+                else
+                    extensionName = string.Empty;
+
+                if (playNodes[index].HasValue("modName"))
+                    modName = playNodes[index].GetValue("modName");
+                else
+                    modName = string.Empty;
+
+                if (playModeName == extensionName && !string.IsNullOrEmpty(modName))
+                    desc.AppendLine("<color=white>" + modName + "</color>");
+            }
 
             description = desc.ToString();
         }
