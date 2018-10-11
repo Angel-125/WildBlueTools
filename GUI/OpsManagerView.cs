@@ -78,6 +78,12 @@ namespace WildBlueIndustries
             }
         }
 
+        public void RebuildView()
+        {
+            UpdateButtonTabs();
+            currentDrawableView = views[0];
+        }
+
         public void UpdateConverters()
         {
             converters.Clear();
@@ -105,7 +111,7 @@ namespace WildBlueIndustries
             UpdateConverters();
             GetPartModules();
 
-            views.Clear();
+            this.views = new List<SDrawbleView>();
 
             //Custom views from other PartModules
             List<IOpsView> templateOpsViews = this.part.FindModulesImplementing<IOpsView>();
@@ -206,9 +212,18 @@ namespace WildBlueIndustries
         }
 
         #endregion
-
+        int partModuleCount;
         protected override void DrawWindowContents(int windowId)
         {
+            //HACK! Recent version of KSP has broken something in the scripting. Even though WBIOpsManager tells the view to UpdateButtonTabs, and they DO update,
+            //when we draw the window contents, it's as if the drawable views haven't been updated. It is VERY puzzling. The part itself has an updated
+            //part module count though, and we can use that to determine if anything has changed. If so, then we can refresh our button tabs and such before drawing.
+            if (this.part.Modules.Count != partModuleCount)
+            {
+                partModuleCount = this.part.Modules.Count;
+                UpdateButtonTabs();
+            }
+
             GUILayout.BeginHorizontal();
 
             //View buttons

@@ -120,6 +120,8 @@ namespace WildBlueIndustries
 
             if (node.HasValue("currentTemplateName"))
                 node.SetValue("currentTemplateName", currentTemplateName);
+            else
+                node.AddValue("currentTemplateName", currentTemplateName);
         }
         #endregion
 
@@ -311,6 +313,9 @@ namespace WildBlueIndustries
                     reqList.Add(resourceRatio);
                 }
             }
+
+            //Reload the recipie
+            this._recipe = this.LoadRecipe();
         }
 
         #endregion

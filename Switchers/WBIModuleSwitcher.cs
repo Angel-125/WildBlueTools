@@ -223,6 +223,7 @@ namespace WildBlueIndustries
             foreach (PartModule doomed in addedPartModules)
                 this.part.RemoveModule(doomed);
             addedPartModules.Clear();
+            int moduleCount = this.part.Modules.Count;
 
             //Add the modules
             foreach (ConfigNode moduleNode in moduleNodes)

@@ -182,6 +182,12 @@ namespace WildBlueIndustries
         #endregion
 
         #region Helpers
+        public string GetMinedResources()
+        {
+            setupHarvester();
+            return infoView.ModuleInfo;
+        }
+
         protected void setupHarvester()
         {
             if (!HighLogic.LoadedSceneIsFlight)
@@ -226,7 +232,7 @@ namespace WildBlueIndustries
                             break;
 
                         default:
-                            outputInfo.AppendLine("<color=white><b>Environment: </b>Crustal</color>");
+                            outputInfo.AppendLine("<color=white><b>Environment: </b>Ground</color>");
                             break;
                     }
 
@@ -236,6 +242,17 @@ namespace WildBlueIndustries
                     for (int index = 0; index < count; index++)
                     {
                         output = resourceRatios[index];
+                        harvestRate = output.Ratio * getIntakeMultiplier();
+                        outputInfo.Append("<color=white>");
+                        outputInfo.Append(formatResource(output.ResourceName, harvestRate));
+                        outputInfo.AppendLine("</color>");
+                    }
+
+                    //Don't forget supplementary resources
+                    count = outputRatios.Count;
+                    for (int index = 0; index < count; index++)
+                    {
+                        output = outputRatios[index];
                         harvestRate = output.Ratio * getIntakeMultiplier();
                         outputInfo.Append("<color=white>");
                         outputInfo.Append(formatResource(output.ResourceName, harvestRate));

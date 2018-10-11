@@ -896,7 +896,7 @@ namespace WildBlueIndustries
 
                 //Account for units per liter
                 if (resourceName != kKISResource)
-                    previewResources[resourceName] = previewResources[resourceName] / definition.volume;
+                    previewResources[resourceName] = (previewResources[resourceName] / definition.volume) * getMaxAmountMultiplier(resourceName);
             }
 
             //Adjust units to account for resource combos.
@@ -935,7 +935,7 @@ namespace WildBlueIndustries
                     definition = definitions[resourceName];
 
                     //Set max amount
-                    previewResources[resourceName] = litersPerResource / definition.volume;
+                    previewResources[resourceName] = (litersPerResource / definition.volume) * getMaxAmountMultiplier(resourceName);
 
                     //Set ratio
                     previewRatios.Add(resourceName, 1.0f);
@@ -1218,6 +1218,30 @@ namespace WildBlueIndustries
             }
 
             return requiredTraits;
+        }
+
+        protected double getMaxAmountMultiplier(string resourceName)
+        {
+            ConfigNode[] maxAmountNodes = GameDatabase.Instance.GetConfigNodes("MAX_RESOURCE_MULTIPLIER");
+            ConfigNode node;
+            double maxAmountMultiplier = 0.0f;
+
+            for (int index = 0; index < maxAmountNodes.Length; index++)
+            {
+                node = maxAmountNodes[index];
+
+                if (!node.HasValue("name") && !node.HasValue("maxAmountMultiplier"))
+                    continue;
+
+                if (node.GetValue("name") == resourceName)
+                {
+                    maxAmountMultiplier = 1.0;
+                    double.TryParse(node.GetValue("maxAmountMultiplier"), out maxAmountMultiplier);
+                    return maxAmountMultiplier;
+                }
+            }
+
+            return 1.0;
         }
         #endregion
     }
