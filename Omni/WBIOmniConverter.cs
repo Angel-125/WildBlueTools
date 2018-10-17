@@ -18,36 +18,84 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
+    [KSPModule("Omni Converter")]
     public class WBIOmniConverter : WBIModuleResourceConverterFX, IOpsView
     {
-        #region Fields
+        #region constants
+        private const float kminimumSuccess = 80f;
+        private const float kCriticalSuccess = 95f;
+        private const float kCriticalFailure = 33f;
+        private const float kDefaultHoursPerCycle = 1.0f;
+
+        //Summary messages for lastAttempt
+        protected string attemptCriticalFail = "Critical Failure";
+        protected string attemptCriticalSuccess = "Critical Success";
+        protected string attemptFail = "Fail";
+        protected string attemptSuccess = "Success";
+
+        //User messages for last attempt
+        public float kMessageDuration = 5.0f;
+        public string criticalFailMessage = "Production yield lost!";
+        public string criticalSuccessMessage = "Production yield higher than expected.";
+        public string failMessage = "Production yield lower than expected.";
+        public string successMessage = "Production completed.";
+        #endregion
+
+        #region Template management fields
+        /// <summary>
+        /// Name of the converter's PAW button
+        /// </summary>
         [KSPField]
         public string managedName = "OmniConverter";
 
+        /// <summary>
+        /// What config nodes to use for the converter
+        /// </summary>
         [KSPField]
-        public string templateNodes = "OMNICONVERTER";
+        public string templateNodes = string.Empty;
 
+        /// <summary>
+        /// Tags associated with the converter; serves as a filter for templateNodes
+        /// </summary>
         [KSPField]
         public string templateTags = string.Empty;
 
+        /// <summary>
+        /// The current converter template
+        /// </summary>
         [KSPField(isPersistant = true)]
         public string currentTemplateName = string.Empty;
 
+        /// <summary>
+        /// The skill required to reconfigure the converter
+        /// </summary>
         [KSPField]
         public string reconfigureSkill = "ConverterSkill";
 
+        /// <summary>
+        /// The skill rank required to reconfigure the converter.
+        /// </summary>
         [KSPField]
         public int reconfigureRank = 0;
 
+        /// <summary>
+        /// The resource required to reconfigure the converter. This is optional.
+        /// </summary>
         [KSPField]
         public string requiredResource = "Equipment";
 
+        /// <summary>
+        /// The amount of required resource needed in order to reconfigure the converter.
+        /// </summary>
         [KSPField]
         public float requiredAmount;
 
+        /// <summary>
+        /// Used in place of BonusEfficiency, BaseEfficiency is used to determine how well an Omni Converter works. The standard converter is assumed but be a 1-cubic meter 
+        /// piece of machinery; smaller converters are less efficient, larger converters are more efficient.
+        /// </summary>
         [KSPField]
         public float BaseEfficiency = 1.0f;
-        #endregion
 
         /// <summary>
         /// Title of the GUI window.
@@ -55,11 +103,110 @@ namespace WildBlueIndustries
         [KSPField]
         public string opsViewTitle = "Reconfigure Converter";
 
+        /// <summary>
+        /// Label for the Ops Manager button button
+        /// </summary>
         [KSPField]
         public string opsButtonLabel = "Converters";
 
+        /// <summary>
+        /// Flag to indicate whether or not to show the built-in display window. The converter supports IOpsView so it can be integrated with an existing Ops Manager.
+        /// </summary>
         [KSPField]
         public bool showOpsView = false;
+        #endregion
+
+        #region Timed Resource Fields
+        /// <summary>
+        /// On a roll of 1 - 100, the minimum roll required to declare a successful resource yield. Set to 0 if you don't want to roll for success.
+        /// </summary>
+        [KSPField]
+        public float minimumSuccess;
+
+        /// <summary>
+        /// On a roll of 1 - 100, minimum roll for a resource yield to be declared a critical success.
+        /// </summary>
+        [KSPField]
+        public float criticalSuccess;
+
+        /// <summary>
+        /// On a roll of 1 - 100, the maximum roll for a resource yield to be declared a critical failure.
+        /// </summary>
+        [KSPField]
+        public float criticalFail;
+
+        /// <summary>
+        /// How many hours to wait before producing resources defined by YIELD_RESOURCE nodes.
+        /// </summary>
+        [KSPField]
+        public double hoursPerCycle;
+
+        /// <summary>
+        /// The time at which we started a new resource production cycle.
+        /// </summary>
+        [KSPField(isPersistant = true)]
+        public double cycleStartTime;
+
+        /// <summary>
+        /// Current progress of the production cycle
+        /// </summary>
+        [KSPField(guiActive = true, guiName = "Progress", isPersistant = true)]
+        public string progress = string.Empty;
+
+        /// <summary>
+        /// Results of the last production cycle attempt.
+        /// </summary>
+        [KSPField(guiActive = true, guiName = "Last Attempt", isPersistant = true)]
+        public string lastAttempt = string.Empty;
+
+        /// <summary>
+        /// If the yield check is a critical success, multiply the units produced by this number. Default is 1.0.
+        /// </summary>
+        [KSPField]
+        public double criticalSuccessMultiplier = 1.0;
+
+        /// <summary>
+        /// If the yield check is a failure, multiply the units produced by this number. Default is 1.0.
+        /// </summary>
+        [KSPField]
+        public double failureMultiplier = 1.0;
+
+        #endregion
+
+        #region FX fields
+        /// <summary>
+        /// Name of the effect to play when the converter starts.
+        /// </summary>
+        [KSPField]
+        public string startEffect = string.Empty;
+
+        /// <summary>
+        /// Name of the effect to play when the converter stops.
+        /// </summary>
+        [KSPField]
+        public string stopEffect = string.Empty;
+
+        /// <summary>
+        /// Name of the effect to play while the converter is running.
+        /// </summary>
+        [KSPField]
+        public string runningEffect = string.Empty;
+        #endregion
+
+        #region Background processing
+        /// <summary>
+        /// Enables the converter to run even while the vessel is unloaded. USE SPARINGLY! Too many converters run in the background will slow the game down.
+        /// For performance reasons, converters will run in the background once every six hours.
+        /// </summary>
+        [KSPField]
+        public bool enableBackgroundProcessing;
+
+        /// <summary>
+        /// Unique ID of the converter. Used to identify it during background processing.
+        /// </summary>
+        [KSPField(isPersistant = true)]
+        public string ID;
+        #endregion
 
         #region Housekeeping
         public ConfigNode currentTemplate;
@@ -75,6 +222,12 @@ namespace WildBlueIndustries
         private WBISingleOpsView opsView;
         private string searchText = string.Empty;
         private Dictionary<string, string> searchableTexts;
+
+        //Timekeeping for producing resources after a set amount of time.
+        public double elapsedTime;
+        public double secondsPerCycle = 0f;
+        public List<ResourceRatio> yieldResources = new List<ResourceRatio>();
+        protected bool missingResources;
         #endregion
 
         #region Overrides
@@ -97,9 +250,21 @@ namespace WildBlueIndustries
             setupTemplateManager();
         }
 
+        public void Destroy()
+        {
+            GameEvents.onVesselDestroy.Remove(onVesselDestroy);
+            GameEvents.onVesselChange.Remove(onVesselChange);
+        }
+
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+            GameEvents.onVesselChange.Add(onVesselChange);
+            GameEvents.onVesselDestroy.Add(onVesselDestroy);
+
+            //Create unique ID if needed
+            if (string.IsNullOrEmpty(ID))
+                ID = Guid.NewGuid().ToString();
 
             //Setup the template manager if needed.
             setupTemplateManager();
@@ -109,9 +274,56 @@ namespace WildBlueIndustries
             if (switcher != null)
                 switcher.OnGetReconfigureResources += GetRequiredResources;
 
-            //GUI button
-            this.Events["ToggleOpsView"].guiName = "Setup " + managedName;
-            this.Events["ToggleOpsView"].active = showOpsView;
+            //GUI
+            if (templateManager.templateNodes.Length > 0)
+            {
+                this.Events["ToggleOpsView"].guiName = "Setup " + managedName;
+                this.Events["ToggleOpsView"].active = showOpsView;
+
+                if (yieldResources.Count > 0)
+                {
+                    this.Fields["progress"].guiActive = showOpsView;
+                    this.Fields["lastAttempt"].guiActive = showOpsView;
+                }
+                else
+                {
+                    this.Fields["progress"].guiActive = false;
+                    this.Fields["lastAttempt"].guiActive = false;
+                }
+            }
+            else //No templates, we're operating in single converter mode.
+            {
+                this.Events["ToggleOpsView"].active = false;
+                if (yieldResources.Count > 0)
+                {
+                    this.Fields["progress"].guiActive = true;
+                    this.Fields["lastAttempt"].guiActive = true;
+                }
+                else
+                {
+                    this.Fields["progress"].guiActive = false;
+                    this.Fields["lastAttempt"].guiActive = false;
+                }
+            }
+
+            //Setup defaults if needed
+            progress = "None";
+            if (hoursPerCycle == 0f)
+                hoursPerCycle = kDefaultHoursPerCycle;
+            secondsPerCycle = hoursPerCycle * 3600;
+
+            if (minimumSuccess == 0)
+                minimumSuccess = kminimumSuccess;
+            if (criticalSuccess == 0)
+                criticalSuccess = kCriticalSuccess;
+            if (criticalFail == 0)
+                criticalFail = kCriticalFailure;
+
+            //Load yield resources if needed
+            loadYieldResources();
+
+            //Update background processing
+            updateBackgroundConverter();
         }
 
         public override void OnSave(ConfigNode node)
@@ -122,6 +334,101 @@ namespace WildBlueIndustries
                 node.SetValue("currentTemplateName", currentTemplateName);
             else
                 node.AddValue("currentTemplateName", currentTemplateName);
+        }
+
+        public override void StartResourceConverter()
+        {
+            base.StartResourceConverter();
+
+            cycleStartTime = Planetarium.GetUniversalTime();
+            lastUpdateTime = cycleStartTime;
+            elapsedTime = 0.0f;
+
+            if (!string.IsNullOrEmpty(runningEffect))
+                this.part.Effect(startEffect, 1.0f);
+
+            updateBackgroundConverter();
+        }
+        public override void StopResourceConverter()
+        {
+            base.StopResourceConverter();
+            progress = "None";
+
+            if (!string.IsNullOrEmpty(runningEffect))
+                this.part.Effect(stopEffect, 1.0f);
+            if (!string.IsNullOrEmpty(runningEffect))
+                this.part.Effect(runningEffect, 0.0f);
+
+            updateBackgroundConverter();
+        }
+
+        protected override void PostProcess(ConverterResults result, double deltaTime)
+        {
+            base.PostProcess(result, deltaTime);
+
+            if (FlightGlobals.ready == false)
+                return;
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
+            if (ModuleIsActive() == false)
+                return;
+            if (hoursPerCycle == 0f)
+                return;
+            if (yieldResources.Count == 0)
+                return;
+            if (!IsActivated)
+                return;
+
+            //Play the runningEffect
+            if (!string.IsNullOrEmpty(runningEffect))
+                this.part.Effect(runningEffect, 1.0f);
+
+            //Check cycle start time
+            if (cycleStartTime == 0f)
+            {
+                cycleStartTime = Planetarium.GetUniversalTime();
+                lastUpdateTime = cycleStartTime;
+                elapsedTime = 0.0f;
+                return;
+            }
+
+            //If we're missing resources then we're done.
+            if (!string.IsNullOrEmpty(result.Status))
+            {
+                if (result.Status.ToLower().Contains("missing"))
+                {
+                    status = result.Status;
+                    missingResources = true;
+                    return;
+                }
+            }
+
+            //Calculate elapsed time
+            elapsedTime = Planetarium.GetUniversalTime() - cycleStartTime;
+
+            //Calculate progress
+            CalculateProgress();
+
+            //If we've elapsed time cycle then perform the analyis.
+            float completionRatio = (float)(elapsedTime / secondsPerCycle);
+            if (completionRatio > 1.0f && !missingResources)
+            {
+                int cyclesSinceLastUpdate = Mathf.RoundToInt(completionRatio);
+                int currentCycle;
+                for (currentCycle = 0; currentCycle < cyclesSinceLastUpdate; currentCycle++)
+                {
+                    PerformAnalysis();
+
+                    //Reset start time
+                    cycleStartTime = Planetarium.GetUniversalTime();
+                }
+            }
+
+            //Update status
+            if (yieldResources.Count > 0)
+                status = "Progress: " + progress;
+            else if (string.IsNullOrEmpty(status))
+                status = "Running";
         }
         #endregion
 
@@ -186,6 +493,20 @@ namespace WildBlueIndustries
                 if (templateNode.HasNode("REQUIRED_RESOURCE"))
                 {
                     resourceNodes = templateNode.GetNodes("REQUIRED_RESOURCE");
+
+                    for (int nodeIndex = 0; nodeIndex < resourceNodes.Length; nodeIndex++)
+                    {
+                        resourceNode = resourceNodes[nodeIndex];
+
+                        if (resourceNode.HasValue("ResourceName"))
+                            searchableText.Append(resourceNode.GetValue("ResourceName").ToLower());
+                    }
+                }
+
+                //Yield
+                if (templateNode.HasNode("YIELD_RESOURCE"))
+                {
+                    resourceNodes = templateNode.GetNodes("YIELD_RESOURCE");
 
                     for (int nodeIndex = 0; nodeIndex < resourceNodes.Length; nodeIndex++)
                     {
@@ -314,6 +635,46 @@ namespace WildBlueIndustries
                 }
             }
 
+            //Yield
+            loadYieldResources();
+            if (yieldResources.Count > 0)
+            {
+                this.Fields["progress"].guiActive = showOpsView;
+                this.Fields["lastAttempt"].guiActive = showOpsView;
+            }
+            else
+            {
+                this.Fields["progress"].guiActive = false;
+                this.Fields["lastAttempt"].guiActive = false;
+            }
+
+            //Timed production fields
+            if (currentTemplate.HasValue("hoursPerCycle"))
+                double.TryParse(currentTemplate.GetValue("hoursPerCycle"), out hoursPerCycle);
+            secondsPerCycle = hoursPerCycle * 3600;
+
+            if (currentTemplate.HasValue("minimumSuccess"))
+                float.TryParse(currentTemplate.GetValue("minimumSuccess"), out minimumSuccess);
+            if (currentTemplate.HasValue("criticalSuccess"))
+                float.TryParse(currentTemplate.GetValue("criticalSuccess"), out criticalSuccess);
+            if (currentTemplate.HasValue("criticalFail"))
+                float.TryParse(currentTemplate.GetValue("criticalFail"), out criticalFail);
+
+            if (currentTemplate.HasValue("criticalSuccessMultiplier"))
+                double.TryParse(currentTemplate.GetValue("criticalSuccessMultiplier"), out criticalSuccessMultiplier);
+            if (currentTemplate.HasValue("failureMultiplier"))
+                double.TryParse(currentTemplate.GetValue("failureMultiplier"), out failureMultiplier);
+
+            //Background processing
+            if (currentTemplate.HasValue("enableBackgroundProcessing"))
+                bool.TryParse(currentTemplate.GetValue("enableBackgroundProcessing"), out enableBackgroundProcessing);
+            else
+                enableBackgroundProcessing = false;
+            if (enableBackgroundProcessing)
+                registerForBackgroundProcessing();
+            else
+                unregisterForBackgroundProcessing();
+
             //Reload the recipie
             this._recipe = this.LoadRecipe();
         }
@@ -355,7 +716,6 @@ namespace WildBlueIndustries
                     {
                         info.AppendLine("<b>" + definition.displayName + "</b>: " + formatRate(resourceRatio.Ratio));
                         info.AppendLine("Flow mode: " + getFlowModeDescription(resourceRatio.FlowMode));
-                        info.AppendLine("Dumps excess: " + resourceRatio.DumpExcess);
                     }
                     else
                     {
@@ -378,6 +738,36 @@ namespace WildBlueIndustries
                     if (definition != null)
                     {
                         info.AppendLine("<b>" + definition.displayName + "</b>: " + formatRate(resourceRatio.Ratio));
+                        info.AppendLine("Flow mode: " + getFlowModeDescription(resourceRatio.FlowMode));
+                        info.AppendLine("Dumps excess: " + resourceRatio.DumpExcess);
+                    }
+                    else
+                    {
+                        info.AppendLine("No definition for " + resourceRatio.ResourceName);
+                    }
+                }
+            }
+
+            //Yield
+            if (templateNode.HasNode("YIELD_RESOURCE"))
+            {
+                info.AppendLine("<color=lightblue><b>Produced over time</b></color>");
+                if (templateNode.HasValue("hoursPerCycle"))
+                {
+                    double productionTime = 0;
+                    double.TryParse(templateNode.GetValue("hoursPerCycle"), out productionTime);
+                    info.AppendLine(string.Format("Production Time: {0:n2}hrs", productionTime));
+                }
+
+                resourceNodes = templateNode.GetNodes("YIELD_RESOURCE");
+                for (int index = 0; index < resourceNodes.Length; index++)
+                {
+                    resourceRatio = new ResourceRatio();
+                    resourceRatio.Load(resourceNodes[index]);
+                    definition = ResourceHelper.DefinitionForResource(resourceRatio.ResourceName);
+                    if (definition != null)
+                    {
+                        info.AppendLine("<b>" + definition.displayName + "</b>: " + string.Format("{0:n2} units", resourceRatio.Ratio));
                         info.AppendLine("Flow mode: " + getFlowModeDescription(resourceRatio.FlowMode));
                         info.AppendLine("Dumps excess: " + resourceRatio.DumpExcess);
                     }
@@ -431,6 +821,13 @@ namespace WildBlueIndustries
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Setup Converter")]
         public void ToggleOpsView()
         {
+            if (templateManager.templateNodes.Length == 0)
+            {
+                ScreenMessages.PostScreenMessage("No templates to choose from", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                Events["ToggleOpsView"].active = false;
+                return;
+            }
+
             //Setup the ops view
             if (opsView == null)
             {
@@ -468,6 +865,7 @@ namespace WildBlueIndustries
             //Reconfigure skill
             if (!string.IsNullOrEmpty(reconfigureSkill))
                 GUILayout.Label("<color=white><b>Reconfigure Trait(s): </b>" + getRequiredTraits() + "</color>");
+
 
             //Search field
             GUILayout.BeginHorizontal();
@@ -584,6 +982,212 @@ namespace WildBlueIndustries
         #endregion
 
         #region Helpers
+        protected void updateBackgroundConverter()
+        {
+            if (enableBackgroundProcessing)
+            {
+                WBIBackgroundConverter backgroundConverter = WBIOmniManager.Instance.GetBackgroundConverter(this);
+                if (backgroundConverter != null)
+                {
+                    //Update vessel ID as that may have changed
+                    backgroundConverter.vesselID = this.part.vessel.id.ToString();
+
+                    //Reset the background processing flags since conditions may have changed.
+                    backgroundConverter.IsActivated = this.IsActivated;
+                    backgroundConverter.isMissingResources = false;
+                    backgroundConverter.isContainerFull = false;
+
+                    WBIOmniManager.Instance.UpdateBackgroundConverter(backgroundConverter);
+                }
+
+                //Background converter doesn't exist so create it.
+                else
+                {
+                    WBIOmniManager.Instance.RegisterBackgroundConverter(this);
+                }
+            }
+        }
+
+        protected void onVesselChange(Vessel vessel)
+        {
+            updateBackgroundConverter();
+        }
+
+        protected void onVesselDestroy(Vessel vessel)
+        {
+            if (vessel == this.part.vessel)
+            {
+                WBIOmniManager.Instance.UnregisterBackgroundConverter(this);
+            }
+        }
+
+        protected void registerForBackgroundProcessing()
+        {
+            WBIOmniManager.Instance.RegisterBackgroundConverter(this);
+        }
+
+        protected void unregisterForBackgroundProcessing()
+        {
+            WBIOmniManager.Instance.UnregisterBackgroundConverter(this);
+        }
+
+        protected void loadYieldResources()
+        {
+            if (this.part.partInfo.partConfig == null)
+                return;
+            ConfigNode[] nodes = this.part.partInfo.partConfig.GetNodes("MODULE");
+            ConfigNode node = null;
+
+            //Get the nodes we're interested in
+            nodes = currentTemplate.GetNodes("YIELD_RESOURCE");
+            if (nodes.Length == 0)
+                return;
+
+            //Ok, start processing the yield resources
+            yieldResources.Clear();
+            ResourceRatio yieldResource;
+            string resourceName;
+            double amount;
+            for (int index = 0; index < nodes.Length; index++)
+            {
+                node = nodes[index];
+                if (!node.HasValue("ResourceName"))
+                    continue;
+                resourceName = node.GetValue("ResourceName");
+
+                if (!node.HasValue("Ratio"))
+                    continue;
+                if (!double.TryParse(node.GetValue("Ratio"), out amount))
+                    continue;
+
+                yieldResource = new ResourceRatio(resourceName, amount, true);
+                yieldResource.FlowMode = ResourceFlowMode.ALL_VESSEL;
+
+                yieldResources.Add(yieldResource);
+            }
+        }
+        public virtual void PerformAnalysis()
+        {
+            //If we have no minimum success then just produce the yield resources.
+            if (minimumSuccess <= 0.0f)
+            {
+                produceYieldResources(1.0);
+                return;
+            }
+
+            //Ok, go through the analysis.
+            float analysisRoll = performAnalysisRoll();
+
+            if (analysisRoll <= criticalFail)
+                onCriticalFailure();
+
+            else if (analysisRoll >= criticalSuccess)
+                onCriticalSuccess();
+
+            else if (analysisRoll >= minimumSuccess)
+                onSuccess();
+
+            else
+                onFailure();
+
+        }
+
+        protected virtual float performAnalysisRoll()
+        {
+            float roll = 0.0f;
+
+            //Roll 3d6 to approximate a bell curve, then convert it to a value between 1 and 100.
+            roll = UnityEngine.Random.Range(1, 6);
+            roll += UnityEngine.Random.Range(1, 6);
+            roll += UnityEngine.Random.Range(1, 6);
+            roll *= 5.5556f;
+
+            //Done
+            return roll;
+        }
+
+        protected virtual void onCriticalFailure()
+        {
+            lastAttempt = attemptCriticalFail;
+
+            if (qualityControl != null)
+                qualityControl.DeclarePartBroken();
+            StopResourceConverter();
+
+            //Show user message
+            ScreenMessages.PostScreenMessage(ConverterName + ": " + criticalFailMessage, kMessageDuration);
+        }
+
+        protected virtual void onCriticalSuccess()
+        {
+            lastAttempt = attemptCriticalSuccess;
+            produceYieldResources(criticalSuccessMultiplier);
+
+            //Show user message
+            ScreenMessages.PostScreenMessage(ConverterName + ": " + criticalSuccessMessage, kMessageDuration);
+        }
+
+        protected virtual void onFailure()
+        {
+            lastAttempt = attemptFail;
+            produceYieldResources(failureMultiplier);
+
+            //Show user message
+            ScreenMessages.PostScreenMessage(ConverterName + ": " + failMessage, kMessageDuration);
+        }
+
+        protected virtual void onSuccess()
+        {
+            lastAttempt = attemptSuccess;
+            produceYieldResources(1.0);
+
+            //Show user message
+            ScreenMessages.PostScreenMessage(successMessage, kMessageDuration);
+        }
+
+        protected virtual void produceYieldResources(double yieldMultiplier)
+        {
+            int count = yieldResources.Count;
+            ResourceRatio resourceRatio;
+            double yieldAmount = 0;
+            string resourceName;
+            double highestSkill = 0;
+
+            //Find highest skill bonus
+            if (UseSpecialistBonus && !string.IsNullOrEmpty(ExperienceEffect))
+            {
+                List<ProtoCrewMember> crewMembers = this.part.vessel.GetVesselCrew();
+
+                int crewCount = crewMembers.Count;
+                for (int index = 0; index < crewCount; index++)
+                {
+                    if (crewMembers[index].HasEffect(ExperienceEffect))
+                    {
+                        if (crewMembers[index].experienceLevel > highestSkill)
+                            highestSkill = crewMembers[index].experienceTrait.CrewMemberExperienceLevel();
+                    }
+                }
+            }
+
+            //Produce the yield resources
+            for (int index = 0; index < count; index++)
+            {
+                yieldAmount = 0;
+                resourceRatio = yieldResources[index];
+
+                resourceName = resourceRatio.ResourceName;
+                yieldAmount = resourceRatio.Ratio * (1.0 + (highestSkill * SpecialistEfficiencyFactor)) * yieldMultiplier;
+
+                this.part.RequestResource(resourceName, -yieldAmount, resourceRatio.FlowMode);
+            }
+        }
+
+        public virtual void CalculateProgress()
+        {
+            //Get elapsed time (seconds)
+            progress = string.Format("{0:f1}%", ((elapsedTime / secondsPerCycle) * 100));
+        }
+
         protected string getFlowModeDescription(ResourceFlowMode flowMode)
         {
             switch (flowMode)

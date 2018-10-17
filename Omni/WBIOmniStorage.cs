@@ -18,6 +18,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
+    public struct ComboRatio
+    {
+        public float ratio;
+        public double maxAmountMultiplier;
+    }
+
+    [KSPModule("Omni Storage")]
     public class WBIOmniStorage : PartModule, IOpsView
     {
         const string kKISResource = "KIS Inventory";
@@ -114,9 +121,10 @@ namespace WildBlueIndustries
         private WBIKISInventoryWrapper inventory;
         private WBISingleOpsView opsView;
         private float adjustedVolume = 0.0f;
-        private List<Dictionary<string, float>> resourceCombos = new List<Dictionary<string, float>>();
+        private List<Dictionary<string, ComboRatio>> resourceCombos = new List<Dictionary<string, ComboRatio>>();
         private string searchText = string.Empty;
         private bool updateSymmetry;
+        private bool synchronizeComboResources = true;
         #endregion
 
         #region Events
@@ -344,6 +352,8 @@ namespace WildBlueIndustries
                 {
                     displayName = kKISResource;
                     resourceName = kKISResource;
+                    if (isComboResource(kKISResource))
+                        displayName += "*";
                 }
                 else
                 {
@@ -352,6 +362,8 @@ namespace WildBlueIndustries
                     if (string.IsNullOrEmpty(displayName))
                         displayName = definition.name;
                     resourceName = definition.name;
+                    if (isComboResource(definition.name))
+                        displayName += "*";
                 }
 
                 //Display label
@@ -380,6 +392,9 @@ namespace WildBlueIndustries
                 }
             }
             GUILayout.EndScrollView();
+
+            //Decouple resource combo toggle
+            synchronizeComboResources = GUILayout.Toggle(synchronizeComboResources, "* Synchronize combo resources");
 
             //Clean up any resources removed from the lineup.
             int doomedCount = doomedResources.Count;
@@ -600,14 +615,16 @@ namespace WildBlueIndustries
             ConfigNode resourceNode = null;
             string resourceName = null;
             float ratio = 0.0f;
-            Dictionary<string, float> comboRatios = null;
+            double maxAmountMultiplier = 1.0;
+            ComboRatio comboRatio;
+            Dictionary<string, ComboRatio> comboRatios = null;
 
             for (int index = 0; index < comboNodes.Length; index++)
             {
                 comboNode = comboNodes[index];
 
                 resourceNodes = comboNode.GetNodes("RESOURCE");
-                comboRatios = new Dictionary<string, float>();
+                comboRatios = new Dictionary<string, ComboRatio>();
                 for (int nodeIndex = 0; nodeIndex < resourceNodes.Length; nodeIndex++)
                 {
                     //Get the resource node
@@ -623,8 +640,16 @@ namespace WildBlueIndustries
                         continue;
                     float.TryParse(resourceNode.GetValue("ratio"), out ratio);
 
+                    //Get the multiplier
+                    maxAmountMultiplier = 1.0;
+                    if (resourceNode.HasValue("maxAmountMultiplier"))
+                        double.TryParse(resourceNode.GetValue("maxAmountMultiplier"), out maxAmountMultiplier);
+
                     //Add the resource to the dictionary
-                    comboRatios.Add(resourceName, ratio);
+                    comboRatio = new ComboRatio();
+                    comboRatio.ratio = ratio;
+                    comboRatio.maxAmountMultiplier = maxAmountMultiplier;
+                    comboRatios.Add(resourceName, comboRatio);
                 }
 
                 //Add the combo to the list.
@@ -633,7 +658,27 @@ namespace WildBlueIndustries
             }
         }
 
-        protected Dictionary<string, float> findComboPattern()
+        protected bool isComboResource(string resourceName)
+        {
+            int comboCount = resourceCombos.Count;
+            if (comboCount == 0)
+            {
+                return false;
+            }
+
+            Dictionary<string, ComboRatio> comboRatios = null;
+            for (int index = 0; index < comboCount; index++)
+            {
+                comboRatios = resourceCombos[index];
+
+                if (comboRatios.Keys.Contains(resourceName))
+                    return true;
+            }
+
+            return false;
+        }
+
+        protected Dictionary<string, ComboRatio> findComboPattern()
         {
             int comboCount = resourceCombos.Count;
             if (comboCount == 0)
@@ -641,7 +686,7 @@ namespace WildBlueIndustries
                 Debug.Log("no combos loaded");
                 return null;
             }
-            Dictionary<string, float> comboRatios = null;
+            Dictionary<string, ComboRatio> comboRatios = null;
             bool foundMatch;
             string[] comboResourceNames;
 
@@ -674,7 +719,7 @@ namespace WildBlueIndustries
         protected void applyComboPatternRatios()
         {
             //Find a resource combo that matches our current resource set
-            Dictionary<string, float> comboRatios = findComboPattern();
+            Dictionary<string, ComboRatio> comboRatios = findComboPattern();
             if (comboRatios == null)
                 return;
 
@@ -685,17 +730,25 @@ namespace WildBlueIndustries
                 totalUnits += previewResources[keys[index]];
 
             //Go through all the combo pattern ratios and adjust the preview units
+            ComboRatio comboRatio;
+            string resourceName;
             for (int index = 0; index < keys.Length; index++)
-                previewResources[keys[index]] = totalUnits * comboRatios[keys[index]];
+            {
+                resourceName = keys[index];
+                comboRatio = comboRatios[resourceName];
+                previewResources[keys[index]] = (totalUnits * comboRatio.ratio) * comboRatio.maxAmountMultiplier;
+            }
         }
 
         protected void updateResourceComboRatios(string updatedResource)
         {
             //Find a resource combo that matches our current resource set
-            Dictionary<string, float> comboRatios = findComboPattern();
+            Dictionary<string, ComboRatio> comboRatios = findComboPattern();
             if (comboRatios == null)
                 return;
             if (!comboRatios.ContainsKey(updatedResource))
+                return;
+            if (!synchronizeComboResources)
                 return;
 
             float ratio = previewRatios[updatedResource];

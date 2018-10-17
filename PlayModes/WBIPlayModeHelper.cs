@@ -243,12 +243,13 @@ namespace WildBlueIndustries
             return -1;
         }
 
-        protected void updateTemplates(string modeName)
+        protected void updateTemplates(string playModeName)
         {
             ConfigNode playNode;
             string[] filePaths;
-            int selectedIndex = GetPlayModeIndex(modeName);
+            int selectedIndex = GetPlayModeIndex(playModeName);
             bool asTextFile = false;
+            string nodeName = string.Empty;
 
             //Go through all the Play Mode config files and rename them.
             //This only applies to WBIPLAYMODE nodes.
@@ -262,7 +263,11 @@ namespace WildBlueIndustries
 
                 //Get the file paths for all the config files in the play mode
                 filePaths = playNode.GetValues("templatePath");
-                asTextFile = playNode.GetValue("name") == modeName ? false : true;
+                nodeName = playNode.GetValue("name");
+                if (nodeName == playModeName)
+                    asTextFile = false;
+                else
+                    asTextFile = true;
 
                 //Sort through the file list and find one that ends with .cfg. That will indicate which play mode is active.
                 foreach (string filePath in filePaths)
@@ -286,7 +291,11 @@ namespace WildBlueIndustries
                     continue;
 
                 filePaths = extensionNode.GetValues("templatePath");
-                asTextFile = extensionNode.GetValue("name") == modeName ? false : true;
+                nodeName = extensionNode.GetValue("name");
+                if (extensionNode.GetValue("name") == playModeName)
+                    asTextFile = false;
+                else
+                    asTextFile = true;
 
                 foreach (string filePath in filePaths)
                 {
@@ -306,17 +315,26 @@ namespace WildBlueIndustries
             filePathNames = Directory.GetFiles(filePath);
             if (filePathNames.Length > 0)
             {
-                foreach (string filePathName in filePathNames)
+                try
                 {
-                    if (asTextFile && filePathName.EndsWith(".cfg"))
+                    foreach (string filePathName in filePathNames)
                     {
-                        System.IO.File.Move(filePathName, Path.ChangeExtension(filePathName, ".txt"));
-                    }
-                    else if (filePathName.EndsWith(".txt"))
-                    {
-                        System.IO.File.Move(filePathName, Path.ChangeExtension(filePathName, ".cfg"));
-                    }
+                        if (asTextFile)
+                        {
+                            Debug.Log("Renaming " + filePathName + " to have txt extension");
+                            System.IO.File.Move(filePathName, Path.ChangeExtension(filePathName, ".txt"));
+                        }
+                        else
+                        {
+                            Debug.Log("Renaming " + filePathName + " to have cfg extension");
+                            System.IO.File.Move(filePathName, Path.ChangeExtension(filePathName, ".cfg"));
+                        }
 
+                    }
+                }
+                catch (System.IO.IOException ex)
+                {
+                    Debug.Log(ex);
                 }
             }
 

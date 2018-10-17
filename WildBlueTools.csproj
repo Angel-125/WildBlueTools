@@ -66,8 +66,10 @@
     <Compile Include="Contracts\WBIKerbalStayParam.cs" />
     <Compile Include="Converters\WBIGasTurbine.cs" />
     <Compile Include="Converters\WBIModuleResourceHarvester.cs" />
-    <Compile Include="Converters\WBIOmniConverter.cs" />
+    <Compile Include="Omni\WBIOmniManager.cs" />
+    <Compile Include="Omni\WBIOmniConverter.cs" />
     <Compile Include="GUI\HarvestView.cs" />
+    <Compile Include="Omni\WBIBackgroundConverter.cs" />
     <Compile Include="Wrappers\KIS\WBIKISInventoryManager.cs" />
     <Compile Include="Parts\WBIModuleAsteroidResource.cs" />
     <Compile Include="PlayModes\PlayModesWindow.cs" />
@@ -177,7 +179,7 @@
     <Compile Include="ToolTips\WBIToolTipView.cs" />
     <Compile Include="Wrappers\KIS\WBIKISAddonConfig.cs" />
     <Compile Include="Wrappers\KIS\WBIKISWrapper.cs" />
-    <Compile Include="Switchers\WBIOmniStorage.cs" />
+    <Compile Include="Omni\WBIOmniStorage.cs" />
     <Compile Include="GUI\WBISingleOpsView.cs" />
     <Compile Include="Submarine\WBIBallastTank.cs" />
     <Compile Include="Submarine\WBIAquaticRCS.cs" />
