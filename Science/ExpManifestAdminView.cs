@@ -34,7 +34,7 @@ namespace WildBlueIndustries
         public WBIModuleScienceExperiment[] experimentSlots = null;
         public Part part = null;
         public WBIExperimentLab experimentLab = null;
-        public LoadExperimentView loadExperimentView = new LoadExperimentView();
+        public LoadExperimentView loadExperimentView;
         public bool canCreateExperiments;
         public bool needsConnectionToKSC;
         public string experimentCreationSkill = string.Empty;
@@ -60,6 +60,7 @@ namespace WildBlueIndustries
             base("Experiment Manifest", 600, 330)
         {
             Resizable = false;
+            loadExperimentView = new LoadExperimentView();
         }
 
         public void SetupView(Part parentPart, bool showExperimentStatus, bool showLabGUI, WBIExperimentLab lab = null)

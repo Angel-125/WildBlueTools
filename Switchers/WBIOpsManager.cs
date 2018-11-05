@@ -54,9 +54,12 @@ namespace WildBlueIndustries
             opsManagerView.part = this.part;
             opsManagerView.storageView = this.storageView;
             opsManagerView.setActiveConverterCount = setActiveConverterCount;
+            opsManagerView.isAssembled = (this.isInflatable && this.isDeployed) || !this.isInflatable;
+            opsManagerView.fieldReconfigurable = this.fieldReconfigurable;
 
             base.OnStart(state);
             Events["ReconfigureStorage"].guiName = "Manage Operations";
+            Events["ReconfigureStorage"].active = (this.isInflatable && this.isDeployed) || !this.isInflatable;
         }
 
         public void Destroy()
@@ -145,28 +148,15 @@ namespace WildBlueIndustries
         public override void ReconfigureStorage()
         {
             setupStorageView(CurrentTemplateIndex);
+            setupOpsView();
             opsManagerView.SetVisible(true);
         }
 
-        public override void OnUpdate()
+        public override void ToggleInflation()
         {
-            base.OnUpdate();
-
-            //Show/hide the inflate/deflate button depending upon whether or not crew is aboard
-            if (isInflatable && HighLogic.LoadedSceneIsFlight)
-            {
-                if (this.part.protoModuleCrew.Count() > 0)
-                {
-                    Events["ToggleInflation"].guiActive = false;
-                    Events["ToggleInflation"].guiActiveUnfocused = false;
-                }
-
-                else
-                {
-                    Events["ToggleInflation"].guiActive = true;
-                    Events["ToggleInflation"].guiActiveUnfocused = true;
-                }
-            }
+            base.ToggleInflation();
+            Events["ReconfigureStorage"].active = (this.isInflatable && this.isDeployed) || !this.isInflatable;
+            opsManagerView.isAssembled = (this.isInflatable && this.isDeployed) || !this.isInflatable;
         }
 
         protected override void loadModulesFromTemplate(ConfigNode templateNode)
@@ -198,6 +188,9 @@ namespace WildBlueIndustries
             opsManagerView.part = this.part;
             opsManagerView.storageView = this.storageView;
             opsManagerView.setActiveConverterCount = setActiveConverterCount;
+            opsManagerView.fieldReconfigurable = this.fieldReconfigurable;
+            opsManagerView.qualityControl = this.qualityControl;
+            opsManagerView.isAssembled = (this.isInflatable && this.isDeployed) || !this.isInflatable;
         }
     }
 }

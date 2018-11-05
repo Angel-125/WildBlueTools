@@ -45,6 +45,7 @@ namespace WildBlueIndustries
         public void StartExperiment()
         {
             isRunning = true;
+            isCompleted = false;
             Events["StopExperiment"].active = true;
             Events["StartExperiment"].active = false;
             rebuildResourceMap();
@@ -86,6 +87,13 @@ namespace WildBlueIndustries
         {
             base.OnUpdate();
 
+            //Check auto restart field.
+            if (!rerunnable && Fields["autoRestartExperiment"].guiActive && HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
+            {
+                Fields["autoRestartExperiment"].guiActive = false;
+                Fields["autoRestartExperiment"].guiActiveEditor = false;
+            }
+
             //If we're not in flight, then we're done.
             if (HighLogic.LoadedSceneIsFlight == false)
                 return;
@@ -98,6 +106,11 @@ namespace WildBlueIndustries
             //If the experiment isn't running then we're done.
             if (!isRunning)
             {
+                //Check for reset
+                if (isCompleted && !rerunnable && (resettable || resettableOnEVA) && !Events["ResetExperiment"].active && !Events["ResetExperimentExternal"].active && !Events["StartExperiment"].active)
+                {
+                    Events["StartExperiment"].active = true;
+                }
                 return;
             }
 
@@ -105,15 +118,22 @@ namespace WildBlueIndustries
             if (isCompleted)
             {
                 StopExperiment();
-                isRunning = false;
-                Events["StopExperiment"].active = false;
                 Events["ReviewDataEvent"].active = true;
                 Events["TransferDataEvent"].active = true;
+                if (!rerunnable)
+                    Events["StartExperiment"].active = false;
                 status = "Completed";
+
                 if (autoRestartExperiment)
                 {
                     ResetExperiment();
                     StartExperiment();
+                }
+                else
+                {
+                    ModuleResourceConverter converter = this.part.FindModuleImplementing<ModuleResourceConverter>();
+                    if (converter != null && converter.IsActivated)
+                        converter.StopResourceConverter();
                 }
                 return;
             }

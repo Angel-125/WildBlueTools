@@ -209,6 +209,12 @@ namespace WildBlueIndustries
         #endregion
 
         #region Housekeeping
+        [KSPField]
+        public int minimumVesselPercentEC = 5;
+        private double minECLevel = 0;
+        private bool checkECLevel;
+        PartResourceDefinition resourceDef = null;
+
         public ConfigNode currentTemplate;
         public ConfigNode viewedTemplate;
         public int templateIndex;
@@ -247,7 +253,8 @@ namespace WildBlueIndustries
             base.OnLoad(node);
 
             //Setup the template manager if needed
-            setupTemplateManager();
+            if (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER)
+                setupTemplateManager();
         }
 
         public void Destroy()
@@ -378,6 +385,19 @@ namespace WildBlueIndustries
                 return;
             if (!IsActivated)
                 return;
+
+            //Check minimum EC levels
+            if (checkECLevel)
+            {
+                double amount = 0;
+                double maxAmount = 0;
+                this.part.GetConnectedResourceTotals(resourceDef.id, out amount, out maxAmount, true);
+                if ((amount / maxAmount) < minECLevel)
+                {
+                    StopResourceConverter();
+                    return;
+                }
+            }
 
             //Play the runningEffect
             if (!string.IsNullOrEmpty(runningEffect))
@@ -608,6 +628,15 @@ namespace WildBlueIndustries
                     resourceRatio = new ResourceRatio();
                     resourceRatio.Load(resourceNodes[index]);
                     inputList.Add(resourceRatio);
+
+                    //Check for EC input
+                    if (resourceRatio.ResourceName == "ElectricCharge" && minimumVesselPercentEC > 0)
+                    {
+                        PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
+                        resourceDef = definitions["ElectricCharge"];
+                        minECLevel = (double)minimumVesselPercentEC / 100.0f;
+                        checkECLevel = true;
+                    }
                 }
             }
 
@@ -1035,7 +1064,9 @@ namespace WildBlueIndustries
         {
             if (this.part.partInfo.partConfig == null)
                 return;
-            ConfigNode[] nodes = this.part.partInfo.partConfig.GetNodes("MODULE");
+            if (currentTemplate == null)
+                return;
+            ConfigNode[] nodes = null;
             ConfigNode node = null;
 
             //Get the nodes we're interested in

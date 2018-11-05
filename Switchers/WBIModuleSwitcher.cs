@@ -51,6 +51,7 @@ namespace WildBlueIndustries
                 return;
 
             //Save the module settings, we'll need these for later.
+            moduleSettings.Clear();
             foreach (ConfigNode moduleNode in moduleNodes)
                 moduleSettings.Add(moduleNode);
         }
@@ -310,9 +311,6 @@ namespace WildBlueIndustries
                     continue;
                 }
             }//foreach
-
-            //Clear the module settings after loading all the part modules
-            moduleSettings.Clear();
         }
         #endregion
     }

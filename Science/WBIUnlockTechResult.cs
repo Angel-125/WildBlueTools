@@ -22,6 +22,7 @@ namespace WildBlueIndustries
 {
     public class WBIUnlockTechResult: PartModule, IWBIExperimentResults
     {
+        public const string kUnlockTechNodeMsg = "Technological breakthrough! Research results have discovered the secrets to ";
         public const string kUnlockOnePartMsg = "Technological breakthrough! Research results have created an experimental ";
         public const string kUnlockManyPartsMsg = "Technological breakthrough! Research results have created one or more experimental parts found in ";
         public const float kMessageDuration = 6.0f;
@@ -84,95 +85,75 @@ namespace WildBlueIndustries
                 return;
             }
 
-            //Get the locked parts
-            getTechTreeTitles();
-            AvailablePart[] loadedParts = getLockedParts();
-            if (loadedParts == null || loadedParts.Length == 0)
-            {
-                Log("No parts to unlock. Exiting.");
+            //Get the list of unavailable nodes and their tech IDs
+            List<ProtoTechNode> unavailableNodes = AssetBase.RnDTechTree.GetNextUnavailableNodes();
+            if (unavailableNodes.Count <= 0)
                 return;
+            ProtoTechNode node;
+            int index = 0;
+            Dictionary<string, int> techNodes = new Dictionary<string, int>();
+            for (index = 0; index < unavailableNodes.Count; index++)
+            {
+                if (techNodes.ContainsKey(unavailableNodes[index].techID) == false)
+                    techNodes.Add(unavailableNodes[index].techID, index);
             }
 
-            //Build the priority list
-            int index = 0;
-            string nodeID;
+            //Unlock the first tech node on our priority list that hasn't been unlocked yet.
+            char[] delimiters = new char[] { ';' };
             if (!string.IsNullOrEmpty(priorityNodes))
             {
-                char[] delimiters = new char[] {';'};
                 string[] priorityList = priorityNodes.Split(delimiters);
                 Log("priorityList length: " + priorityList.Length);
 
-                //Unlock all the parts in all the nodes on the priority list if needed
-                if (unlockAll)
+                for (index = 0; index < priorityList.Length; index++)
                 {
-                    for (index = 0; index < priorityList.Length; index++)
+                    //Check the compiled list for the tech item we're interested in
+                    //If we find one, the unlock the node
+                    if (techNodes.ContainsKey(priorityList[index]))
                     {
-                        nodeID = priorityList[index];
+                        node = unavailableNodes[techNodes[priorityList[index]]];
+                        ResearchAndDevelopment.Instance.UnlockProtoTechNode(node);
+                        ResearchAndDevelopment.RefreshTechTreeUI();
 
-                        //Flag parts as experimental
-                        for (int partIndex = 0; partIndex < loadedParts.Length; partIndex++)
-                        {
-                            if (loadedParts[partIndex].TechRequired == nodeID)
-                                ResearchAndDevelopment.AddExperimentalPart(loadedParts[partIndex]);
-                        }
-
-                        //Inform player
-                        ScreenMessages.PostScreenMessage(kUnlockManyPartsMsg + techTitles[nodeID], kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
-                    }
-
-                    //Done
-                    return;
-                }
-
-                //Find the first node on the list that isn't unlocked, and flag its parts as experimental.
-                //If all the nodes are unlocked, then fall through and randomly unlock a part.
-                else
-                {
-                    bool partWasUnlocked = false;
-                    while (index < priorityList.Length)
-                    {
-                        nodeID = priorityList[index];
-                        Debug.Log("Checking nodeID: " + nodeID);
-
-                        if (ResearchAndDevelopment.GetTechnologyState(nodeID) == RDTech.State.Unavailable)
-                        {
-                            //Flag the parts as experimental
-                            for (int partIndex = 0; partIndex < loadedParts.Length; partIndex++)
-                            {
-                                if (loadedParts[partIndex].TechRequired == nodeID)
-                                {
-                                    ResearchAndDevelopment.AddExperimentalPart(loadedParts[partIndex]);
-                                    partWasUnlocked = true;
-                                }
-                            }
-
-                            //Inform player
-                            if (partWasUnlocked)
-                            {
-                                ScreenMessages.PostScreenMessage(kUnlockManyPartsMsg + techTitles[nodeID], kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
-                                return;
-                            }
-                            else
-                            {
-                                index += 1;
-                                if (index >= priorityList.Length)
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            index += 1;
-                            if (index >= priorityList.Length)
-                                break;
-                        }
+                        ScreenMessages.PostScreenMessage(kUnlockTechNodeMsg + ResearchAndDevelopment.GetTechnologyTitle(node.techID), kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+                        return;
                     }
                 }
             }
 
-            //Ok, at this point we need to try and unlock a random part.
-            index = UnityEngine.Random.Range(1, loadedParts.Length - 1);
-            ResearchAndDevelopment.AddExperimentalPart(loadedParts[index]);
-            ScreenMessages.PostScreenMessage(kUnlockOnePartMsg + loadedParts[index].title, kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+            //Ok, at this point we need to try and unlock a random node.
+            //If we have no blacklisted nodes then just select one at random.
+            if (string.IsNullOrEmpty(blacklistNodes))
+            {
+                index = UnityEngine.Random.Range(0, unavailableNodes.Count);
+                node = unavailableNodes[index];
+                ResearchAndDevelopment.Instance.UnlockProtoTechNode(node);
+                ResearchAndDevelopment.RefreshTechTreeUI();
+
+                ScreenMessages.PostScreenMessage(kUnlockTechNodeMsg + ResearchAndDevelopment.GetTechnologyTitle(node.techID), kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+            }
+
+            //We must skip any nodes that are blacklisted.
+            //We have a maximum number of tries equal to the number of blacklisted nodes.
+            else
+            {
+                string[] nodesBlacklisted = blacklistNodes.Split(delimiters);
+                int nodeIndex = -1;
+                for (index = 0; index < nodesBlacklisted.Length; index++)
+                {
+                    nodeIndex = UnityEngine.Random.Range(0, unavailableNodes.Count);
+                    node = unavailableNodes[nodeIndex];
+
+                    if (!blacklistNodes.Contains(node.techID))
+                    {
+                        ResearchAndDevelopment.Instance.UnlockProtoTechNode(node);
+                        ResearchAndDevelopment.RefreshTechTreeUI();
+
+                        ScreenMessages.PostScreenMessage(kUnlockTechNodeMsg + ResearchAndDevelopment.GetTechnologyTitle(node.techID), kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+                        return;
+                    }
+                }
+            }
         }
 
         protected AvailablePart[] getLockedParts()

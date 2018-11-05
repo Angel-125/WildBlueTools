@@ -33,7 +33,7 @@ namespace WildBlueIndustries
 
         //Name of the template nodes.
         [KSPField()]
-        public string templateNodes = string.Empty;
+        public string templateNodes = "EMPTY";
 
         //Name of the template types allowed
         [KSPField()]
@@ -45,7 +45,7 @@ namespace WildBlueIndustries
 
         //Used when, say, we're in the editor, and we don't get no game-saved values from perisistent.
         [KSPField()]
-        public string defaultTemplate = string.Empty;
+        public string defaultTemplate = "Empty";
 
         //Base amount of volume the part stores, if any.
         [KSPField()]
@@ -64,7 +64,7 @@ namespace WildBlueIndustries
         //capacityFactor is used to determine how much of the template's base resource amount
         //applies to the container.
         [KSPField(isPersistant = true)]
-        public float capacityFactor = 0f;
+        public float capacityFactor = 1.0f;
 
         //Resources added by an omni storage
         [KSPField(isPersistant = true)]
@@ -261,6 +261,9 @@ namespace WildBlueIndustries
         {
             get
             {
+                if (templateManager == null)
+                    return "Unknown";
+
                 ConfigNode currentTemplate = templateManager[CurrentTemplateIndex];
 
                 if (currentTemplate != null)
@@ -1345,7 +1348,10 @@ namespace WildBlueIndustries
         #region IPartMassModifier
         public virtual float CalculatePartMass(float defaultMass, float currentPartMass)
         {
-            if (isInflatable && !isDeployed)
+            //To avoid problems with animated collider interactions, we don't update part mass while the part's animation is running.
+            if (isMoving)
+                return part.partInfo.partPrefab.mass * -0.9f;
+            else if (isInflatable && !isDeployed)
                 return 0;
             if (partMass > 0.001f)
                 return partMass;

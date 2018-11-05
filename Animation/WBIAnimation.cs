@@ -300,28 +300,20 @@ namespace WildBlueIndustries
         {
             if (string.IsNullOrEmpty(animationName))
                 return;
+            if (animation == null)
+                return;
 
             float animationSpeed = playInReverse == false ? 1.0f : -1.0f;
-            Animation anim = this.part.FindModelAnimators(animationName)[0];
+
+            if (HighLogic.LoadedSceneIsFlight)
+                animation[animationName].speed = animationSpeed;
+            else
+                animation[animationName].speed = animationSpeed * 1000;
 
             if (playInReverse)
-            {
-                anim[animationName].time = anim[animationName].length;
-                if (HighLogic.LoadedSceneIsFlight)
-                    anim[animationName].speed = animationSpeed;
-                else
-                    anim[animationName].speed = animationSpeed * 100;
-                anim.Play(animationName);
-            }
+                animation[animationName].time = animation[animationName].length;
 
-            else
-            {
-                if (HighLogic.LoadedSceneIsFlight)
-                    anim[animationName].speed = animationSpeed;
-                else
-                    anim[animationName].speed = animationSpeed * 100;
-                anim.Play(animationName);
-            }
+            animation.Play(animationName);
 
             isMoving = true;
             playStart();

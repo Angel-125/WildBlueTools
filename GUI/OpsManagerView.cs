@@ -34,7 +34,11 @@ namespace WildBlueIndustries
         public bool isBroken;
         public bool isMothballed;
         public bool hasDecals;
+        public bool fieldReconfigurable;
         public int activeConverterCount;
+        public bool isAssembled;
+        public bool showResources = true;
+        public bool showCommand = true;
         public Part part;
         public ConvertibleStorageView storageView;
         public List<ModuleResourceConverter> converters = new List<ModuleResourceConverter>();
@@ -71,6 +75,8 @@ namespace WildBlueIndustries
 
             if (newValue)
             {
+                GetPartModules();
+
                 UpdateButtonTabs();
 
                 //Set initial view
@@ -168,7 +174,8 @@ namespace WildBlueIndustries
                     break;
 
                 case "Quality Control":
-                    drawQualityControl();
+                    if (qualityControl != null)
+                        drawQualityControl();
                     break;
 
                 default:
@@ -189,12 +196,13 @@ namespace WildBlueIndustries
             UpdateConverters();
             GetPartModules();
 
-            buttonLabels.Add("Config");
+            if (fieldReconfigurable)
+                buttonLabels.Add("Config");
 
-            if (commandModule != null || lightModule != null || switcher.decalsVisible)
+            if ((commandModule != null || lightModule != null || switcher.decalsVisible) && (showCommand))
                 buttonLabels.Add("Command");
 
-            if (resourceCount > 0)
+            if (resourceCount > 0 && showResources)
                 buttonLabels.Add("Resources");
 
             if (converters.Count > 0)
@@ -215,6 +223,12 @@ namespace WildBlueIndustries
         int partModuleCount;
         protected override void DrawWindowContents(int windowId)
         {
+            if (!this.isAssembled)
+            {
+                GUILayout.Label("<color=yellow><b>" + this.part.partInfo.title + " needs to be assembled before commencing operations. </b></color>");
+                return;
+            }
+
             //HACK! Recent version of KSP has broken something in the scripting. Even though WBIOpsManager tells the view to UpdateButtonTabs, and they DO update,
             //when we draw the window contents, it's as if the drawable views haven't been updated. It is VERY puzzling. The part itself has an updated
             //part module count though, and we can use that to determine if anything has changed. If so, then we can refresh our button tabs and such before drawing.
@@ -227,20 +241,27 @@ namespace WildBlueIndustries
             GUILayout.BeginHorizontal();
 
             //View buttons
-            _scrollPosViews = GUILayout.BeginScrollView(_scrollPosViews, new GUILayoutOption[] { GUILayout.Width(160) });
-            int totalViews = views.Count;
-            SDrawbleView drawableView;
-            for (int index = 0; index < totalViews; index++)
+            if (views.Count > 1)
             {
-                drawableView = views[index];
-
-                if (GUILayout.Button(drawableView.buttonLabel))
+                _scrollPosViews = GUILayout.BeginScrollView(_scrollPosViews, new GUILayoutOption[] { GUILayout.Width(160) });
+                int totalViews = views.Count;
+                SDrawbleView drawableView;
+                for (int index = 0; index < totalViews; index++)
                 {
-                    _scrollPosViews = new Vector2();
-                    currentDrawableView = drawableView;
+                    drawableView = views[index];
+
+                    if (GUILayout.Button(drawableView.buttonLabel))
+                    {
+                        _scrollPosViews = new Vector2();
+                        currentDrawableView = drawableView;
+                    }
                 }
+                GUILayout.EndScrollView();
             }
-            GUILayout.EndScrollView();
+            else
+            {
+                currentDrawableView = views[0];
+            }
 
             //CurrentView
             currentDrawableView.view.DrawOpsWindow(currentDrawableView.buttonLabel);
@@ -334,6 +355,10 @@ namespace WildBlueIndustries
 
         protected void drawCommandView()
         {
+            commandModule = this.part.FindModuleImplementing<ModuleCommand>();
+            switcher = this.part.FindModuleImplementing<WBIResourceSwitcher>();
+            lightModule = this.part.FindModuleImplementing<WBILight>();
+
             GUILayout.BeginVertical();
 
             GUILayout.BeginScrollView(new Vector2(), new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
@@ -359,13 +384,13 @@ namespace WildBlueIndustries
             //Toggle Decals
             if (switcher != null)
             {
-                if (GUILayout.Button("Toggle Decals"))
-                    switcher.ToggleDecals();
-            }
+                if (!string.IsNullOrEmpty(switcher.logoPanelTransforms))
+                {
+                    if (GUILayout.Button("Toggle Decals"))
+                        switcher.ToggleDecals();
+                }
 
-            //Dump Resources
-            if (switcher != null)
-            {
+                //Dump Resources
                 if (GUILayout.Button("Dump Resources"))
                     switcher.DumpResources();
             }

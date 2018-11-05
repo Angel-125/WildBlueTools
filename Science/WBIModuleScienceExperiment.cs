@@ -39,6 +39,7 @@ namespace WildBlueIndustries
     [KSPModule("Science Experiment")]
     public class WBIModuleScienceExperiment : ModuleScienceExperiment
     {
+        #region Fields
         [KSPField(isPersistant = true)]
         public string overrideExperimentID = string.Empty;
 
@@ -127,6 +128,14 @@ namespace WildBlueIndustries
         [UI_Toggle(enabledText = "Yes", disabledText = "No")]
         public bool autoRestartExperiment;
 
+        [KSPField]
+        public string decalTransform = string.Empty;
+
+        [KSPField]
+        public string decalPath = string.Empty;
+        #endregion
+
+        #region Housekeeping
         public event ExperimentTransferedEvent onExperimentTransfered;
         public event TransferReceivedEvent onExperimentReceived;
 
@@ -138,12 +147,51 @@ namespace WildBlueIndustries
         protected bool hasRequiredParts;
         protected ConfigNode nodeCompletionHandler = null;
         protected string partsList = string.Empty;
+        protected InfoView infoView;
+        #endregion
 
+        #region PAW Events
+        [KSPEvent(guiName = "Show Synopsis", guiActiveEditor = true, guiActive = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        public void ShowSynopsis()
+        {
+            //Set info text
+            infoView.ModuleInfo = this.GetInfo();
+
+            //Show view
+            infoView.SetVisible(true);
+        }
+
+        [KSPEvent(guiName = "Start Experiment", guiActive = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        public void StartExperiment()
+        {
+            isRunning = true;
+            isCompleted = false;
+            Events["StopExperiment"].active = true;
+            Events["StartExperiment"].active = false;
+            rebuildResourceMap();
+        }
+
+        [KSPEvent(guiName = "Stop Experiment", guiActive = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        public void StopExperiment()
+        {
+            isRunning = false;
+            status = "Ready to run";
+            Events["StopExperiment"].active = false;
+            Events["StartExperiment"].active = true;
+        }
+        #endregion
+
+        #region Overrides
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);
+
             if (!string.IsNullOrEmpty(overrideExperimentID))
                 LoadFromDefinition(overrideExperimentID);
+            else
+                LoadFromDefinition(experimentID);
+
+            setupDecal();
         }
 
         public override void OnSave(ConfigNode node)
@@ -156,6 +204,9 @@ namespace WildBlueIndustries
             //For some reason accumulatedResources isn't being updated properly when saved, so we'll do it explicitly.
             if (node.HasValue("accumulatedResources"))
                 node.SetValue("accumulatedResources", accumulatedResources);
+
+            if (node.HasValue("overrideExperimentID"))
+                node.SetValue("overrideExperimentID", overrideExperimentID);
         }
 
         public override void OnStart(StartState state)
@@ -167,6 +218,7 @@ namespace WildBlueIndustries
                 LoadFromDefinition(overrideExperimentID);
 
             SetGUIVisible(isGUIVisible);
+            infoView = new InfoView();
 
             //Required resources
             rebuildResourceMap();
@@ -178,11 +230,22 @@ namespace WildBlueIndustries
                 for (int resourceIndex = 0; resourceIndex < resources.Length; resourceIndex++)
                     resources[resourceIndex].amount = 0f;
             }
+
+            if (HighLogic.LoadedSceneIsEditor)
+                GameEvents.onEditorPartPlaced.Add(onPartPlaced);
+        }
+
+        public void Destroy()
+        {
+            if (HighLogic.LoadedSceneIsEditor)
+                GameEvents.onEditorPartPlaced.Remove(onPartPlaced);
         }
 
         public override void OnUpdate()
         {
             base.OnUpdate();
+
+            updateExperimentState();
 
             if (!finalTransfer)
                 return;
@@ -262,21 +325,51 @@ namespace WildBlueIndustries
             }
             return info.ToString();
         }
+        #endregion
 
+        #region API
         public void SetGUIVisible(bool guiVisible)
         {
             isGUIVisible = guiVisible;
 
             //Base class actions and events are always disabled.
             Events["DeployExperiment"].active = false;
-            Events["DeployExperiment"].guiActive = false;
             Events["DeployExperimentExternal"].active = false;
-            Events["DeployExperimentExternal"].guiActive = false;
             Actions["DeployAction"].active = false;
 
             //Our events and actions
-            Fields["autoRestartExperiment"].guiActive = guiVisible;
-            Fields["autoRestartExperiment"].guiActiveEditor = guiVisible;
+            if (isGUIVisible)
+            {
+                Fields["status"].guiActive = true;
+                Fields["autoRestartExperiment"].guiActive = true;
+                Fields["autoRestartExperiment"].guiActiveEditor = true;
+                Events["ReviewDataEvent"].active = isCompleted;
+                Events["TransferDataEvent"].active = isCompleted;
+                Events["ShowSynopsis"].active = true;
+                if (isRunning)
+                {
+                    Events["StartExperiment"].active = false;
+                    Events["StopExperiment"].active = true;
+                }
+
+                else
+                {
+                    status = "Ready to run";
+                    Events["StartExperiment"].active = true;
+                    Events["StopExperiment"].active = false;
+                }
+            }
+            else
+            {
+                Fields["status"].guiActive = false;
+                Fields["autoRestartExperiment"].guiActive = false;
+                Fields["autoRestartExperiment"].guiActiveEditor = false;
+                Events["ReviewDataEvent"].active = false;
+                Events["TransferDataEvent"].active = false;
+                Events["StartExperiment"].active = false;
+                Events["StopExperiment"].active = false;
+                Events["ShowSynopsis"].active = false;
+            }
         }
 
         public virtual bool CheckCompletion()
@@ -441,17 +534,18 @@ namespace WildBlueIndustries
                 {
                     experimentResource = resourceMap[resourceMapKeys[index]];
 
-                    //If necessary, pull the resource from the vessel instead of waiting for the resource
-                    //to come to the lab.
-                    if (experimentResource.transferFromVessel && (experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
-                    {
-                        double amountObtained = this.part.RequestResource(experimentResource.name,
-                            experimentResource.targetAmount - experimentResource.currentAmount, ResourceFlowMode.ALL_VESSEL);
-                        TakeShare(experimentResource.name, amountObtained);
-                    }
-
                     if (!checkPartResources)
                     {
+                        //If necessary, pull the resource from the vessel instead of waiting for the resource
+                        //to come to the lab.
+                        if (experimentResource.transferFromVessel && (experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
+                        {
+                            double amountObtained = this.part.RequestResource(experimentResource.name,
+                                experimentResource.targetAmount - experimentResource.currentAmount, ResourceFlowMode.ALL_VESSEL);
+                            TakeShare(experimentResource.name, amountObtained);
+                        }
+
+                        //Check to see if we're done.
                         if ((experimentResource.currentAmount / experimentResource.targetAmount) < 0.999f)
                         {
                             status = "Needs " + experimentResource.name + string.Format(" ({0:f3}/{1:f3})", experimentResource.currentAmount, experimentResource.targetAmount);
@@ -508,7 +602,7 @@ namespace WildBlueIndustries
             runCompletionHandler(experimentID, chanceOfSuccess, resultRoll);
             sendResultsMessage();
 
-            if (clearResourcesAfterCompleted)
+            if (checkPartResources)
             {
                 PartResource[] resources = this.part.Resources.ToArray();
                 for (int resourceIndex = 0; resourceIndex < resources.Length; resourceIndex++)
@@ -560,122 +654,6 @@ namespace WildBlueIndustries
             }
 
             return requiredResources;
-        }
-
-        protected void sendResultsMessage()
-        {
-            if (notificationSent)
-                return;
-            notificationSent = true;
-
-            StringBuilder resultsMessage = new StringBuilder();
-            MessageSystem.Message msg;
-
-            resultsMessage.AppendLine("Results from: " + this.part.vessel.vesselName);
-            resultsMessage.AppendLine("Lab: " + this.part.partInfo.title);
-            resultsMessage.AppendLine("Experiment: " + title);
-
-            if (isCompleted)
-            {
-                resultsMessage.AppendLine("Conclusion: Success!");
-                resultsMessage.AppendLine("Summary: We were able to produce usable results for this experiment. Bring it home to gain the science benefits and recover the economic cost, or send the data to an MPL for additional processing.");
-            }
-            else
-            {
-                resultsMessage.AppendLine("Conclusion: Failure!");
-                resultsMessage.AppendLine("Summary: Unfortunately we were not able to produce viable results from this experiment. It can still be returned to recover the economic cost though.");
-            }
-
-            if (isCompleted)
-                msg = new MessageSystem.Message("Experiment Results: Success!", resultsMessage.ToString(), 
-                    MessageSystemButton.MessageButtonColor.BLUE, MessageSystemButton.ButtonIcons.COMPLETE);
-            else
-                msg = new MessageSystem.Message("Experiment Results: Failed!", resultsMessage.ToString(), 
-                    MessageSystemButton.MessageButtonColor.BLUE, MessageSystemButton.ButtonIcons.FAIL);
-            MessageSystem.Instance.AddMessage(msg);
-        }
-
-        protected void runCompletionHandler(string experimentID, float chanceOfSuccess, float resultRoll)
-        {
-            if (nodeCompletionHandler == null)
-                return;
-
-            try
-            {
-                PartModule moduleHandler = this.part.AddModule(nodeCompletionHandler.GetValue("name"));
-                moduleHandler.Load(nodeCompletionHandler);
-
-                if (moduleHandler is IWBIExperimentResults)
-                {
-                    IWBIExperimentResults resultsHandler = (IWBIExperimentResults)moduleHandler;
-                    resultsHandler.ExperimentRequirementsMet(experimentID, chanceOfSuccess, resultRoll);
-                }
-
-                this.part.RemoveModule(moduleHandler);
-            }
-            catch (Exception ex)
-            {
-                Debug.Log("[WBIModuleScienceExperiment] error while trying to run experiment completion handler: " + ex.ToString());
-            }
-        }
-
-        protected bool isNearAnomaly()
-        {
-            CelestialBody mainBody = this.part.vessel.mainBody;
-            PQSSurfaceObject[] anomalies = mainBody.pqsSurfaceObjects;
-            double longitude;
-            double latitude;
-            double distance = 0f;
-
-            if (this.part.vessel.situation == Vessel.Situations.LANDED || this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
-            {
-                for (int index = 0; index < anomalies.Length; index++)
-                {
-                    if (requiredAnomalies.Contains(anomalies[index].SurfaceObjectName))
-                    {
-                        //Get the longitude and latitude of the anomaly
-                        longitude = mainBody.GetLongitude(anomalies[index].transform.position);
-                        latitude = mainBody.GetLatitude(anomalies[index].transform.position);
-
-                        //Get the distance (in meters) from the anomaly.
-                        distance = Utils.HaversineDistance(longitude, latitude,
-                            this.part.vessel.longitude, this.part.vessel.latitude, this.part.vessel.mainBody) * 1000;
-
-                        //If we're near the anomaly, then we're done
-                        if (distance <= minAnomalyRange)
-                            return true;
-                    }
-                }
-            }
-
-            //Not near anomaly or not close enough
-            return false;
-        }
-
-        protected virtual float performAnalysisRoll()
-        {
-            float roll = 0.0f;
-
-            //Roll 3d6 to approximate a bell curve, then convert it to a value between 1 and 100.
-            roll = UnityEngine.Random.Range(1, 6);
-            roll += UnityEngine.Random.Range(1, 6);
-            roll += UnityEngine.Random.Range(1, 6);
-            roll *= 5.5556f;
-
-            //Factor in crew
-            //roll += totalCrewSkill;
-
-            //Done
-            return roll;
-        }
-
-        public void ClearExperiment()
-        {
-            if (onExperimentTransfered != null)
-                onExperimentTransfered(this);
-
-            LoadFromDefinition(defaultExperiment);
-            rebuildResourceMap();
         }
 
         public void TransferExperiment(WBIModuleScienceExperiment sourceExperiment)
@@ -883,6 +861,72 @@ namespace WildBlueIndustries
             accumulatedResources = builder.ToString();
             accumulatedResources = accumulatedResources.Substring(0, accumulatedResources.Length - 1);
         }
+        #endregion
+
+        #region Helpers
+        protected virtual void updateExperimentState()
+        {
+            if (isGUIVisible)
+            {
+                //Check auto restart field.
+                if (!rerunnable && Fields["autoRestartExperiment"].guiActive && HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
+                {
+                    Fields["autoRestartExperiment"].guiActive = false;
+                    Fields["autoRestartExperiment"].guiActiveEditor = false;
+                }
+            }
+
+            //If we're not in flight, then we're done.
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
+
+            //Base class actions and events are always disabled.
+            Events["DeployExperiment"].active = false;
+            Events["DeployExperimentExternal"].active = false;
+            Actions["DeployAction"].active = false;
+
+            //If the experiment isn't running then we're done.
+            if (!isRunning && isGUIVisible)
+            {
+                //Check for reset
+                if (isCompleted && !rerunnable && (resettable || resettableOnEVA) && !Events["ResetExperiment"].active && !Events["ResetExperimentExternal"].active && !Events["StartExperiment"].active)
+                {
+                    Events["StartExperiment"].active = true;
+                }
+                return;
+            }
+
+            //If the experiment has been completed then stop the experiment from running.
+            if (isCompleted)
+            {
+                StopExperiment();
+                if (isGUIVisible)
+                {
+                    Events["ReviewDataEvent"].active = true;
+                    Events["TransferDataEvent"].active = true;
+                    if (!rerunnable)
+                        Events["StartExperiment"].active = false;
+                }
+                status = "Completed";
+
+                if (autoRestartExperiment)
+                {
+                    ResetExperiment();
+                    StartExperiment();
+                }
+                else
+                {
+                    ModuleResourceConverter converter = this.part.FindModuleImplementing<ModuleResourceConverter>();
+                    if (converter != null && converter.IsActivated)
+                        converter.StopResourceConverter();
+                }
+                return;
+            }
+
+            //Check for completion. We do this if the GUI is visible (we're not being managed by an experiment lab)
+            if (isGUIVisible)
+                CheckCompletion();
+        }
 
         protected void rebuildResourceMap()
         {
@@ -937,5 +981,181 @@ namespace WildBlueIndustries
                 }
             }
         }
+
+        protected void onPartPlaced(Part partPlaced)
+        {
+            if (partPlaced == this.part)
+            {
+                //Set the tooltip.
+                if (ToolTipScenario.Instance.HasDisplayedToolTip(this.part.partInfo.name))
+                    return;
+                ToolTipScenario.Instance.AddToolTipDisplayedFlag(this.part.partInfo.name);
+
+                LoadFromDefinition(experimentID);
+                StringBuilder requirements = new StringBuilder();
+                string requirementsText = string.Empty;
+
+                //Mininum Crew
+                if (minCrew > 0)
+                    requirements.Append("<b>This part requires a minimum of </b>" + minCrew + " <b>crew.</b>\r\n");
+
+                //Required parts
+                if (requiredParts != null && requiredParts.Length > 0)
+                {
+                    //If our part is on the list, then we're done.
+                    if (requiredParts.Contains(this.part.partInfo.title))
+                        return;
+
+                    //Build the list of required parts.
+                    requirements.Append("<b>This part also requires at least one of: </b>\r\n");
+                    for (int index = 0; index < requiredParts.Length; index++)
+                        requirements.Append(requiredParts[index] + "\r\n");
+                }
+
+                requirementsText = requirements.ToString();
+                if (string.IsNullOrEmpty(requirementsText) == false)
+                {
+                    infoView.ModuleInfo = requirementsText;
+                    infoView.SetVisible(true);
+                }
+            }
+        }
+
+        protected void setupDecal()
+        {
+            //Setup decal
+            if (string.IsNullOrEmpty(decalPath) == false && string.IsNullOrEmpty(decalTransform) == false)
+            {
+                Transform decal = this.part.FindModelTransform(decalTransform);
+                if (decal == null)
+                    return;
+
+                Renderer renderer = decal.GetComponent<Renderer>();
+                if (renderer == null)
+                    return;
+
+                Texture decalTexture = GameDatabase.Instance.GetTexture(decalPath, false);
+                if (decalTexture == null)
+                    return;
+                renderer.material.SetTexture("_MainTex", decalTexture);
+            }
+        }
+
+        protected void sendResultsMessage()
+        {
+            if (notificationSent)
+                return;
+            notificationSent = true;
+
+            StringBuilder resultsMessage = new StringBuilder();
+            MessageSystem.Message msg;
+
+            resultsMessage.AppendLine("Results from: " + this.part.vessel.vesselName);
+            resultsMessage.AppendLine("Lab: " + this.part.partInfo.title);
+            resultsMessage.AppendLine("Experiment: " + title);
+
+            if (isCompleted)
+            {
+                resultsMessage.AppendLine("Conclusion: Success!");
+                resultsMessage.AppendLine("Summary: We were able to produce usable results for this experiment. Bring it home to gain the science benefits and recover the economic cost, or send the data to an MPL for additional processing.");
+            }
+            else
+            {
+                resultsMessage.AppendLine("Conclusion: Failure!");
+                resultsMessage.AppendLine("Summary: Unfortunately we were not able to produce viable results from this experiment. It can still be returned to recover the economic cost though.");
+            }
+
+            if (isCompleted)
+                msg = new MessageSystem.Message("Experiment Results: Success!", resultsMessage.ToString(),
+                    MessageSystemButton.MessageButtonColor.BLUE, MessageSystemButton.ButtonIcons.COMPLETE);
+            else
+                msg = new MessageSystem.Message("Experiment Results: Failed!", resultsMessage.ToString(),
+                    MessageSystemButton.MessageButtonColor.BLUE, MessageSystemButton.ButtonIcons.FAIL);
+            MessageSystem.Instance.AddMessage(msg);
+        }
+
+        protected void runCompletionHandler(string experimentID, float chanceOfSuccess, float resultRoll)
+        {
+            if (nodeCompletionHandler == null)
+                return;
+
+            try
+            {
+                PartModule moduleHandler = this.part.AddModule(nodeCompletionHandler.GetValue("name"));
+                moduleHandler.Load(nodeCompletionHandler);
+
+                if (moduleHandler is IWBIExperimentResults)
+                {
+                    IWBIExperimentResults resultsHandler = (IWBIExperimentResults)moduleHandler;
+                    resultsHandler.ExperimentRequirementsMet(experimentID, chanceOfSuccess, resultRoll);
+                }
+
+                this.part.RemoveModule(moduleHandler);
+            }
+            catch (Exception ex)
+            {
+                Debug.Log("[WBIModuleScienceExperiment] error while trying to run experiment completion handler: " + ex.ToString());
+            }
+        }
+
+        protected bool isNearAnomaly()
+        {
+            CelestialBody mainBody = this.part.vessel.mainBody;
+            PQSSurfaceObject[] anomalies = mainBody.pqsSurfaceObjects;
+            double longitude;
+            double latitude;
+            double distance = 0f;
+
+            if (this.part.vessel.situation == Vessel.Situations.LANDED || this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
+            {
+                for (int index = 0; index < anomalies.Length; index++)
+                {
+                    if (requiredAnomalies.Contains(anomalies[index].SurfaceObjectName))
+                    {
+                        //Get the longitude and latitude of the anomaly
+                        longitude = mainBody.GetLongitude(anomalies[index].transform.position);
+                        latitude = mainBody.GetLatitude(anomalies[index].transform.position);
+
+                        //Get the distance (in meters) from the anomaly.
+                        distance = Utils.HaversineDistance(longitude, latitude,
+                            this.part.vessel.longitude, this.part.vessel.latitude, this.part.vessel.mainBody) * 1000;
+
+                        //If we're near the anomaly, then we're done
+                        if (distance <= minAnomalyRange)
+                            return true;
+                    }
+                }
+            }
+
+            //Not near anomaly or not close enough
+            return false;
+        }
+
+        protected virtual float performAnalysisRoll()
+        {
+            float roll = 0.0f;
+
+            //Roll 3d6 to approximate a bell curve, then convert it to a value between 1 and 100.
+            roll = UnityEngine.Random.Range(1, 6);
+            roll += UnityEngine.Random.Range(1, 6);
+            roll += UnityEngine.Random.Range(1, 6);
+            roll *= 5.5556f;
+
+            //Factor in crew
+            //roll += totalCrewSkill;
+
+            //Done
+            return roll;
+        }
+
+        public void ClearExperiment()
+        {
+            if (onExperimentTransfered != null)
+                onExperimentTransfered(this);
+
+            LoadFromDefinition(defaultExperiment);
+            rebuildResourceMap();
+        }
+        #endregion
     }
 }

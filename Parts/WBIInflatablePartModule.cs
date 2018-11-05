@@ -51,8 +51,8 @@ namespace WildBlueIndustries
         public bool isOneShot = false;
 
         //Helper objects
-        public bool animationStarted = false;
         public Animation anim;
+        protected bool isMoving;
 
         #region User Events & API
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "ToggleInflation", externalToEVAOnly = false, unfocusedRange = 3.0f, guiActiveUnfocused = true)]
@@ -80,7 +80,7 @@ namespace WildBlueIndustries
             }
 
             //Play animation for current state
-            animationStarted = true;
+            isMoving = true;
             PlayAnimation(isDeployed);
             
             //Toggle state
@@ -119,6 +119,23 @@ namespace WildBlueIndustries
         #endregion
 
         #region Overrides
+        public virtual void OnToggleStateCompleted()
+        {
+
+        }
+
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+            if (anim == null)
+                return;
+            if (!anim.isPlaying && isMoving)
+            {
+                isMoving = false;
+                OnToggleStateCompleted();
+            }
+        }
+
         public override void OnLoad(ConfigNode node)
         {
             //string value;
@@ -318,18 +335,15 @@ namespace WildBlueIndustries
             float animationSpeed = playInReverse == false ? 1.0f : -1.0f;
             anim = this.part.FindModelAnimators(animationName)[0];
 
-            if (playInReverse)
-            {
-                anim[animationName].time = anim[animationName].length;
+            if (HighLogic.LoadedSceneIsFlight)
                 anim[animationName].speed = animationSpeed;
-                anim.Play(animationName);
-            }
-
             else
-            {
-                anim[animationName].speed = animationSpeed;
-                anim.Play(animationName);
-            }
+                anim[animationName].speed = animationSpeed * 100;
+
+            if (playInReverse)
+                anim[animationName].time = anim[animationName].length;
+
+            anim.Play(animationName);
         }
         #endregion
     }

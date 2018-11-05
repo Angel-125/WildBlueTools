@@ -28,9 +28,9 @@ namespace WildBlueIndustries
         public const string kRequiredAmountField = "requiredAmount";
         public const string kDefaultSkill = "ConverterSkill";
 
-        private const string kInsufficientParts = "Insufficient resources to reconfigure/assemble the module. You need a total of {0:f2} {1:s} to reconfigure.";
-        private const string kInsufficientSkill = "Insufficient skill to reconfigure/assemble the module. You need one of: ";
-        private const string kInsufficientCrew = "Cannot reconfigure. Either crew the module or perform an EVA.";
+        public const string kInsufficientParts = "Insufficient resources to reconfigure/assemble the module. You need a total of {0:f2} {1:s} to reconfigure.";
+        public const string kInsufficientSkill = "Insufficient skill to reconfigure/assemble the module. You need one of: ";
+        public const string kInsufficientCrew = "Cannot reconfigure. Either crew the module or perform an EVA.";
 
         [KSPField]
         public float materialCostModifier = 1.0f;
@@ -43,6 +43,7 @@ namespace WildBlueIndustries
         protected double reconfigureCost;
         protected float reconfigureCostModifier;
         protected string requriredResource;
+        protected bool showInsufficientResourcesMsg = true;
         public Dictionary<string, double> inputList = new Dictionary<string, double>();
 
         public override void OnStart(StartState state)
@@ -190,6 +191,41 @@ namespace WildBlueIndustries
                 }
             }
 
+            //Check our part for input resources as well
+            if (this.part.partInfo.partConfig == null)
+                return;
+            ConfigNode[] nodes = this.part.partInfo.partConfig.GetNodes("MODULE");
+            ConfigNode node = null;
+            string moduleName;
+            List<string> optionNamesList = new List<string>();
+
+            //Get the config node.
+            for (int index = 0; index < nodes.Length; index++)
+            {
+                node = nodes[index];
+                if (node.HasValue("name"))
+                {
+                    moduleName = node.GetValue("name");
+                    if (moduleName == this.ClassName)
+                    {
+                        if (node.HasNode("INPUT_RESOURCE"))
+                        {
+                            ConfigNode[] buildResourceNodes = node.GetNodes("INPUT_RESOURCE");
+                            for (int resourceIndex = 0; resourceIndex < buildResourceNodes.Length; resourceIndex++)
+                            {
+                                resourceName = buildResourceNodes[resourceIndex].GetValue("ResourceName");
+                                amount = double.Parse(buildResourceNodes[resourceIndex].GetValue("Ratio")) * materialModifier * reconfigureCostModifier;
+                                if (inputList.ContainsKey(resourceName))
+                                    inputList[resourceName] = inputList[resourceName] + amount;
+                                else
+                                    inputList.Add(resourceName, amount);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
             //Ask listeners to contribute their resource requirements
             if (OnGetReconfigureResources != null)
                 OnGetReconfigureResources();
@@ -255,8 +291,11 @@ namespace WildBlueIndustries
 
                 if (currentAmount < inputList[resourceName])
                 {
-                    string notEnoughPartsMsg = string.Format(kInsufficientParts, inputList[resourceName], resourceName);
-                    ScreenMessages.PostScreenMessage(notEnoughPartsMsg, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    if (showInsufficientResourcesMsg)
+                    {
+                        string notEnoughPartsMsg = string.Format(kInsufficientParts, inputList[resourceName], resourceName);
+                        ScreenMessages.PostScreenMessage(notEnoughPartsMsg, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    }
                     return false;
                 }
             }

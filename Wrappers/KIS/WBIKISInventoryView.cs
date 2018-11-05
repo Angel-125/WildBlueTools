@@ -38,7 +38,7 @@ namespace WildBlueIndustries
 
         public void DrawView()
         {
-            if (inventories == null)
+            if (inventories == null || inventories.Count == 0)
             {
                 GUILayout.Label("No inventories");
                 return;

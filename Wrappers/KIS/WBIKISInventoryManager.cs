@@ -37,22 +37,9 @@ namespace WildBlueIndustries
                 return;
 
             //Find all the seat inventories and hide their GUI.
-            WBIKISInventoryWrapper wrapper;
-            foreach (PartModule partModule in this.part.Modules)
-            {
-                if (partModule.moduleName == "ModuleKISInventory")
-                {
-                    wrapper = new WBIKISInventoryWrapper(partModule);
-                    if (wrapper.invType == WBIKISInventoryWrapper.InventoryType.Pod)
-                    {
-                        inventories.Add(wrapper);
-                        wrapper.HideToggleInventory();
-                    }
-                }
-            }
             inventoryView = new WBIKISInventoryView();
-            inventoryView.inventories = this.inventories;
             inventoryView.part = this.part;
+            findInventories();
         }
 
         public override void OnUpdate()
@@ -74,6 +61,26 @@ namespace WildBlueIndustries
 
 
         #region IOpsView
+
+        protected void findInventories()
+        {
+            WBIKISInventoryWrapper wrapper;
+            foreach (PartModule partModule in this.part.Modules)
+            {
+                if (partModule.moduleName == "ModuleKISInventory")
+                {
+                    wrapper = new WBIKISInventoryWrapper(partModule);
+                    if (wrapper.invType == WBIKISInventoryWrapper.InventoryType.Pod)
+                    {
+                        inventories.Add(wrapper);
+                        wrapper.HideToggleInventory();
+                    }
+                }
+            }
+
+            inventoryView.inventories = this.inventories;
+        }
+
         public List<string> GetButtonLabels()
         {
             List<string> buttonLabels = new List<string>();
@@ -85,6 +92,8 @@ namespace WildBlueIndustries
 
         public void DrawOpsWindow(string buttonLabel)
         {
+            if (this.inventories.Count == 0)
+                findInventories();
             inventoryView.DrawView();
         }
 
