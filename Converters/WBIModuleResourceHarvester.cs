@@ -34,6 +34,9 @@ namespace WildBlueIndustries
         #region Fields
         [KSPField]
         public string harvestTypes = string.Empty;
+
+        [KSPField]
+        public string drillAnimationName = string.Empty;
         #endregion
 
         #region Housekeeping
@@ -179,9 +182,39 @@ namespace WildBlueIndustries
             for (int index = 0; index < ratioCount; index++)
                 this.recipe.Outputs.Add(outputRatios[index]);
         }
+
+        public override void StartResourceConverter()
+        {
+            base.StartResourceConverter();
+            toggleDrillAnimation();
+        }
+
+        public override void StopResourceConverter()
+        {
+            base.StopResourceConverter();
+            toggleDrillAnimation();
+        }
         #endregion
 
         #region Helpers
+        protected virtual void toggleDrillAnimation()
+        {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+            if (string.IsNullOrEmpty(drillAnimationName))
+                return;
+
+            List<WBIAnimation> animators = this.part.FindModulesImplementing<WBIAnimation>();
+            int count = animators.Count;
+            for (int index = 0; index < count; index++)
+            {
+                if (animators[index].animationName == drillAnimationName)
+                {
+                    animators[index].ToggleAnimation();
+                    break;
+                }
+            }
+        }
         public string GetMinedResources()
         {
             setupHarvester();

@@ -142,9 +142,9 @@ namespace WildBlueIndustries
             }
         }
 
-        public override void OnStart(StartState state)
+        public override void OnAwake()
         {
-            base.OnStart(state);
+            base.OnAwake();
 
             if (HighLogic.LoadedSceneIsEditor)
                 this.part.OnEditorAttach += OnEditorAttach;
@@ -177,6 +177,11 @@ namespace WildBlueIndustries
                 if (string.IsNullOrEmpty(objectNames[nextIndex]) == false)
                     Events["NextMesh"].guiName = objectNames[nextIndex];
             }
+        }
+
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
         }
 
         protected void parseObjectNames()

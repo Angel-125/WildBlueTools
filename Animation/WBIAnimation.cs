@@ -67,9 +67,13 @@ namespace WildBlueIndustries
         [KSPField]
         public KSPActionGroup defaultActionGroup;
 
+        [KSPField]
+        public bool playAnimationLooped = false;
+
         //Helper objects
         public bool isDeployed = false;
         public bool isMoving = false;
+        public bool isLooping = false;
         public Animation animation = null;
         protected AnimationState animationState;
         protected AudioSource loopSound = null;
@@ -80,17 +84,23 @@ namespace WildBlueIndustries
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "ToggleAnimation", active = true, externalToEVAOnly = false, unfocusedRange = 3.0f, guiActiveUnfocused = true)]
         public virtual void ToggleAnimation()
         {
-            //Play animation for current state
-            PlayAnimation(isDeployed);
+            //Play animation for current state, but skip if we are currently looping the animation.
+            //This will ensure that when we stopp looping the animation, its cycle will complete without playing in reverse.
+            if (!isLooping)
+                PlayAnimation(isDeployed);
 
             //Toggle state
             isDeployed = !isDeployed;
             if (isDeployed)
             {
+                if (playAnimationLooped)
+                    isLooping = true;
                 Events["ToggleAnimation"].guiName = endEventGUIName;
             }
             else
             {
+                if (playAnimationLooped)
+                    isLooping = false;
                 Events["ToggleAnimation"].guiName = startEventGUIName;
             }
 
@@ -139,9 +149,16 @@ namespace WildBlueIndustries
             //Play end
             else if (animation.isPlaying == false && isMoving)
             {
-                isMoving = false;
-                playEnd();
-                animationComplete();
+                if (!playAnimationLooped || !isLooping)
+                {
+                    isMoving = false;
+                    playEnd();
+                    animationComplete();
+                }
+                else if (isLooping)
+                {
+                    PlayAnimation();
+                }
             }
         }
 
@@ -178,6 +195,7 @@ namespace WildBlueIndustries
 
             SetupAnimations();
             setupSounds();
+            showGui(guiIsVisible);
 
             if ((int)defaultActionGroup > 0)
                 Actions["ToggleAnimationAction"].actionGroup = defaultActionGroup;

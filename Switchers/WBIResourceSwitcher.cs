@@ -781,6 +781,8 @@ namespace WildBlueIndustries
                 Log(nodeTemplate.GetValue("name") + " has no resources.");
                 return;
             }
+            if (templateNodes == "EMPTY")
+                return;
 
             Log("updateResourcesFromTemplate called for template: " + nodeTemplate.GetValue("name"));
             Log("template: " + nodeTemplate);
@@ -915,6 +917,8 @@ namespace WildBlueIndustries
             string value;
             string templateTags = nodeTemplate.GetValue("templateTags");
             float capacityModifier = capacityFactor;
+            if (templateNodes == "EMPTY")
+                return;
 
             Log("loadResourcesFromTemplate called for template: " + nodeTemplate.GetValue("name"));
             Log("template: " + nodeTemplate);
@@ -1350,7 +1354,7 @@ namespace WildBlueIndustries
         {
             //To avoid problems with animated collider interactions, we don't update part mass while the part's animation is running.
             if (isMoving)
-                return part.partInfo.partPrefab.mass * -0.9f;
+                return part.partInfo.partPrefab.mass * -0.9999f;
             else if (isInflatable && !isDeployed)
                 return 0;
             if (partMass > 0.001f)

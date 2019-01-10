@@ -62,7 +62,8 @@ namespace WildBlueIndustries
                 if (toolTipNode.HasValue(kName) == false)
                     continue;
                 value = toolTipNode.GetValue(kName);
-                toolTips.Add(value, toolTipNode);
+                if (!toolTips.ContainsKey(value))
+                    toolTips.Add(value, toolTipNode);
             }
 
             //Show tooltips flag
@@ -76,7 +77,10 @@ namespace WildBlueIndustries
             //List of tips already shown
             ConfigNode[] viewedTips = node.GetNodes(kToolTip);
             for (int index = 0; index < viewedTips.Length; index++)
-                tipsShown.Add(viewedTips[index].GetValue(kName));
+            {
+                if (!tipsShown.Contains(viewedTips[index].GetValue(kName)))
+                    tipsShown.Add(viewedTips[index].GetValue(kName));
+            }
         }
 
         public override void OnSave(ConfigNode node)

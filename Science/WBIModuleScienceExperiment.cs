@@ -98,6 +98,9 @@ namespace WildBlueIndustries
         public string requiredAnomalies = string.Empty;
 
         [KSPField]
+        public bool solarOrbitRequired = false;
+
+        [KSPField]
         public float minAnomalyRange = 50.0f;
 
         [KSPField(isPersistant = true, guiName = "Status")]
@@ -316,6 +319,9 @@ namespace WildBlueIndustries
                 requirements.AppendLine("<b>Anomalies: </b>" + requiredAnomalies.Replace(";", ", "));
                 requirements.AppendLine(string.Format("<b>Minimum Range: </b>{0:f2}m", minAnomalyRange));
             }
+            //Solar orbit
+            if (solarOrbitRequired)
+                requirements.AppendLine("Requires an orbit around a star");
 
             string requirementsInfo = requirements.ToString();
             if (string.IsNullOrEmpty(requirementsInfo) == false)
@@ -428,6 +434,13 @@ namespace WildBlueIndustries
                     status =  "Needs one: " + celestialBodies;
                     return false;
                 }
+            }
+
+            //Solar orbit
+            if (solarOrbitRequired)
+            {
+                if (this.part.vessel.mainBody.scaledBody.GetComponentsInChildren<SunShaderController>(true).Length == 0)
+                    return false;
             }
 
             //Flight states
@@ -785,6 +798,10 @@ namespace WildBlueIndustries
             //celestialBodies
             if (nodeDefinition.HasValue("celestialBodies"))
                 celestialBodies = nodeDefinition.GetValue("celestialBodies");
+
+            //Solar orbit
+            if (nodeDefinition.HasValue("solarOrbitRequired"))
+                bool.TryParse(nodeDefinition.GetValue("solarOrbitRequired"), out solarOrbitRequired);
 
             //minAltitude
             if (nodeDefinition.HasValue("minAltitude"))

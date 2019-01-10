@@ -28,6 +28,9 @@ namespace WildBlueIndustries
 
         public void DrawView()
         {
+            if (this.part != null && this.gps == null)
+                this.gps = this.part.FindModuleImplementing<ModuleGPS>();
+
             if (HighLogic.LoadedSceneIsFlight == false)
             {
                 GUILayout.BeginVertical();
@@ -39,9 +42,16 @@ namespace WildBlueIndustries
 
             //Location
             GUILayout.BeginScrollView(new Vector2(0, 0), new GUIStyle(GUI.skin.textArea), GUILayout.Height(110));
-            GUILayout.Label("<color=white><b>Location:</b> " + gps.body + " " + gps.bioName + "</color>");
-            GUILayout.Label("<color=white><b>Lon:</b> " + gps.lon + "</color>");
-            GUILayout.Label("<color=white><b>Lat:</b> " + gps.lat + "</color>");
+            if (gps != null)
+            {
+                GUILayout.Label("<color=white><b>Location:</b> " + gps.body + " " + gps.bioName + "</color>");
+                GUILayout.Label("<color=white><b>Lon:</b> " + gps.lon + "</color>");
+                GUILayout.Label("<color=white><b>Lat:</b> " + gps.lat + "</color>");
+            }
+            else
+            {
+                GUILayout.Label("<color=yellow>Unable to determine current location.</color>");
+            }
             GUILayout.EndScrollView();
 
             //Abundance

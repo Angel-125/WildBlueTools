@@ -170,7 +170,6 @@ namespace WildBlueIndustries
         /// </summary>
         [KSPField]
         public double failureMultiplier = 1.0;
-
         #endregion
 
         #region FX fields
@@ -240,6 +239,9 @@ namespace WildBlueIndustries
 
         public override string GetInfo()
         {
+            if (string.IsNullOrEmpty(templateNodes))
+                return base.GetInfo();
+
             StringBuilder info = new StringBuilder();
 
             info.AppendLine("<b>" + managedName + "</b>");

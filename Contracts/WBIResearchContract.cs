@@ -31,10 +31,10 @@ namespace ContractsPlus.Contracts
     {
         public const int CurrentContractVersion = 2;
 
-        const float fundsAdvance = 15000f;
-        const float fundsCompleteBase = 50000f;
-        const float fundsFailure = 35000f;
-        const float repComplete = 150f;
+        const float fundsAdvance = 150f;
+        const float fundsCompleteBase = 500f;
+        const float fundsFailure = 350f;
+        const float repComplete = 15f;
         const float repFailure = 60f;
         const float rewardAdjustmentFactor = 0.4f;
         const string defaultExperiment = "WBIEmptyExperiment";
