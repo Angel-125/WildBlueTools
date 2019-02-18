@@ -21,8 +21,8 @@ namespace WildBlueIndustries
     [KSPModule("Module Switcher")]
     public class WBIModuleSwitcher : WBIResourceSwitcher
     {
-        protected List<PartModule> addedPartModules = new List<PartModule>();
-        protected List<ConfigNode> moduleSettings = new List<ConfigNode>();
+        protected List<PartModule> addedPartModules;
+        public List<ConfigNode> moduleSettings;
 
         private bool _showGUI = true;
 
@@ -51,6 +51,11 @@ namespace WildBlueIndustries
                 return;
 
             //Save the module settings, we'll need these for later.
+            if (moduleSettings == null)
+            {
+                addedPartModules = new List<PartModule>();
+                moduleSettings = new List<ConfigNode>();
+            }
             moduleSettings.Clear();
             foreach (ConfigNode moduleNode in moduleNodes)
                 moduleSettings.Add(moduleNode);
@@ -97,6 +102,11 @@ namespace WildBlueIndustries
         {
             if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
                 return;
+            if (moduleSettings == null)
+            {
+                addedPartModules = new List<PartModule>();
+                moduleSettings = new List<ConfigNode>();
+            }
             base.OnStart(state);
         }
 
@@ -297,7 +307,10 @@ namespace WildBlueIndustries
                                 break;
                         }
                     }
-
+                    else if (HighLogic.LoadedSceneIsEditor)
+                    {
+                        module.OnStart(PartModule.StartState.Editor);
+                    }
                     else
                     {
                         module.OnStart(PartModule.StartState.None);

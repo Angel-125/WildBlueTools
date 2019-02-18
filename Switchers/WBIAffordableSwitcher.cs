@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
-    public delegate void GetReconfigureResourcesDelegate();
+    public delegate void GetReconfigureResourcesDelegate(float materialModifier);
 
     public class WBIAffordableSwitcher : WBIModuleSwitcher
     {
@@ -35,15 +35,13 @@ namespace WildBlueIndustries
         [KSPField]
         public float materialCostModifier = 1.0f;
 
-        //Events
-        public event GetReconfigureResourcesDelegate OnGetReconfigureResources;
-
         protected float recycleBase = 0.7f;
         protected float baseSkillModifier = 0.05f;
         protected double reconfigureCost;
         protected float reconfigureCostModifier;
         protected string requriredResource;
         protected bool showInsufficientResourcesMsg = true;
+        protected Dictionary<string, GetReconfigureResourcesDelegate> reconfigureResourceDelegates = null;
         public Dictionary<string, double> inputList = new Dictionary<string, double>();
 
         public override void OnStart(StartState state)
@@ -64,7 +62,23 @@ namespace WildBlueIndustries
             updatePartMass();
         }
 
-        protected virtual void updatePartMass()
+        public void AddReconfigureDelegate(string key, GetReconfigureResourcesDelegate reconfigureDelegate)
+        {
+            if (reconfigureResourceDelegates == null)
+                reconfigureResourceDelegates = new Dictionary<string, GetReconfigureResourcesDelegate>();
+            if (reconfigureResourceDelegates.ContainsKey(key) == false)
+                reconfigureResourceDelegates.Add(key, reconfigureDelegate);
+        }
+
+        public void RemoveReconfigureDelegate(string key, GetReconfigureResourcesDelegate reconfigureDelegate)
+        {
+            if (reconfigureResourceDelegates == null)
+                return;
+            if (reconfigureResourceDelegates.ContainsKey(key))
+                reconfigureResourceDelegates.Remove(key);
+        }
+
+    protected virtual void updatePartMass()
         {
             if (CurrentTemplate.HasValue("mass"))
             {
@@ -151,7 +165,7 @@ namespace WildBlueIndustries
             return true;
         }
 
-        protected void buildInputList(string templateName)
+        public void buildInputList(string templateName)
         {
             //Calculate material modifier
             string requiredSkill = kDefaultSkill;
@@ -227,8 +241,17 @@ namespace WildBlueIndustries
             }
 
             //Ask listeners to contribute their resource requirements
-            if (OnGetReconfigureResources != null)
-                OnGetReconfigureResources();
+            if (reconfigureResourceDelegates != null)
+            {
+                int count = reconfigureResourceDelegates.Keys.Count;
+                string[] keys = reconfigureResourceDelegates.Keys.ToArray();
+                GetReconfigureResourcesDelegate reconfigureDelegate;
+                for (int index = 0; index < count; index++)
+                {
+                    reconfigureDelegate = reconfigureResourceDelegates[keys[index]];
+                    reconfigureDelegate(materialModifier);
+                }
+            }
         }
 
         public virtual bool payForReconfigure(string resourceName, double resourceCost)

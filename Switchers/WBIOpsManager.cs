@@ -43,6 +43,9 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool isMothballed;
 
+        [KSPField]
+        public bool canConfigureWhenDeflated = false;
+
         protected OpsManagerView opsManagerView;
         protected BaseQualityControl qualityControl = null;
 
@@ -59,7 +62,7 @@ namespace WildBlueIndustries
 
             base.OnStart(state);
             Events["ReconfigureStorage"].guiName = "Manage Operations";
-            Events["ReconfigureStorage"].active = (this.isInflatable && this.isDeployed) || !this.isInflatable;
+            Events["ReconfigureStorage"].active = getAssembledState();
         }
 
         public void Destroy()
@@ -155,8 +158,8 @@ namespace WildBlueIndustries
         public override void ToggleInflation()
         {
             base.ToggleInflation();
-            Events["ReconfigureStorage"].active = (this.isInflatable && this.isDeployed) || !this.isInflatable;
-            opsManagerView.isAssembled = (this.isInflatable && this.isDeployed) || !this.isInflatable;
+            Events["ReconfigureStorage"].active = getAssembledState();
+            opsManagerView.isAssembled = getAssembledState();
         }
 
         protected override void loadModulesFromTemplate(ConfigNode templateNode)
@@ -190,7 +193,12 @@ namespace WildBlueIndustries
             opsManagerView.setActiveConverterCount = setActiveConverterCount;
             opsManagerView.fieldReconfigurable = this.fieldReconfigurable;
             opsManagerView.qualityControl = this.qualityControl;
-            opsManagerView.isAssembled = (this.isInflatable && this.isDeployed) || !this.isInflatable;
+            opsManagerView.isAssembled = getAssembledState();
+        }
+
+        protected bool getAssembledState()
+        {
+            return (this.isInflatable && this.isDeployed) || !this.isInflatable || canConfigureWhenDeflated;
         }
     }
 }

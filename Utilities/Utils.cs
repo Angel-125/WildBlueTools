@@ -185,7 +185,7 @@ namespace WildBlueIndustries
                         break;
 
                     default:
-                        biomeName = "PLANETARY";
+                        biomeName = "Planetary";
                         break;
                 }
 

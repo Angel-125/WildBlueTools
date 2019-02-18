@@ -105,9 +105,9 @@ namespace WildBlueIndustries
 
         public void HideToggleInventory()
         {
-            inventoryModule.Events["ToggleInventory"].guiActive = false;
-            inventoryModule.Events["ToggleInventory"].guiActiveEditor = false;
-            inventoryModule.Events["ToggleInventory"].guiActiveUnfocused = false;
+            inventoryModule.Events["ToggleInventoryEvent"].guiActive = false;
+            inventoryModule.Events["ToggleInventoryEvent"].guiActiveEditor = false;
+            inventoryModule.Events["ToggleInventoryEvent"].guiActiveUnfocused = false;
         }
 
         public Dictionary<int, WBIKISItem> items

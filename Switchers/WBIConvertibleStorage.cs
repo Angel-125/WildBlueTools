@@ -37,7 +37,6 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             storageView = new ConvertibleStorageView();
-            base.OnStart(state);
             storageView.part = this.part;
             base.OnStart(state);
             hideEditorButtons();
@@ -52,6 +51,21 @@ namespace WildBlueIndustries
                     resource.amount = 0;
             }
 
+        }
+
+        public virtual void ResetSettings()
+        {
+            ReloadTemplate();
+
+            //Reset the omniconverters. This is to prevent duplicate loadouts when you revert a flight and then add a new part with omniconverters.
+            List<WBIOmniConverter> omniConverters = part.FindModulesImplementing<WBIOmniConverter>();
+            int count = omniConverters.Count;
+            for (int index = 0; index < count; index++)
+            {
+                omniConverters[index].ResetSettings();
+            }
+
+            setupStorageView(CurrentTemplateIndex);
         }
 
         public void SetWindowTitle(string title)
@@ -196,29 +210,9 @@ namespace WildBlueIndustries
             if (templateManager[templateIndex].HasValue("title"))
                 storageView.templateTitle = templateManager[templateIndex].GetValue("title");
 
-            //Required resource
-            if (templateManager[templateIndex].HasValue("requiredResource"))
-            {
-                storageView.requiredResource = templateManager[templateIndex].GetValue("requiredResource");
-            }
-            else
-            {
-                buildInputList(CurrentTemplateName);
-                if (inputList.Keys.Count > 0)
-                {
-                    StringBuilder resourceList = new StringBuilder();
-                    foreach (string key in inputList.Keys)
-                        resourceList.Append(key + string.Format(": {0:f2}; ", inputList[key]));
-                    storageView.requiredResource = resourceList.ToString().TrimEnd(new char[] { ';' });
-                }
-            }
-
             //Resource cost
-            if (templateManager[templateIndex].HasValue("requiredAmount"))
-                storageView.resourceCost = float.Parse(templateManager[templateIndex].GetValue("requiredAmount"));
-            else
-                storageView.resourceCost = 0f;
-            storageView.resourceCost *= materialCostModifier;
+            buildInputList(CurrentTemplateName);
+            storageView.inputList = this.inputList;
 
             //Required skill
             if (templateManager[templateIndex].HasValue("reconfigureSkill"))

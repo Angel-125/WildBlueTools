@@ -60,7 +60,7 @@ namespace WildBlueIndustries
                     //Show inventory
                     if (GUILayout.Button(seatName))
                     {
-                        inventories[index].inventoryModule.Events["ToggleInventory"].Invoke();
+                        inventories[index].inventoryModule.Events["ToggleInventoryEvent"].Invoke();
                     }
                 }
             }
@@ -81,7 +81,7 @@ namespace WildBlueIndustries
 
                     //Show inventory
                     if (GUILayout.Button(seatName))
-                        inventories[index].inventoryModule.Events["ToggleInventory"].Invoke();
+                        inventories[index].inventoryModule.Events["ToggleInventoryEvent"].Invoke();
                 }
             }
 

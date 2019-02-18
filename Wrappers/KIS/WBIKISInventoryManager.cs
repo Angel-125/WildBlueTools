@@ -51,7 +51,7 @@ namespace WildBlueIndustries
             //Hide inventories if needed.
             if (inventories.Count > 0)
             {
-                if (inventories[0].inventoryModule.Events["ToggleInventory"].guiActive == true)
+                if (inventories[0].inventoryModule.Events["ToggleInventoryEvent"].guiActive == true)
                 {
                     for (int index = 0; index < inventories.Count; index++)
                         inventories[index].HideToggleInventory();

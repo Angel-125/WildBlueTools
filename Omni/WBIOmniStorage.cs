@@ -98,6 +98,12 @@ namespace WildBlueIndustries
         /// </summary>
         [KSPField(isPersistant = true)]
         public string omniResources = string.Empty;
+
+        /// <summary>
+        /// Unique ID of the converter. Used to identify it during background processing.
+        /// </summary>
+        [KSPField(isPersistant = true)]
+        public string ID;
         #endregion
 
         #region Housekeeping
@@ -194,10 +200,22 @@ namespace WildBlueIndustries
             base.OnSave(node);
         }
 
-        public override void OnStart(StartState state)
+        //This avoids a problem where you revert a flight and then create a new part of the same type as the host part, and you get a duplicate loadout for the storage unit instead of a blank storage.
+        public virtual void ResetSettings()
         {
-            base.OnStart(state);
+            isEmpty = true;
+            omniResources = string.Empty;
+        }
+
+        public override void OnAwake()
+        {
+            base.OnAwake();
             loadOmniResourceConfigs();
+
+            if (string.IsNullOrEmpty(ID))
+                ID = Guid.NewGuid().ToString();
+            else if (HighLogic.LoadedSceneIsEditor && WBIOmniManager.Instance.WasRecentlyCreated(this.part))
+                ResetSettings();
 
             //Setup the delete icon
             if (deleteIcon == null)
@@ -220,8 +238,8 @@ namespace WildBlueIndustries
                     adjustedVolume = storageVolume * switcher.capacityFactor;
 
                 //Setup events
-                switcher.OnGetReconfigureResources += GetRequiredResources;
-                switcher.onDeployStateChanged += onDeployStateChanged;
+                switcher.RemoveReconfigureDelegate(ID, GetRequiredResources);
+                switcher.AddReconfigureDelegate(ID, GetRequiredResources);
 
                 //Add any resources that we should keep to the blacklist.
                 if (!string.IsNullOrEmpty(switcher.resourcesToKeep))
@@ -806,6 +824,8 @@ namespace WildBlueIndustries
 
         protected void setupDefaultResources()
         {
+            if (!HighLogic.LoadedSceneIsEditor || !HighLogic.LoadedSceneIsFlight)
+                return;
             if (isEmpty)
                 return;
             if (this.part.partInfo.partConfig == null)
@@ -1100,6 +1120,8 @@ namespace WildBlueIndustries
                             switcher.omniStorageResources = resourceName;
                         else
                             switcher.omniStorageResources += resourceName + ";";
+
+                        switcher.buildInputList(switcher.CurrentTemplateName);
                     }
                     continue;
                 }
@@ -1157,15 +1179,15 @@ namespace WildBlueIndustries
             MonoUtilities.RefreshContextWindows(this.part);
         }
 
-        protected void GetRequiredResources()
+        protected void GetRequiredResources(float materialModifier)
         {
             if (string.IsNullOrEmpty(requiredResource))
                 return;
 
             if (switcher.inputList.ContainsKey(requiredResource))
-                switcher.inputList[requiredResource] += requiredAmount;
+                switcher.inputList[requiredResource] += requiredAmount * materialModifier;
             else
-                switcher.inputList.Add(requiredResource, requiredAmount);
+                switcher.inputList.Add(requiredResource, requiredAmount * materialModifier);
         }
 
         protected void payForReconfigure()

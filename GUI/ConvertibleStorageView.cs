@@ -26,8 +26,6 @@ namespace WildBlueIndustries
     {
         public string info;
         public Texture decal;
-        public string requiredResource = string.Empty;
-        public float resourceCost = 100f;
         public string templateName;
         public string templateTitle;
         public int templateCount = -1;
@@ -35,6 +33,8 @@ namespace WildBlueIndustries
         public TemplateManager templateManager;
         public Part part;
         public bool updateSymmetry = true;
+        public Dictionary<string, double> inputList;
+
 
         public PreviewTemplate previewTemplate;
         public SetTemplate setTemplate;
@@ -111,12 +111,16 @@ namespace WildBlueIndustries
             else
                 GUILayout.Label("<color=white>Configuration: " + templateName + "</color>");
 
-            if (string.IsNullOrEmpty(requiredResource) == false && resourceCost != 0f)
-                GUILayout.Label(string.Format("<color=white>Cost: {0:s} ({1:f2})</color>", requiredResource, resourceCost));
-            else if (!string.IsNullOrEmpty(requiredResource))
-                GUILayout.Label(string.Format("<color=white>Cost: {0:s}</color>", requiredResource));
-            else
-                GUILayout.Label("<color=white>Cost: NONE</color>");
+            if (inputList != null)
+            {
+                GUILayout.Label("<color=white>Resource Costs</color>");
+                string[] resourceNames = inputList.Keys.ToArray();
+                int count = resourceNames.Length;
+                for (int index = 0; index < count; index++)
+                {
+                    GUILayout.Label(string.Format("<color=white>{0:s}: ({1:f2})</color>", resourceNames[index], inputList[resourceNames[index]]));
+                }
+            }
 
             if (string.IsNullOrEmpty(requiredSkill) == false)
                 GUILayout.Label("<color=white>Reconfigure Trait: " + requiredTraits + "</color>");

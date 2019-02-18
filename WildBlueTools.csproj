@@ -66,6 +66,17 @@
     <Compile Include="Contracts\WBIKerbalStayParam.cs" />
     <Compile Include="Converters\WBIGasTurbine.cs" />
     <Compile Include="Converters\WBIModuleResourceHarvester.cs" />
+    <Compile Include="GoldStrike\GoldStrikeData.cs" />
+    <Compile Include="GoldStrike\GoldStrikeLode.cs" />
+    <Compile Include="GoldStrike\GoldStrikeSettings.cs" />
+    <Compile Include="GoldStrike\GoldStrikeUtils.cs" />
+    <Compile Include="GoldStrike\GoldStrikeVesselModule.cs" />
+    <Compile Include="GoldStrike\WBIGoldStrike.cs" />
+    <Compile Include="GoldStrike\WBIGoldStrikeAsteroidDrill.cs" />
+    <Compile Include="GoldStrike\WBIGoldStrikeBonus.cs" />
+    <Compile Include="GoldStrike\WBIGoldStrikeDrill.cs" />
+    <Compile Include="GoldStrike\WBIGoldStrikeScenario.cs" />
+    <Compile Include="GoldStrike\WBILoadIconHelper.cs" />
     <Compile Include="Omni\WBIOmniManager.cs" />
     <Compile Include="Omni\WBIOmniConverter.cs" />
     <Compile Include="GUI\HarvestView.cs" />

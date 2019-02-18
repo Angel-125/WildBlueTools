@@ -28,6 +28,7 @@ namespace WildBlueIndustries
 
         public double cycleStartTime;
         public Dictionary<string, WBIBackgroundConverter> backgroundConverters;
+        public List<Part> createdParts;
         #endregion
 
         #region Background processing
@@ -186,6 +187,11 @@ namespace WildBlueIndustries
         {
             return backgroundConverters.ContainsKey(converter.ID);
         }
+
+        public bool WasRecentlyCreated(Part part)
+        {
+            return createdParts.Contains(part);
+        }
         #endregion
 
         #region Overrides
@@ -199,6 +205,7 @@ namespace WildBlueIndustries
             Instance = this;
             GameEvents.onVesselChange.Add(onVesselChange);
             GameEvents.onVesselDestroy.Add(onVesselDestroy);
+            GameEvents.onEditorPartEvent.Add(onEditorPartEvent);
 
             backgroundConverters = new Dictionary<string, WBIBackgroundConverter>();
 
@@ -248,6 +255,7 @@ namespace WildBlueIndustries
         {
             GameEvents.onVesselDestroy.Remove(onVesselDestroy);
             GameEvents.onVesselChange.Remove(onVesselChange);
+            GameEvents.onEditorPartEvent.Remove(onEditorPartEvent);
         }
 
         protected void onVesselChange(Vessel vessel)
@@ -259,6 +267,28 @@ namespace WildBlueIndustries
         {
 
         }
+
+        public void onEditorPartEvent(ConstructionEventType eventType, Part part)
+        {
+            if (!HighLogic.LoadedSceneIsEditor)
+                return;
+            if (createdParts == null)
+                createdParts = new List<Part>();
+
+            switch (eventType)
+            {
+                case ConstructionEventType.PartCreated:
+                    if (!createdParts.Contains(part))
+                        createdParts.Add(part);
+                    break;
+
+                case ConstructionEventType.PartDeleted:
+                    if (createdParts.Contains(part))
+                        createdParts.Remove(part);
+                    break;
+            }
+        }
+
         #endregion
     }
 }

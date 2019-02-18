@@ -259,10 +259,24 @@ namespace WildBlueIndustries
                 setupTemplateManager();
         }
 
-        public void Destroy()
+        public override void Destroy()
         {
+            base.Destroy();
             GameEvents.onVesselDestroy.Remove(onVesselDestroy);
             GameEvents.onVesselChange.Remove(onVesselChange);
+        }
+
+        //This avoids a problem where you revert a flight and then create a new part of the same type as the host part, and you get a duplicate loadout for the converter instead of a blank converter.
+        public virtual void ResetSettings()
+        {
+            //Create UUID
+            ID = Guid.NewGuid().ToString();
+
+            progress = "None";
+            WBIOmniManager.Instance.UnregisterBackgroundConverter(this);
+            currentTemplateName = string.Empty;
+            currentTemplate = null;
+            cycleStartTime = 0;
         }
 
         public override void OnStart(StartState state)
@@ -274,6 +288,8 @@ namespace WildBlueIndustries
             //Create unique ID if needed
             if (string.IsNullOrEmpty(ID))
                 ID = Guid.NewGuid().ToString();
+            else if (HighLogic.LoadedSceneIsEditor && WBIOmniManager.Instance.WasRecentlyCreated(this.part))
+                ResetSettings();
 
             //Setup the template manager if needed.
             setupTemplateManager();
@@ -281,7 +297,10 @@ namespace WildBlueIndustries
             //Get the switcher
             switcher = this.part.FindModuleImplementing<WBIAffordableSwitcher>();
             if (switcher != null)
-                switcher.OnGetReconfigureResources += GetRequiredResources;
+            {
+                switcher.RemoveReconfigureDelegate(ID, GetRequiredResources);
+                switcher.AddReconfigureDelegate(ID, GetRequiredResources);
+            }
 
             //GUI
             if (templateManager.templateNodes.Length > 0)
@@ -1253,7 +1272,7 @@ namespace WildBlueIndustries
         }
 
         //Switchers will ask us for the resources needed to reconfigure the converter.
-        protected void GetRequiredResources()
+        protected void GetRequiredResources(float materialModifier)
         {
             if (currentTemplate == null)
                 return;
@@ -1261,9 +1280,9 @@ namespace WildBlueIndustries
                 return;
 
             if (switcher.inputList.ContainsKey(requiredResource))
-                switcher.inputList[requiredResource] += requiredAmount;
+                switcher.inputList[requiredResource] += requiredAmount * materialModifier;
             else
-                switcher.inputList.Add(requiredResource, requiredAmount);
+                switcher.inputList.Add(requiredResource, requiredAmount * materialModifier);
         }
 
         protected void payForReconfigure()
@@ -1353,6 +1372,9 @@ namespace WildBlueIndustries
             templateIndex = templateManager.FindIndexOfTemplate(currentTemplateName, "ConverterName");
 
             setupConverterTemplate();
+
+            if (switcher != null)
+                switcher.buildInputList(switcher.CurrentTemplateName);
         }
 
         string formatRate(double rate)
