@@ -207,9 +207,9 @@ namespace WildBlueIndustries
             omniResources = string.Empty;
         }
 
-        public override void OnAwake()
+        public override void OnStart(StartState state)
         {
-            base.OnAwake();
+            base.OnStart(state);
             loadOmniResourceConfigs();
 
             if (string.IsNullOrEmpty(ID))
