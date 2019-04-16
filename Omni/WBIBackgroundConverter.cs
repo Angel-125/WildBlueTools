@@ -607,8 +607,8 @@ namespace WildBlueIndustries
 
             //Calculate production multiplier
             float crewEfficiency = 1.0f;
-            if (UseSpecialistBonus)
-                crewEfficiency = SpecialistBonusBase + (1.0f * SpecialistEfficiencyFactor * specialistSkillLevel);
+            if (UseSpecialistBonus && specialistSkillLevel > 0)
+                crewEfficiency = SpecialistBonusBase + (1.0f * specialistSkillLevel) * SpecialistEfficiencyFactor;
             productionMultiplier = crewEfficiency * BaseEfficiency * EfficiencyBonus;
         }
 

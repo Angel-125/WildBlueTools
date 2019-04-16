@@ -94,6 +94,8 @@ namespace WildBlueIndustries
             get
             {
                 int index = FindIndexOfTemplate(templateName);
+                if (index == -1)
+                    return null;
 
                 return this.templateNodes[index];
             }

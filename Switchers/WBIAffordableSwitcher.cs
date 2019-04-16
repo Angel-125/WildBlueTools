@@ -78,7 +78,7 @@ namespace WildBlueIndustries
                 reconfigureResourceDelegates.Remove(key);
         }
 
-    protected virtual void updatePartMass()
+        protected virtual void updatePartMass()
         {
             if (CurrentTemplate.HasValue("mass"))
             {
@@ -170,6 +170,8 @@ namespace WildBlueIndustries
             //Calculate material modifier
             string requiredSkill = kDefaultSkill;
             float materialModifier = materialCostModifier;
+            if (templateManager[templateName] == null)
+                return;
             if (templateManager[templateName].HasValue(kReconfigureSkillField))
                 requiredSkill = templateManager[templateName].GetValue(kReconfigureSkillField);
             if (templateManager[templateName].HasValue(kIgnoreMaterialModField))
@@ -332,6 +334,8 @@ namespace WildBlueIndustries
             if (HighLogic.LoadedSceneIsFlight == false)
                 return true;
             if (!WBIMainSettings.RequiresSkillCheck)
+                return true;
+            if (templateManager[templateName] == null)
                 return true;
             string skillRequired = templateManager[templateName].GetValue(kReconfigureSkillField);
             if (string.IsNullOrEmpty(skillRequired))

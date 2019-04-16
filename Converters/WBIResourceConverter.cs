@@ -325,27 +325,38 @@ namespace WildBlueIndustries
 
         protected virtual bool hasMinimumCrew()
         {
-            int crewCount;
+            int totalCrew = 0;
+            int crewCount = 0;
+            ProtoCrewMember astronaut;
+            List<ProtoCrewMember> astronauts;
 
             //Do we have enough crew?
             if (crewsRequired > 0)
             {
                 if (checkCrewsWholeVessel)
                 {
-                    crewCount = this.part.vessel.GetCrewCount();
-
-                    if (crewCount >= crewsRequired)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        status = string.Format(needCrew, crewsRequired - crewCount);
-                        return false;
-                    }
+                    totalCrew = this.part.vessel.GetCrewCount();
+                    astronauts = this.part.vessel.GetVesselCrew();
+                }
+                else
+                {
+                    totalCrew = this.part.protoModuleCrew.Count;
+                    astronauts = this.part.protoModuleCrew;
                 }
 
-                crewCount = this.part.protoModuleCrew.Count;
+                if (!string.IsNullOrEmpty(ExperienceEffect))
+                {
+                    for (int index = 0; index < totalCrew; index++)
+                    {
+                        astronaut = astronauts[index];
+                        if (astronaut.trait.Contains(ExperienceEffect))
+                            crewCount += 1;
+                    }
+                }
+                else
+                {
+                    crewCount = totalCrew;
+                }
 
                 if (crewsRequired > crewCount)
                 {

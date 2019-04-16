@@ -263,6 +263,8 @@ namespace WildBlueIndustries
             {
                 if (templateManager == null)
                     return "Unknown";
+                if (templateManager.templateNodes.Length == 0)
+                    return "Unknown";
 
                 ConfigNode currentTemplate = templateManager[CurrentTemplateIndex];
 

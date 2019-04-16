@@ -46,7 +46,7 @@ namespace WildBlueIndustries
 
         public void FixedUpdate()
         {
-            if (enableAutoCut && HighLogic.LoadedSceneIsFlight)
+            if (enableAutoCut && HighLogic.LoadedSceneIsFlight && parachute != null)
             {
                 if (parachute.deploymentState == ModuleParachute.deploymentStates.DEPLOYED)
                 {
