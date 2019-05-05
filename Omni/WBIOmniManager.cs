@@ -190,6 +190,8 @@ namespace WildBlueIndustries
 
         public bool WasRecentlyCreated(Part part)
         {
+            if (createdParts == null)
+                createdParts = new List<Part>();
             return createdParts.Contains(part);
         }
         #endregion
