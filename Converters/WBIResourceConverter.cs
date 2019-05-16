@@ -349,7 +349,7 @@ namespace WildBlueIndustries
                     for (int index = 0; index < totalCrew; index++)
                     {
                         astronaut = astronauts[index];
-                        if (astronaut.trait.Contains(ExperienceEffect))
+                        if (astronaut.HasEffect(ExperienceEffect))
                             crewCount += 1;
                     }
                 }
