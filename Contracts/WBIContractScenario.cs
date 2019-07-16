@@ -49,7 +49,7 @@ namespace ContractsPlus.Contracts
             GameEvents.onVesselTerminated.Add(removekerbals);
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             GameEvents.onVesselDestroy.Remove(removekerbals);
             GameEvents.onVesselRecovered.Remove(removekerbals);

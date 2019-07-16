@@ -35,13 +35,13 @@ namespace WildBlueIndustries
         #endregion
 
         #region Housekeeping
-        List<ResourceRatio> inputResources = new List<ResourceRatio>();
-        List<ResourceRatio> outputResources = new List<ResourceRatio>();
-        List<ResourceRatio> requiredResources = new List<ResourceRatio>();
-        List<ResourceRatio> yieldResources = new List<ResourceRatio>();
+        List<ResourceRatio> inputList = new List<ResourceRatio>();
+        List<ResourceRatio> outputList = new List<ResourceRatio>();
+        List<ResourceRatio> requiredList = new List<ResourceRatio>();
+        List<ResourceRatio> yieldsList = new List<ResourceRatio>();
         string inputResourceNames;
         string outputResourceNames;
-        string requiedResourceNames;
+        string requiredResourceNames;
         string yieldResourceNames;
 
         public string ConverterName = string.Empty;
@@ -53,7 +53,7 @@ namespace WildBlueIndustries
         bool UseSpecialistBonus = false;
         float SpecialistBonusBase = 0.05f;
         float specialistSkillLevel = 0f;
-        float SpecialistEfficiencyFactor = 0f;
+        float SpecialistEfficiencyFactor = 0.1f;
         string ExperienceEffect = string.Empty;
         double cycleStartTime = 0;
 
@@ -63,234 +63,127 @@ namespace WildBlueIndustries
         double productionMultiplier = 1.0f;
         #endregion
 
-        #region Load and Save
-        public void Load(ConfigNode node)
+        #region Constructors
+        public static Dictionary<Vessel, List<WBIBackgroundConverter>> GetBackgroundConverters()
         {
-            converterID = node.GetValue("converterID");
-            vesselID = node.GetValue("vesselID");
-            ConverterName = node.GetValue("ConverterName");
+            Dictionary<Vessel, List<WBIBackgroundConverter>> backgroundConverters = new Dictionary<Vessel, List<WBIBackgroundConverter>>();
+            List<WBIBackgroundConverter> converters;
+            ProtoVessel protoVessel;
+            Vessel vessel;
+            ProtoPartSnapshot protoPart;
+            ProtoPartModuleSnapshot protoModule;
+            int partCount;
+            int moduleCount;
+            bool isActivated;
+            bool enableBackgroundProcessing;
 
-            float.TryParse(node.GetValue("BaseEfficiency"), out BaseEfficiency);
-            bool.TryParse(node.GetValue("UseSpecialistBonus"), out UseSpecialistBonus);
-            if (node.HasValue("ExperienceEffect"))
-                ExperienceEffect = node.GetValue("ExperienceEffect");
-            float.TryParse(node.GetValue("SpecialistEfficiencyFactor"), out SpecialistEfficiencyFactor);
-            float.TryParse(node.GetValue("SpecialistBonusBase"), out SpecialistBonusBase);            
-
-            bool.TryParse(node.GetValue("IsActivated"), out IsActivated);
-            bool.TryParse(node.GetValue("isMissingResources"), out isMissingResources);
-            bool.TryParse(node.GetValue("isContainerFull"), out isContainerFull);
-
-            double.TryParse(node.GetValue("hoursPerCycle"), out hoursPerCycle);
-            float.TryParse(node.GetValue("minimumSuccess"), out minimumSuccess);
-            float.TryParse(node.GetValue("criticalSuccess"), out criticalSuccess);
-            float.TryParse(node.GetValue("criticalFail"), out criticalFail);
-            double.TryParse(node.GetValue("criticalSuccessMultiplier"), out criticalSuccessMultiplier);
-            double.TryParse(node.GetValue("failureMultiplier"), out failureMultiplier);
-            double.TryParse(node.GetValue("cycleStartTime"), out cycleStartTime);
-
-            inputResources = new List<ResourceRatio>();
-            loadResourceNodes(node, "INPUT_RESOURCE", inputResources);
-
-            outputResources = new List<ResourceRatio>();
-            loadResourceNodes(node, "OUTPUT_RESOURCE", outputResources);
-
-            requiredResources = new List<ResourceRatio>();
-            loadResourceNodes(node, "REQUIRED_RESOURCE", requiredResources);
-
-            yieldResources = new List<ResourceRatio>();
-            loadResourceNodes(node, "YIELD_RESOURCE", yieldResources);
-
-            if (node.HasValue("inputResourceNames"))
-                inputResourceNames = node.GetValue("inputResourceNames");
-            if (node.HasValue("outputResourceNames"))
-                outputResourceNames = node.GetValue("outputResourceNames");
-            if (node.HasValue("requiedResourceNames"))
-                requiedResourceNames = node.GetValue("requiedResourceNames");
-            if (node.HasValue("yieldResourceNames"))
-                yieldResourceNames = node.GetValue("yieldResourceNames");
-        }
-
-        protected void loadResourceNodes(ConfigNode node, string nodeName, List<ResourceRatio> resources)
-        {
-            ConfigNode[] resourceNodes;
-            ConfigNode resourceNode;
-            ResourceRatio resourceRatio;
-
-            if (node.HasNode(nodeName))
+            int unloadedCount = FlightGlobals.VesselsUnloaded.Count;
+            for (int index = 0; index < unloadedCount; index++)
             {
-                resourceNodes = node.GetNodes(nodeName);
+                vessel = FlightGlobals.VesselsUnloaded[index];
+                //Skip vessel types that we're not interested in.
+                if (vessel.vesselType == VesselType.Debris ||
+                    vessel.vesselType == VesselType.Flag ||
+                    vessel.vesselType == VesselType.SpaceObject ||
+                    vessel.vesselType == VesselType.Unknown)
+                    continue;
 
-                for (int index = 0; index < resourceNodes.Length; index++)
+                protoVessel = vessel.protoVessel;
+
+                partCount = protoVessel.protoPartSnapshots.Count;
+                for (int partIndex = 0; partIndex < partCount; partIndex++)
                 {
-                    resourceNode = resourceNodes[index];
+                    protoPart = protoVessel.protoPartSnapshots[partIndex];
+                    moduleCount = protoPart.modules.Count;
+                    for (int moduleIndex = 0; moduleIndex < moduleCount; moduleIndex++)
+                    {
+                        protoModule = protoPart.modules[moduleIndex];
+                        if (protoModule.moduleName == "WBIOmniConverter")
+                        {
+                            //Skip if not a background processor
+                            if (protoModule.moduleValues.HasValue("enableBackgroundProcessing"))
+                            {
+                                enableBackgroundProcessing = false;
+                                bool.TryParse(protoModule.moduleValues.GetValue("enableBackgroundProcessing"), out enableBackgroundProcessing);
+                                if (!enableBackgroundProcessing)
+                                    continue;
+                            } else
+                            {
+                                continue;
+                            }
 
-                    resourceRatio = new ResourceRatio();
-                    resourceRatio.Load(resourceNode);
+                            //Skip if not active
+                            isActivated = false;
+                            if (protoModule.moduleValues.HasValue("IsActivated"))
+                            {
+                                bool.TryParse(protoModule.moduleValues.GetValue("IsActivated"), out isActivated);
+                                if (isActivated)
+                                {
+                                    if (!backgroundConverters.ContainsKey(vessel))
+                                        backgroundConverters.Add(vessel, new List<WBIBackgroundConverter>());
+                                    converters = backgroundConverters[vessel];
 
-                    resources.Add(resourceRatio);
+                                    //Create a background converter
+                                    converters.Add(new WBIBackgroundConverter(protoPart, protoModule, moduleIndex));
+                                    backgroundConverters[vessel] = converters;
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
+            return backgroundConverters;
         }
 
-        public ConfigNode Save()
+        public WBIBackgroundConverter(ProtoPartSnapshot protoPart, ProtoPartModuleSnapshot protoModule, int moduleIndex)
         {
-            ConfigNode node = new ConfigNode(NodeName);
+            ConfigNode[] moduleNodes;
+            ConfigNode node = null;
+            string currentTemplateName = string.Empty;
 
-            node.AddValue("converterID", converterID);
-            node.AddValue("vesselID", vesselID);
-            node.AddValue("ConverterName", ConverterName);
-            node.AddValue("hoursPerCycle", hoursPerCycle);
-            node.AddValue("cycleStartTime", cycleStartTime);
-            node.AddValue("minimumSuccess", minimumSuccess);
-            node.AddValue("criticalSuccess", criticalSuccess);
-            node.AddValue("criticalFail", criticalFail);
-            node.AddValue("criticalSuccessMultiplier", criticalSuccessMultiplier);
-            node.AddValue("failureMultiplier", failureMultiplier);
-            node.AddValue("IsActivated", IsActivated);
-            node.AddValue("isMissingResources", isMissingResources);
-            node.AddValue("isContainerFull", isContainerFull);
+            //OmniConverter can be set up in two different ways:
+            //first as a traditional converter like ModuleResourceConverter,
+            //and second, using an omni converter template.
+            //Additionally, the converter can be built-into the part or included in a dynamic template.
+            //So we have three scenarios to cover:
+            //1) build into part, no omni template.
+            //2) built into part, with omni template.
+            //3) dynamic template, with omni template.
 
-            node.AddValue("BaseEfficiency", BaseEfficiency);
-            node.AddValue("UseSpecialistBonus", UseSpecialistBonus);
-            if (!string.IsNullOrEmpty(ExperienceEffect))
-                node.AddValue("ExperienceEffect", ExperienceEffect);
-            node.AddValue("SpecialistEfficiencyFactor", SpecialistEfficiencyFactor);
-            node.AddValue("SpecialistBonusBase", SpecialistBonusBase);
+            //Record the part and module snapshot.
+            this.moduleSnapshot = protoModule;
+            this.protoPart = protoPart;
 
-            if (!string.IsNullOrEmpty(inputResourceNames))
-                node.AddValue("inputResourceNames", inputResourceNames);
-            if (!string.IsNullOrEmpty(outputResourceNames))
-                node.AddValue("outputResourceNames", outputResourceNames);
-            if (!string.IsNullOrEmpty(requiedResourceNames))
-                node.AddValue("requiedResourceNames", requiedResourceNames);
-            if (!string.IsNullOrEmpty(yieldResourceNames))
-                node.AddValue("yieldResourceNames", yieldResourceNames);
+            //Get the config node. Module index must match.
+            moduleNodes = protoPart.partInfo.partConfig.GetNodes("MODULE");
+            if (moduleIndex <= moduleNodes.Length - 1)
+                node = moduleNodes[moduleIndex];
 
-            ConfigNode resourceNode;
-            foreach (ResourceRatio resourceRatio in inputResources)
+            //If we have a node, then the converter is built into the part. Load its settings.
+            if (node != null)
+                loadTemplateSettings(node, protoModule);
+
+            //Now check for omni template.
+            if (protoModule.moduleValues.HasValue("currentTemplateName"))
             {
-                resourceNode = new ConfigNode("INPUT_RESOURCE");
-                resourceRatio.Save(resourceNode);
-                node.AddNode(resourceNode);
-            }
-            foreach (ResourceRatio resourceRatio in outputResources)
-            {
-                resourceNode = new ConfigNode("OUTPUT_RESOURCE");
-                resourceRatio.Save(resourceNode);
-                node.AddNode(resourceNode);
-            }
-            foreach (ResourceRatio resourceRatio in requiredResources)
-            {
-                resourceNode = new ConfigNode("REQUIRED_RESOURCE");
-                resourceRatio.Save(resourceNode);
-                node.AddNode(resourceNode);
-            }
-            foreach (ResourceRatio resourceRatio in yieldResources)
-            {
-                resourceNode = new ConfigNode("YIELD_RESOURCE");
-                resourceRatio.Save(resourceNode);
-                node.AddNode(resourceNode);
-            }
+                currentTemplateName = protoModule.moduleValues.GetValue("currentTemplateName");
 
-            return node;
+                node = getOmniconverterTemplate(currentTemplateName);
+                if (node != null)
+                    loadTemplateSettings(node, protoModule);
+            }
         }
 
-        public void GetConverterData(WBIOmniConverter converter)
+        public WBIBackgroundConverter()
         {
-            this.converterID = converter.ID;
-            this.ConverterName = converter.ConverterName;
-            this.vesselID = converter.part.vessel.id.ToString();
-            this.hoursPerCycle = converter.hoursPerCycle;
-            this.minimumSuccess = converter.minimumSuccess;
-            this.criticalSuccess = converter.criticalSuccess;
-            this.criticalFail = converter.criticalFail;
-            this.criticalSuccessMultiplier = converter.criticalSuccessMultiplier;
-            this.failureMultiplier = converter.failureMultiplier;
-
-            this.BaseEfficiency = converter.BaseEfficiency;
-            this.UseSpecialistBonus = converter.UseSpecialistBonus;
-            if (converter.UseSpecialistBonus)
-            {
-                this.ExperienceEffect = converter.ExperienceEffect;
-                this.SpecialistEfficiencyFactor = converter.SpecialistEfficiencyFactor;
-                this.SpecialistBonusBase = converter.SpecialistBonusBase;
-            }
-            else
-            {
-                this.SpecialistBonusBase = 0f;
-                this.SpecialistEfficiencyFactor = 0f;
-                this.ExperienceEffect = string.Empty;
-            }
-
-            ResourceRatio ratio;
-            inputResourceNames = "";
-            inputResources.Clear();
-            foreach (ResourceRatio resourceRatio in converter.inputList)
-            {
-                if (skipReources.Contains(resourceRatio.ResourceName))
-                    continue;
-                ratio = new ResourceRatio();
-                ratio.ResourceName = resourceRatio.ResourceName;
-                ratio.Ratio = resourceRatio.Ratio;
-                ratio.FlowMode = resourceRatio.FlowMode;
-                ratio.DumpExcess = resourceRatio.DumpExcess;
-
-                this.inputResources.Add(ratio);
-                inputResourceNames += ratio.ResourceName + ";";
-            }
-            outputResourceNames = "";
-            outputResources.Clear();
-            foreach (ResourceRatio resourceRatio in converter.outputList)
-            {
-                if (skipReources.Contains(resourceRatio.ResourceName))
-                    continue;
-                ratio = new ResourceRatio();
-                ratio.ResourceName = resourceRatio.ResourceName;
-                ratio.Ratio = resourceRatio.Ratio;
-                ratio.FlowMode = resourceRatio.FlowMode;
-                ratio.DumpExcess = resourceRatio.DumpExcess;
-
-                this.outputResources.Add(ratio);
-                outputResourceNames += ratio.ResourceName + ";";
-            }
-            requiedResourceNames = "";
-            requiredResources.Clear();
-            foreach (ResourceRatio resourceRatio in converter.reqList)
-            {
-                if (skipReources.Contains(resourceRatio.ResourceName))
-                    continue;
-                ratio = new ResourceRatio();
-                ratio.ResourceName = resourceRatio.ResourceName;
-                ratio.Ratio = resourceRatio.Ratio;
-                ratio.FlowMode = resourceRatio.FlowMode;
-                ratio.DumpExcess = resourceRatio.DumpExcess;
-
-                this.requiredResources.Add(ratio);
-                requiedResourceNames += ratio.ResourceName + ";";
-            }
-            yieldResourceNames = "";
-            yieldResources.Clear();
-            foreach (ResourceRatio resourceRatio in converter.yieldResources)
-            {
-                if (skipReources.Contains(resourceRatio.ResourceName))
-                    continue;
-                ratio = new ResourceRatio();
-                ratio.ResourceName = resourceRatio.ResourceName;
-                ratio.Ratio = resourceRatio.Ratio;
-                ratio.FlowMode = resourceRatio.FlowMode;
-                ratio.DumpExcess = resourceRatio.DumpExcess;
-
-                this.yieldResources.Add(ratio);
-                yieldResourceNames += ratio.ResourceName + ";";
-            }
         }
         #endregion
 
         #region Converter Operations
         public void CheckRequiredResources(ProtoVessel vessel, double elapsedTime)
         {
-            int count = requiredResources.Count;
+            int count = requiredList.Count;
             if (count == 0)
                 return;
 
@@ -298,7 +191,7 @@ namespace WildBlueIndustries
             double amount = 0;
             for (int index = 0; index < count; index++)
             {
-                resourceRatio = requiredResources[index];
+                resourceRatio = requiredList[index];
                 amount = getAmount(resourceRatio.ResourceName, resourceRatio.FlowMode);
                 if (amount < resourceRatio.Ratio)
                 {
@@ -313,7 +206,7 @@ namespace WildBlueIndustries
 
         public void ConsumeInputResources(ProtoVessel vessel, double elapsedTime)
         {
-            int count = inputResources.Count;
+            int count = inputList.Count;
             if (count == 0)
                 return;
             if (isMissingResources)
@@ -327,7 +220,7 @@ namespace WildBlueIndustries
             double demand = 0;
             for (int index = 0; index < count; index++)
             {
-                resourceRatio = inputResources[index];
+                resourceRatio = inputList[index];
                 demand = resourceRatio.Ratio * productionMultiplier * elapsedTime;
                 amount = getAmount(resourceRatio.ResourceName, resourceRatio.FlowMode);
                 if (amount < demand)
@@ -344,7 +237,7 @@ namespace WildBlueIndustries
             //Now consume the resources
             for (int index = 0; index < count; index++)
             {
-                resourceRatio = inputResources[index];
+                resourceRatio = inputList[index];
                 demand = resourceRatio.Ratio * productionMultiplier * elapsedTime;
                 requestAmount(resourceRatio.ResourceName, demand, resourceRatio.FlowMode);
             }
@@ -352,7 +245,7 @@ namespace WildBlueIndustries
 
         public void ProduceOutputResources(ProtoVessel vessel, double elapsedTime)
         {
-            int count = outputResources.Count;
+            int count = outputList.Count;
             if (count == 0)
                 return;
             if (isMissingResources)
@@ -364,7 +257,7 @@ namespace WildBlueIndustries
             double supply = 0;
             for (int index = 0; index < count; index++)
             {
-                resourceRatio = outputResources[index];
+                resourceRatio = outputList[index];
                 supply = resourceRatio.Ratio * productionMultiplier * elapsedTime;
                 supplyAmount(resourceRatio.ResourceName, supply, resourceRatio.FlowMode, resourceRatio.DumpExcess);
             }
@@ -372,7 +265,7 @@ namespace WildBlueIndustries
 
         public void ProduceYieldResources(ProtoVessel vessel)
         {
-            int count = yieldResources.Count;
+            int count = yieldsList.Count;
             if (count == 0)
                 return;
             if (isMissingResources)
@@ -448,10 +341,8 @@ namespace WildBlueIndustries
         {
             //Find out proto part and module and resources
             int count = vessel.protoPartSnapshots.Count;
-            int moduleCount;
             int resourceCount;
             ProtoPartSnapshot pps;
-            ProtoPartModuleSnapshot protoPartModule;
             ProtoPartResourceSnapshot protoPartResource;
             List<ProtoPartResourceSnapshot> resourceList;
 
@@ -462,41 +353,6 @@ namespace WildBlueIndustries
             {
                 //Get the proto part snapshot
                 pps = vessel.protoPartSnapshots[index];
-
-                //Now search through the modules for the converter module
-                moduleCount = pps.modules.Count;
-                for (int moduleIndex = 0; moduleIndex < moduleCount; moduleIndex++)
-                {
-                    protoPartModule = pps.modules[moduleIndex];
-                    if (protoPartModule.moduleName == "WBIOmniConverter")
-                    {
-                        //Ok, we found an omni converter, now check its ID.
-                        if (protoPartModule.moduleValues.HasValue("ID"))
-                        {
-                            if (protoPartModule.moduleValues.GetValue("ID") == this.converterID)
-                            {
-                                //Cache the part and module
-                                protoPart = pps;
-                                moduleSnapshot = protoPartModule;
-
-                                //Get activation state
-                                if (protoPartModule.moduleValues.HasValue("IsActivated"))
-                                    bool.TryParse(protoPartModule.moduleValues.GetValue("IsActivated"), out IsActivated);
-
-                                //Get EfficiencyBonus
-                                if (protoPartModule.moduleValues.HasValue("EfficiencyBonus"))
-                                    float.TryParse(protoPartModule.moduleValues.GetValue("EfficiencyBonus"), out EfficiencyBonus);
-
-                                //Get cycleStartTime
-                                if (protoPartModule.moduleValues.HasValue("cycleStartTime"))
-                                    double.TryParse(protoPartModule.moduleValues.GetValue("cycleStartTime"), out cycleStartTime);
-
-                                //Done
-                                break;
-                            }
-                        }
-                    }
-                }
 
                 //Next, sort through all the resources and add them to our buckets.
                 resourceCount = pps.resources.Count;
@@ -545,9 +401,9 @@ namespace WildBlueIndustries
                     }
 
                     //Required
-                    if (!string.IsNullOrEmpty(requiedResourceNames) && !skipReources.Contains(protoPartResource.resourceName))
+                    if (!string.IsNullOrEmpty(requiredResourceNames) && !skipReources.Contains(protoPartResource.resourceName))
                     {
-                        if (requiedResourceNames.Contains(protoPartResource.resourceName))
+                        if (requiredResourceNames.Contains(protoPartResource.resourceName))
                         {
                             if (protoResources.ContainsKey(protoPartResource.resourceName))
                             {
@@ -620,6 +476,148 @@ namespace WildBlueIndustries
         #endregion
 
         #region Helpers
+        protected void loadTemplateSettings(ConfigNode node, ProtoPartModuleSnapshot protoModule)
+        {
+            int count;
+
+            //We've got a config node, but is it a converter? if so, get its resource lists.
+            if (node.HasValue("ConverterName"))
+            {
+                bool.TryParse(protoModule.moduleValues.GetValue("IsActivated"), out IsActivated);
+
+                //Get input resources
+                if (node.HasNode("INPUT_RESOURCE"))
+                    getConverterResources("INPUT_RESOURCE", inputList, node);
+                count = inputList.Count;
+                for (int index = 0; index < count; index++)
+                    inputResourceNames += inputList[index].ResourceName;
+
+                //Get output resources
+                if (node.HasNode("OUTPUT_RESOURCE"))
+                    getConverterResources("OUTPUT_RESOURCE", outputList, node);
+                count = outputList.Count;
+                for (int index = 0; index < count; index++)
+                    outputResourceNames += outputList[index].ResourceName;
+
+                //Get required resources
+                if (node.HasNode("REQUIRED_RESOURCE"))
+                    getConverterResources("YIELD_RESOURCE", requiredList, node);
+                count = requiredList.Count;
+                for (int index = 0; index < count; index++)
+                    requiredResourceNames += requiredList[index].ResourceName;
+
+                //Get yield resources
+                if (node.HasNode("YIELD_RESOURCE"))
+                    getConverterResources("YIELD_RESOURCE", yieldsList, node);
+                count = yieldsList.Count;
+                for (int index = 0; index < count; index++)
+                    yieldResourceNames += yieldsList[index].ResourceName;
+
+                if (node.HasValue("hoursPerCycle"))
+                    double.TryParse(node.GetValue("hoursPerCycle"), out hoursPerCycle);
+
+                if (node.HasValue("minimumSuccess"))
+                    float.TryParse(node.GetValue("minimumSuccess"), out minimumSuccess);
+
+                if (node.HasValue("criticalSuccess"))
+                    float.TryParse(node.GetValue("criticalSuccess"), out criticalSuccess);
+
+                if (node.HasValue("criticalFail"))
+                    float.TryParse(node.GetValue("criticalFail"), out criticalFail);
+
+                if (node.HasValue("criticalSuccessMultiplier"))
+                    double.TryParse(node.GetValue("criticalSuccessMultiplier"), out criticalSuccessMultiplier);
+
+                if (node.HasValue("failureMultiplier"))
+                    double.TryParse(node.GetValue("failureMultiplier"), out failureMultiplier);
+
+                if (node.HasValue("UseSpecialistBonus"))
+                    bool.TryParse(node.GetValue("UseSpecialistBonus"), out UseSpecialistBonus);
+
+                if (node.HasValue("SpecialistBonusBase"))
+                    float.TryParse(node.GetValue("SpecialistBonusBase"), out SpecialistBonusBase);
+
+                if (node.HasValue("SpecialistEfficiencyFactor"))
+                    float.TryParse(node.GetValue("SpecialistEfficiencyFactor"), out SpecialistEfficiencyFactor);
+
+                if (node.HasValue("ExperienceEffect"))
+                    ExperienceEffect = node.GetValue("ExperienceEffect");
+
+                if (protoModule.moduleValues.HasValue("cycleStartTime"))
+                    double.TryParse(protoModule.moduleValues.GetValue("cycleStartTime"), out cycleStartTime);
+            }
+        }
+
+        protected ConfigNode getOmniconverterTemplate(string templateName)
+        {
+            ConfigNode node = null;
+            ConfigNode[] omniconverterNodes = GameDatabase.Instance.GetConfigNodes("OMNICONVERTER");
+            string converterName = string.Empty;
+
+            //Get the omniconverter template
+            for (int templateIndex = 0; templateIndex < omniconverterNodes.Length; templateIndex++)
+            {
+                if (omniconverterNodes[templateIndex].HasValue("ConverterName"))
+                {
+                    converterName = omniconverterNodes[templateIndex].GetValue("ConverterName");
+                    if (converterName == templateName)
+                    {
+                        node = omniconverterNodes[templateIndex];
+                        break;
+                    }
+                }
+            }
+
+            return node;
+        }
+
+        protected void getConverterResources(string nodeName, List<ResourceRatio> resourceList, ConfigNode node)
+        {
+            ConfigNode[] resourceNodes;
+            ConfigNode resourceNode;
+            string resourceName;
+            ResourceRatio ratio;
+
+            resourceNodes = node.GetNodes(nodeName);
+            for (int resourceIndex = 0; resourceIndex < resourceNodes.Length; resourceIndex++)
+            {
+                //Resource name
+                resourceNode = resourceNodes[resourceIndex];
+                if (resourceNode.HasValue("ResourceName"))
+                    resourceName = resourceNode.GetValue("ResourceName");
+                else
+                    resourceName = "";
+                //Skip electric charge
+                if (resourceName == "ElectricCharge")
+                    continue;
+
+                //Ratio
+                ratio = new ResourceRatio();
+                ratio.ResourceName = resourceName;
+                if (resourceNode.HasValue("Ratio"))
+                    double.TryParse(resourceNode.GetValue("Ratio"), out ratio.Ratio);
+
+                //Flow mode
+                if (resourceNode.HasValue("FlowMode"))
+                {
+                    switch (resourceNode.GetValue("FlowMode"))
+                    {
+                        case "NO_FLOW":
+                        case "NULL":
+                            ratio.FlowMode = ResourceFlowMode.NO_FLOW;
+                            break;
+
+                        default:
+                            ratio.FlowMode = ResourceFlowMode.ALL_VESSEL;
+                            break;
+                    }
+                }
+
+                //Add to the list
+                resourceList.Add(ratio);
+            }
+        }
+
         protected void emailPlayer(string resourceName, WBIBackroundEmailTypes emailType)
         {
             StringBuilder resultsMessage = new StringBuilder();
@@ -670,13 +668,13 @@ namespace WildBlueIndustries
 
         protected void supplyYieldResources(double yieldMultiplier)
         {
-            int count = yieldResources.Count;
+            int count = yieldsList.Count;
             ResourceRatio resourceRatio;
             double supply = 0;
 
             for (int index = 0; index < count; index++)
             {
-                resourceRatio = yieldResources[index];
+                resourceRatio = yieldsList[index];
                 supply = resourceRatio.Ratio * productionMultiplier * yieldMultiplier;
                 supplyAmount(resourceRatio.ResourceName, supply, resourceRatio.FlowMode, resourceRatio.DumpExcess);
             }

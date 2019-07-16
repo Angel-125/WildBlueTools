@@ -64,7 +64,7 @@ namespace WildBlueIndustries
             showDebugLog = WBIMainSettings.EnableDebugLogging;
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             GameEvents.OnGameSettingsApplied.Remove(onGameSettingsApplied);
         }

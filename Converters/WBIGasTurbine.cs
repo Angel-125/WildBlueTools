@@ -198,7 +198,7 @@ namespace WildBlueIndustries
             setupInfoBox();
         }
 
-        public override void Destroy()
+        public void OnDestroy()
         {
             GameEvents.onStageActivate.Remove(OnStageActivate);
             GameEvents.onVesselWasModified.Remove(OnVesselModified);

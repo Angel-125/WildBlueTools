@@ -20,14 +20,14 @@ namespace WildBlueIndustries
     public class WBIOmniManager : ScenarioModule
     {
         #region Constants
-        public double secondsPerCycle = 21600.0;
+        public double secondsPerCycle = 3600;
         #endregion
 
         #region Housekeeping
         public static WBIOmniManager Instance;
 
         public double cycleStartTime;
-        public Dictionary<string, WBIBackgroundConverter> backgroundConverters;
+        public Dictionary<Vessel, List<WBIBackgroundConverter>> backgroundConverters;
         public List<Part> createdParts;
         #endregion
 
@@ -40,6 +40,7 @@ namespace WildBlueIndustries
                 return;
             }
             double elapsedTime = Planetarium.GetUniversalTime() - cycleStartTime;
+            elapsedTime = secondsPerCycle;
             if (elapsedTime < secondsPerCycle)
                 return;
             if (backgroundConverters.Count == 0)
@@ -48,146 +49,74 @@ namespace WildBlueIndustries
             //Reset the timer
             cycleStartTime = Planetarium.GetUniversalTime();
 
-            WBIBackgroundConverter[] converters = backgroundConverters.Values.ToArray();
-            int count = converters.Length;
+            Vessel vessel;
+            int count = FlightGlobals.Vessels.Count;
+            for (int vesselIndex = 0; vesselIndex < count; vesselIndex++)
+            {
+                vessel = FlightGlobals.Vessels[vesselIndex];
+
+                //Skip vessel types that we're not interested in.
+                if (vessel.vesselType == VesselType.Debris ||
+                    vessel.vesselType == VesselType.Flag ||
+                    vessel.vesselType == VesselType.SpaceObject ||
+                    vessel.vesselType == VesselType.Unknown)
+                    continue;
+
+                //Run background converters
+                if (!vessel.loaded)
+                    runBackgroundConverters(vessel, elapsedTime);
+            }
+        }
+
+        protected void runBackgroundConverters(Vessel vessel, double elapsedTime)
+        {
+            List<WBIBackgroundConverter> converters;
+            if (backgroundConverters.ContainsKey(vessel))
+                converters = backgroundConverters[vessel];
+            else
+                return;
+            int count = converters.Count;
             WBIBackgroundConverter converter;
+
             for (int index = 0; index < count; index++)
             {
                 converter = converters[index];
 
                 if (converter.IsActivated && !converter.isMissingResources && !converter.isContainerFull)
-                    StartCoroutine(runConverter(converter, elapsedTime));
+                    StartCoroutine(runConverter(converter, elapsedTime, vessel.protoVessel));
             }
         }
 
-        protected IEnumerator<YieldInstruction> runConverter(WBIBackgroundConverter converter, double elapsedTime)
+        protected IEnumerator<YieldInstruction> runConverter(WBIBackgroundConverter converter, double elapsedTime, ProtoVessel protoVessel)
         {
-            //If the vessel is currently loaded, then we're done
-            bool vesselIsLoaded = false;
-            Vessel[] loadedVessels = FlightGlobals.VesselsLoaded.ToArray();
-            for (int vesselIndex = 0; vesselIndex < loadedVessels.Length; vesselIndex++)
-            {
-                if (loadedVessels[vesselIndex].id.ToString() == converter.vesselID)
-                {
-                    vesselIsLoaded = true;
-                    break;
-                }
-            }
+            //Get ready to process
+            converter.PrepareToProcess(protoVessel);
             yield return new WaitForFixedUpdate();
 
-            if (!vesselIsLoaded)
-            {
-                //Find the unloaded vessel
-                int count = FlightGlobals.VesselsUnloaded.Count;
-                Vessel[] unloadedVessels = FlightGlobals.VesselsUnloaded.ToArray();
-                Vessel unloadedVessel = null;
-                ProtoVessel protoVessel;
-                string unloadedVesselID;
-                for (int index = 0; index < count; index++)
-                {
-                    unloadedVessel = unloadedVessels[index];
-                    unloadedVesselID = unloadedVessel.id.ToString();
-                    if (unloadedVesselID == converter.vesselID)
-                        break;
-                    else
-                        unloadedVessel = null;
-                }
-                yield return new WaitForFixedUpdate();
+            //Check required
+            converter.CheckRequiredResources(protoVessel, elapsedTime);
+            yield return new WaitForFixedUpdate();
 
-                //Process our resources if we found the vessel.
-                if (unloadedVessel != null)
-                {
-                    //Get the proto vessel
-                    protoVessel = unloadedVessel.protoVessel;
+            //Consume inputs
+            converter.ConsumeInputResources(protoVessel, elapsedTime);
+            yield return new WaitForFixedUpdate();
 
-                    //Get ready to process
-                    converter.PrepareToProcess(protoVessel);
-                    yield return new WaitForFixedUpdate();
+            //Produce outputs
+            converter.ProduceOutputResources(protoVessel, elapsedTime);
+            yield return new WaitForFixedUpdate();
 
-                    //Check required
-                    converter.CheckRequiredResources(protoVessel, elapsedTime);
-                    yield return new WaitForFixedUpdate();
+            //Produce yields
+            converter.ProduceYieldResources(protoVessel);
+            yield return new WaitForFixedUpdate();
 
-                    //Consume inputs
-                    converter.ConsumeInputResources(protoVessel, elapsedTime);
-                    yield return new WaitForFixedUpdate();
-
-                    //Produce outputs
-                    converter.ProduceOutputResources(protoVessel, elapsedTime);
-                    yield return new WaitForFixedUpdate();
-
-                    //Produce yields
-                    converter.ProduceYieldResources(protoVessel);
-                    yield return new WaitForFixedUpdate();
-
-                    //Post process
-                    converter.PostProcess(protoVessel);
-                }
-
-                //We didn't find the vessel. Remove the converter from our list.
-                else
-                {
-                    backgroundConverters.Remove(converter.converterID);
-                }
-            }
-
+            //Post process
+            converter.PostProcess(protoVessel);
             yield return new WaitForFixedUpdate();
         }
 
         #endregion
 
         #region API
-        public WBIBackgroundConverter GetBackgroundConverter(WBIOmniConverter converter)
-        {
-            if (backgroundConverters.ContainsKey(converter.ID))
-                return backgroundConverters[converter.ID];
-
-            return null;
-        }
-
-        public void UpdateBackgroundConverter(WBIBackgroundConverter converter)
-        {
-            if (backgroundConverters.ContainsKey(converter.converterID))
-                backgroundConverters[converter.converterID] = converter;
-        }
-
-        public void RegisterBackgroundConverter(WBIOmniConverter converter)
-        {
-            WBIBackgroundConverter backgroundConverter = new WBIBackgroundConverter();
-
-            if (IsRegistered(converter))
-            {
-                backgroundConverter = GetBackgroundConverter(converter);
-                backgroundConverter.GetConverterData(converter);
-                backgroundConverter.IsActivated = converter.IsActivated;
-                backgroundConverter.isMissingResources = false;
-                backgroundConverter.isContainerFull = false;
-                backgroundConverter.vesselID = converter.part.vessel.id.ToString();
-
-                UpdateBackgroundConverter(backgroundConverter);
-                return;
-            }
-
-            backgroundConverter.vesselID = converter.part.vessel.id.ToString();
-            backgroundConverter.GetConverterData(converter);
-
-            backgroundConverters.Add(backgroundConverter.converterID, backgroundConverter);
-        }
-
-        public void UnregisterBackgroundConverter(WBIOmniConverter converter)
-        {
-            if (!IsRegistered(converter))
-                return;
-
-            if (backgroundConverters.ContainsKey(converter.ID))
-                backgroundConverters.Remove(converter.ID);
-        }
-
-        public bool IsRegistered(WBIOmniConverter converter)
-        {
-            return backgroundConverters.ContainsKey(converter.ID);
-        }
-
         public bool WasRecentlyCreated(Part part)
         {
             if (createdParts == null)
@@ -197,9 +126,10 @@ namespace WildBlueIndustries
         #endregion
 
         #region Overrides
-        internal void start()
+        internal void Start()
         {
             Instance = this;
+            backgroundConverters = WBIBackgroundConverter.GetBackgroundConverters();
         }
 
         public override void OnAwake()
@@ -209,51 +139,23 @@ namespace WildBlueIndustries
             GameEvents.onVesselDestroy.Add(onVesselDestroy);
             GameEvents.onEditorPartEvent.Add(onEditorPartEvent);
 
-            backgroundConverters = new Dictionary<string, WBIBackgroundConverter>();
-
             if (cycleStartTime <= 0)
                 cycleStartTime = Planetarium.GetUniversalTime();
         }
 
         public override void OnLoad(ConfigNode node)
         {
-            backgroundConverters = new Dictionary<string, WBIBackgroundConverter>();
-
             //Housekeeping
             double.TryParse(node.GetValue("cycleStartTime"), out cycleStartTime);
-
-            //Converters
-            ConfigNode[] configNodes = node.GetNodes(WBIBackgroundConverter.NodeName);
-            WBIBackgroundConverter converter;
-            for (int index = 0; index < configNodes.Length; index++)
-            {
-                converter = new WBIBackgroundConverter();
-                converter.Load(configNodes[index]);
-
-                if (!backgroundConverters.ContainsKey(converter.converterID))
-                    backgroundConverters.Add(converter.converterID, converter);
-            }
         }
 
         public override void OnSave(ConfigNode node)
         {
             //Housekeeping
             node.AddValue("cycleStartTime", cycleStartTime);
-
-            //Converters
-            WBIBackgroundConverter[] converters = backgroundConverters.Values.ToArray();
-            WBIBackgroundConverter converter;
-            ConfigNode converterNode;
-            for (int index = 0; index < converters.Length; index++)
-            {
-                converter = converters[index];
-                converterNode = converter.Save();
-
-                node.AddNode(converterNode);
-            }
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             GameEvents.onVesselDestroy.Remove(onVesselDestroy);
             GameEvents.onVesselChange.Remove(onVesselChange);

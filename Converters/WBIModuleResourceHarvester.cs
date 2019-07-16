@@ -37,6 +37,9 @@ namespace WildBlueIndustries
 
         [KSPField]
         public string drillAnimationName = string.Empty;
+
+        [KSPField(isPersistant = true)]
+        public string drillResources = string.Empty;
         #endregion
 
         #region Housekeeping
@@ -71,6 +74,26 @@ namespace WildBlueIndustries
             info.AppendLine("Additional harvested resources and rates vary upon location.");
 
             return info.ToString();
+        }
+
+        public override void OnSave(ConfigNode node)
+        {
+            StringBuilder resourceBuilder = new StringBuilder();
+            if (resourceRatios == null || outputRatios == null || resourceBuilder == null)
+                return;
+
+            //Add our resource ratios to the output list
+            int ratioCount = resourceRatios.Count;
+            for (int index = 0; index < ratioCount; index++)
+                resourceBuilder.Append(resourceRatios[index].ResourceName + "," + resourceRatios[index].Ratio + ";");
+
+            //Add any supplementary outputs
+            ratioCount = outputRatios.Count;
+            for (int index = 0; index < ratioCount; index++)
+                resourceBuilder.Append(outputRatios[index].ResourceName + "," + outputRatios[index].Ratio + ";");
+
+            drillResources = resourceBuilder.ToString();
+            base.OnSave(node);
         }
 
         public override void OnStart(StartState state)

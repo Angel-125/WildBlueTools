@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Switchers", "..\Switchers\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlyingSaucers", "..\FlyingSaucers\Source\FlyingSaucers\FlyingSaucers.csproj", "{DC9630B5-3D6F-454E-BD91-0BA9E1D165BC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServoController", "..\ServoController\ServoController.csproj", "{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -181,6 +183,18 @@ Global
 		{DC9630B5-3D6F-454E-BD91-0BA9E1D165BC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{DC9630B5-3D6F-454E-BD91-0BA9E1D165BC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{DC9630B5-3D6F-454E-BD91-0BA9E1D165BC}.Release|x86.ActiveCfg = Release|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Debug|x86.Build.0 = Debug|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Release|x86.ActiveCfg = Release|Any CPU
+		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

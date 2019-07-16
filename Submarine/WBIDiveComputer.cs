@@ -291,7 +291,7 @@ namespace WildBlueIndustries
             setupGUI();
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             if (kaAssembly != null)
             {

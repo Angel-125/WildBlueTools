@@ -197,11 +197,11 @@ namespace WildBlueIndustries
         /// Enables the converter to run even while the vessel is unloaded. USE SPARINGLY! Too many converters run in the background will slow the game down.
         /// For performance reasons, converters will run in the background once every six hours.
         /// </summary>
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public bool enableBackgroundProcessing;
 
         /// <summary>
-        /// Unique ID of the converter. Used to identify it during background processing.
+        /// Unique ID of the converter.
         /// </summary>
         [KSPField(isPersistant = true)]
         public string ID;
@@ -259,13 +259,6 @@ namespace WildBlueIndustries
                 setupTemplateManager();
         }
 
-        public override void Destroy()
-        {
-            base.Destroy();
-            GameEvents.onVesselDestroy.Remove(onVesselDestroy);
-            GameEvents.onVesselChange.Remove(onVesselChange);
-        }
-
         //This avoids a problem where you revert a flight and then create a new part of the same type as the host part, and you get a duplicate loadout for the converter instead of a blank converter.
         public virtual void ResetSettings()
         {
@@ -273,7 +266,6 @@ namespace WildBlueIndustries
             ID = Guid.NewGuid().ToString();
 
             progress = "None";
-            WBIOmniManager.Instance.UnregisterBackgroundConverter(this);
             currentTemplateName = string.Empty;
             currentTemplate = null;
             cycleStartTime = 0;
@@ -282,8 +274,6 @@ namespace WildBlueIndustries
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            GameEvents.onVesselChange.Add(onVesselChange);
-            GameEvents.onVesselDestroy.Add(onVesselDestroy);
 
             //Create unique ID if needed
             if (string.IsNullOrEmpty(ID))
@@ -349,9 +339,6 @@ namespace WildBlueIndustries
 
             //Load yield resources if needed
             loadYieldResources();
-
-            //Update background processing
-            updateBackgroundConverter();
         }
 
         public override void OnSave(ConfigNode node)
@@ -374,9 +361,8 @@ namespace WildBlueIndustries
 
             if (!string.IsNullOrEmpty(runningEffect))
                 this.part.Effect(startEffect, 1.0f);
-
-            updateBackgroundConverter();
         }
+
         public override void StopResourceConverter()
         {
             base.StopResourceConverter();
@@ -386,8 +372,6 @@ namespace WildBlueIndustries
                 this.part.Effect(stopEffect, 1.0f);
             if (!string.IsNullOrEmpty(runningEffect))
                 this.part.Effect(runningEffect, 0.0f);
-
-            updateBackgroundConverter();
         }
 
         protected override void PostProcess(ConverterResults result, double deltaTime)
@@ -720,10 +704,6 @@ namespace WildBlueIndustries
                 bool.TryParse(currentTemplate.GetValue("enableBackgroundProcessing"), out enableBackgroundProcessing);
             else
                 enableBackgroundProcessing = false;
-            if (enableBackgroundProcessing)
-                registerForBackgroundProcessing();
-            else
-                unregisterForBackgroundProcessing();
 
             //Reload the recipie
             this._recipe = this.LoadRecipe();
@@ -1032,55 +1012,6 @@ namespace WildBlueIndustries
         #endregion
 
         #region Helpers
-        protected void updateBackgroundConverter()
-        {
-            if (enableBackgroundProcessing)
-            {
-                WBIBackgroundConverter backgroundConverter = WBIOmniManager.Instance.GetBackgroundConverter(this);
-                if (backgroundConverter != null)
-                {
-                    //Update vessel ID as that may have changed
-                    backgroundConverter.vesselID = this.part.vessel.id.ToString();
-
-                    //Reset the background processing flags since conditions may have changed.
-                    backgroundConverter.IsActivated = this.IsActivated;
-                    backgroundConverter.isMissingResources = false;
-                    backgroundConverter.isContainerFull = false;
-
-                    WBIOmniManager.Instance.UpdateBackgroundConverter(backgroundConverter);
-                }
-
-                //Background converter doesn't exist so create it.
-                else
-                {
-                    WBIOmniManager.Instance.RegisterBackgroundConverter(this);
-                }
-            }
-        }
-
-        protected void onVesselChange(Vessel vessel)
-        {
-            updateBackgroundConverter();
-        }
-
-        protected void onVesselDestroy(Vessel vessel)
-        {
-            if (vessel == this.part.vessel)
-            {
-                WBIOmniManager.Instance.UnregisterBackgroundConverter(this);
-            }
-        }
-
-        protected void registerForBackgroundProcessing()
-        {
-            WBIOmniManager.Instance.RegisterBackgroundConverter(this);
-        }
-
-        protected void unregisterForBackgroundProcessing()
-        {
-            WBIOmniManager.Instance.UnregisterBackgroundConverter(this);
-        }
-
         protected void loadYieldResources()
         {
             if (this.part.partInfo.partConfig == null)
