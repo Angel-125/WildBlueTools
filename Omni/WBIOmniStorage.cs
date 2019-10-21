@@ -1176,7 +1176,13 @@ namespace WildBlueIndustries
             buildOmniResourceConfigs();
 
             //Dirty the GUI
-            MonoUtilities.RefreshContextWindows(this.part);
+            if (UIPartActionController.Instance != null)
+            {
+                UIPartActionWindow window = UIPartActionController.Instance.GetItem(part);
+                if (window != null)
+                    window.displayDirty = true;
+            }
+            GameEvents.onPartResourceListChange.Fire(this.part);
         }
 
         protected void GetRequiredResources(float materialModifier)

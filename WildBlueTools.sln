@@ -27,11 +27,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BARIS", "..\BARIS\BARIS.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BARISBridge", "..\BARIS\BARISBridge\BARISBridge.csproj", "{8D46364B-4F22-403D-84E3-C2DCA8E49A4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Switchers", "..\Switchers\Source\Switchers.csproj", "{A03712D5-6D65-4867-93A1-C89CF959DA6F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlyingSaucers", "..\FlyingSaucers\Source\FlyingSaucers\FlyingSaucers.csproj", "{DC9630B5-3D6F-454E-BD91-0BA9E1D165BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServoController", "..\ServoController\ServoController.csproj", "{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServoController", "..\ServoController\Source\ServoController.csproj", "{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -163,16 +161,6 @@ Global
 		{8D46364B-4F22-403D-84E3-C2DCA8E49A4A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{8D46364B-4F22-403D-84E3-C2DCA8E49A4A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{8D46364B-4F22-403D-84E3-C2DCA8E49A4A}.Release|x86.ActiveCfg = Release|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{A03712D5-6D65-4867-93A1-C89CF959DA6F}.Release|x86.ActiveCfg = Release|Any CPU
 		{DC9630B5-3D6F-454E-BD91-0BA9E1D165BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DC9630B5-3D6F-454E-BD91-0BA9E1D165BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC9630B5-3D6F-454E-BD91-0BA9E1D165BC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

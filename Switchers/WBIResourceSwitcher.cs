@@ -343,8 +343,14 @@ namespace WildBlueIndustries
             //Set up the module in its new configuration
             RedecorateModule();
 
-            //Update the resource panel
-            MonoUtilities.RefreshContextWindows(this.part);
+            //Dirty the GUI
+            if (UIPartActionController.Instance != null)
+            {
+                UIPartActionWindow window = UIPartActionController.Instance.GetItem(part);
+                if (window != null)
+                    window.displayDirty = true;
+            }
+            GameEvents.onPartResourceListChange.Fire(this.part);
         }
 
         public virtual void RedecorateModule(bool loadTemplateResources = true)
