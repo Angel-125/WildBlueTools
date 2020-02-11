@@ -27,6 +27,12 @@ namespace WildBlueIndustries
         public bool isVisible;
 
         [KSPField()]
+        public bool alwaysVisible;
+
+        [KSPField()]
+        public bool updateSymmetry = true;
+
+        [KSPField()]
         public string toggleTagName = "Toggle Name Tag";
 
         [KSPField()]
@@ -40,16 +46,19 @@ namespace WildBlueIndustries
             base.OnStart(state);
 
             Events["ToggleNameTag"].guiName = toggleTagName;
+            Events["ToggleNameTag"].active = !alwaysVisible;
+
             Events["GetNameTag"].guiName = changeTagName;
 
-            changeNameTag();
+            ChangeNameTag();
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Toggle Name Tag")]
         public void ToggleNameTag()
         {
             isVisible = !isVisible;
-            changeNameTag();
+            ChangeNameTag();
+            updateSymmetryParts();
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Change Name Tag")]
@@ -63,10 +72,25 @@ namespace WildBlueIndustries
         private void onFlagSelected(FlagBrowser.FlagEntry selected)
         {
             nameTagURL = selected.textureInfo.name;
-            changeNameTag();
+            ChangeNameTag();
+            updateSymmetryParts();
         }
 
-        protected void changeNameTag()
+        protected void updateSymmetryParts()
+        {
+            if (updateSymmetry)
+            {
+                WBINameTag nameTag;
+                foreach (Part symmetryPart in this.part.symmetryCounterparts)
+                {
+                    nameTag = symmetryPart.GetComponent<WBINameTag>();
+                    nameTag.nameTagURL = this.nameTagURL;
+                    nameTag.ChangeNameTag();
+                }
+            }
+        }
+
+        public void ChangeNameTag()
         {
             string[] tagTransforms = nameTagTransforms.Split(';');
             Transform[] targets;

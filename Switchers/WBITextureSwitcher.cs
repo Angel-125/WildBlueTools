@@ -87,27 +87,31 @@ namespace WildBlueIndustries
             if (string.IsNullOrEmpty(textureOption.diffuseMap))
                 return;
 
-            //Get the targets
-            targets = part.FindModelTransforms(transformName);
-            if (targets == null)
+            string[] transformNames = transformName.Split(new char[';']);
+            for (int index = 0; index < transformNames.Length; index++)
             {
-                Debug.Log("No targets found for " + transformName);
-            }
-
-            //Now, replace the textures in each target
-            foreach (Transform target in targets)
-            {
-                rendererMaterial = target.GetComponent<Renderer>();
-
-                texture = GameDatabase.Instance.GetTexture(textureOption.diffuseMap, false);
-                if (texture != null)
-                    rendererMaterial.material.SetTexture("_MainTex", texture);
-
-                if (!string.IsNullOrEmpty(textureOption.normalMap))
+                //Get the targets
+                targets = part.FindModelTransforms(transformNames[index]);
+                if (targets == null)
                 {
-                    texture = GameDatabase.Instance.GetTexture(textureOption.normalMap, false);
+                    Debug.Log("No targets found for " + transformNames[index]);
+                }
+
+                //Now, replace the textures in each target
+                foreach (Transform target in targets)
+                {
+                    rendererMaterial = target.GetComponent<Renderer>();
+
+                    texture = GameDatabase.Instance.GetTexture(textureOption.diffuseMap, false);
                     if (texture != null)
-                        rendererMaterial.material.SetTexture("_BumpMap", texture);
+                        rendererMaterial.material.SetTexture("_MainTex", texture);
+
+                    if (!string.IsNullOrEmpty(textureOption.normalMap))
+                    {
+                        texture = GameDatabase.Instance.GetTexture(textureOption.normalMap, false);
+                        if (texture != null)
+                            rendererMaterial.material.SetTexture("_BumpMap", texture);
+                    }
                 }
             }
 

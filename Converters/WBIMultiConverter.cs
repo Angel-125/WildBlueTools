@@ -198,9 +198,7 @@ namespace WildBlueIndustries
             }
 
             //Dirty the GUI
-            UIPartActionWindow tweakableUI = Utils.FindActionWindow(this.part);
-            if (tweakableUI != null)
-                tweakableUI.displayDirty = true;
+            MonoUtilities.RefreshContextWindows(this.part);
         }
 
         #endregion

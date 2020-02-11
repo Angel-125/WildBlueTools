@@ -100,6 +100,13 @@ namespace WildBlueIndustries
         public string omniResources = string.Empty;
 
         /// <summary>
+        /// When we have no DEFAULT_RESOURCE we'll need to look to the part itself to see what it has. This field tracks what the part originally had.
+        /// It's used to remove part resources.
+        /// </summary>
+        [KSPField(isPersistant = true)]
+        public string defaultResourceNames = string.Empty;
+
+        /// <summary>
         /// Unique ID of the converter. Used to identify it during background processing.
         /// </summary>
         [KSPField(isPersistant = true)]
@@ -134,14 +141,14 @@ namespace WildBlueIndustries
         #endregion
 
         #region Events
-        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Dump Resources", guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Jettison contents", guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public virtual void DumpResources()
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
                 if (confirmedReconfigure == false)
                 {
-                    ScreenMessages.PostScreenMessage("Existing resources will be removed. Click a second time to confirm resource dump.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage("Existing resources will be removed. Click a second time to confirm.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     confirmedReconfigure = true;
                     return;
                 }
@@ -429,7 +436,57 @@ namespace WildBlueIndustries
 
         protected void drawReconfigureButton()
         {
-            updateSymmetry = GUILayout.Toggle(updateSymmetry, "Update Symmetry Parts");
+            if (HighLogic.LoadedSceneIsFlight)
+                updateSymmetry = GUILayout.Toggle(updateSymmetry, "Update symmetrical parts");
+            else
+                updateSymmetry = true;
+
+            //Delete resources button
+            if (GUILayout.Button("Remove all resourecs"))
+            {
+                if (HighLogic.LoadedSceneIsFlight)
+                {
+                    if (confirmedReconfigure == false)
+                    {
+                        ScreenMessages.PostScreenMessage("Existing resources will be removed. Click a second time to confirm.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        confirmedReconfigure = true;
+                        return;
+                    }
+
+                    confirmedReconfigure = false;
+                }
+
+                if (updateSymmetry)
+                {
+                    WBIOmniStorage symmetryStorage;
+                    foreach (Part symmetryPart in this.part.symmetryCounterparts)
+                    {
+                        symmetryStorage = symmetryPart.GetComponent<WBIOmniStorage>();
+                        if (symmetryStorage != null)
+                        {
+                            symmetryStorage.storageVolume = this.storageVolume;
+                            symmetryStorage.isEmpty = this.isEmpty;
+
+                            symmetryStorage.previewRatios.Clear();
+                            symmetryStorage.previewResources.Clear();
+                            symmetryStorage.part.Resources.Clear();
+                        }
+                    }
+                }
+
+                this.part.Resources.Clear();
+                resourceAmounts.Clear();
+                previewResources.Clear();
+
+                //Clear the switcher's list of omni storage resources
+                if (switcher != null)
+                    switcher.omniStorageResources = string.Empty;
+
+                //Dirty the GUI
+                MonoUtilities.RefreshContextWindows(this.part);
+                GameEvents.onPartResourceListChange.Fire(this.part);
+            }
+
             GUILayout.BeginHorizontal();
 
             if (GUILayout.Button("Reconfigure"))
@@ -518,7 +575,7 @@ namespace WildBlueIndustries
             scrollPos = GUILayout.BeginScrollView(scrollPos);
 
             //Add button for KIS inventory (if any)
-            if (inventory != null)
+            if (inventory != null && !resourceBlacklist.Contains(kKISResource))
             {
                 if ((!string.IsNullOrEmpty(searchText) && kKISResource.ToLower().Contains(searchText)) || string.IsNullOrEmpty(searchText))
                 {
@@ -542,9 +599,7 @@ namespace WildBlueIndustries
                 def = definitions[sortedResourceName];
 
                 //Ignore items on the blacklist and resources not shown to the user.
-                if (resourceBlacklist.Contains(def.name))
-                    continue;
-                if (def.isVisible == false)
+                if (resourceBlacklist.Contains(def.name) || def.isVisible == false)
                     continue;
 
                 //Get button name
@@ -820,11 +875,22 @@ namespace WildBlueIndustries
                 inventory.maxVolume = (float)resourceAmounts[kKISResource];
             else if (inventory != null)
                 inventory.maxVolume = 0.001f;
+
+            //Finally, clear any resources in our defaultResourceNames field.
+            if (!string.IsNullOrEmpty(defaultResourceNames))
+            {
+                string[] doomedResources = defaultResourceNames.Split(new char[] { ';' });
+                for (int index = 0; index < doomedResources.Length; index++)
+                {
+                    if (this.part.Resources.Contains(doomedResources[index]) && !resourceAmounts.ContainsKey(doomedResources[index]))
+                        ResourceHelper.RemoveResource(doomedResources[index], this.part);
+                }
+            }
         }
 
         protected void setupDefaultResources()
         {
-            if (!HighLogic.LoadedSceneIsEditor || !HighLogic.LoadedSceneIsFlight)
+            if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
                 return;
             if (isEmpty)
                 return;
@@ -886,6 +952,8 @@ namespace WildBlueIndustries
                     resourceAmounts.Add(resourceName, maxAmount);
                     previewResources.Add(resourceName, maxAmount);
                     previewRatios.Add(resourceName, ratio);
+
+                    ratio = 1.0f;
                 }
             }
 
@@ -894,6 +962,24 @@ namespace WildBlueIndustries
                 inventory.maxVolume = (float)resourceAmounts[kKISResource];
             else if (inventory != null)
                 inventory.maxVolume = 0.001f;
+
+            //If part resources are default, then use them.
+            if (resourceAmounts.Count == 0 && previewResources.Count == 0 && previewRatios.Count == 0 && this.part.Resources.Count > 0)
+            {
+                int count = this.part.Resources.Count;
+                PartResource resource;
+                for (int index = 0; index < count; index ++)
+                {
+                    resource = this.part.Resources[index];
+                    resourceName = resource.resourceName;
+                    maxAmount = resource.maxAmount;
+
+                    resourceAmounts.Add(resourceName, maxAmount);
+                    previewResources.Add(resourceName, maxAmount);
+                    previewRatios.Add(resourceName, 1.0f);
+                    defaultResourceNames += resourceName + ";";
+                }
+            }
         }
 
         protected void onDeployStateChanged(bool deployed)
@@ -1019,29 +1105,6 @@ namespace WildBlueIndustries
             applyComboPatternRatios();
         }
 
-        protected void updateSymmetryParts()
-        {
-            WBIOmniStorage symmetryStorage;
-            foreach (Part symmetryPart in this.part.symmetryCounterparts)
-            {
-                symmetryStorage = symmetryPart.GetComponent<WBIOmniStorage>();
-                if (symmetryStorage != null)
-                {
-                    symmetryStorage.storageVolume = this.storageVolume;
-                    symmetryStorage.isEmpty = this.isEmpty;
-
-                    symmetryStorage.previewRatios.Clear();
-                    symmetryStorage.previewResources.Clear();
-                    foreach (string key in this.previewRatios.Keys)
-                    {
-                        symmetryStorage.previewResources.Add(key, previewResources[key]);
-                        symmetryStorage.previewRatios.Add(key, this.previewRatios[key]);
-                    }
-
-                    symmetryStorage.reconfigureStorage();
-                }
-            }
-        }
 
         protected void addRestrictedResources()
         {
@@ -1076,6 +1139,30 @@ namespace WildBlueIndustries
             }
         }
 
+        protected void updateSymmetryParts()
+        {
+            WBIOmniStorage symmetryStorage;
+            foreach (Part symmetryPart in this.part.symmetryCounterparts)
+            {
+                symmetryStorage = symmetryPart.GetComponent<WBIOmniStorage>();
+                if (symmetryStorage != null)
+                {
+                    symmetryStorage.storageVolume = this.storageVolume;
+                    symmetryStorage.isEmpty = this.isEmpty;
+
+                    symmetryStorage.previewRatios.Clear();
+                    symmetryStorage.previewResources.Clear();
+                    foreach (string key in this.previewRatios.Keys)
+                    {
+                        symmetryStorage.previewResources.Add(key, previewResources[key]);
+                        symmetryStorage.previewRatios.Add(key, this.previewRatios[key]);
+                    }
+
+                    symmetryStorage.reconfigureStorage(false);
+                }
+            }
+        }
+
         public void reconfigureStorage(bool reconfigureSymmetryParts = false)
         {
             if (reconfigureSymmetryParts)
@@ -1090,8 +1177,7 @@ namespace WildBlueIndustries
                 if (resourceName == kKISResource)
                     continue;
 
-                if (this.part.Resources.Contains(resourceName))
-                    this.part.Resources.Remove(resourceName);
+                ResourceHelper.RemoveResource(resourceName, this.part);
             }
 
             //Clear the switcher's list of omni storage resources
@@ -1176,12 +1262,7 @@ namespace WildBlueIndustries
             buildOmniResourceConfigs();
 
             //Dirty the GUI
-            if (UIPartActionController.Instance != null)
-            {
-                UIPartActionWindow window = UIPartActionController.Instance.GetItem(part);
-                if (window != null)
-                    window.displayDirty = true;
-            }
+            MonoUtilities.RefreshContextWindows(this.part);
             GameEvents.onPartResourceListChange.Fire(this.part);
         }
 

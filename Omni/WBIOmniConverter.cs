@@ -547,7 +547,7 @@ namespace WildBlueIndustries
                     searchableText.Append(templateNode.GetValue("ExperienceEffect").ToLower());
 
                 //Done
-                if (!string.IsNullOrEmpty(converterName))
+                if (!string.IsNullOrEmpty(converterName) && !searchableTexts.ContainsKey(converterName))
                     searchableTexts.Add(converterName, searchableText.ToString());
             }
         }

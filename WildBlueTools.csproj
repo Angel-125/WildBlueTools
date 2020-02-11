@@ -16,7 +16,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -113,6 +113,7 @@
     <Compile Include="GUI\HarvestView.cs" />
     <Compile Include="Omni\WBIBackgroundConverter.cs" />
     <Compile Include="Utilities\WBIEmitterHelper.cs" />
+    <Compile Include="WBIEngineHeat.cs" />
     <Compile Include="Wrappers\KIS\WBIKISInventoryManager.cs" />
     <Compile Include="Parts\WBIModuleAsteroidResource.cs" />
     <Compile Include="PlayModes\PlayModesWindow.cs" />
@@ -260,11 +261,9 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"C:\Projects\KSP\WildBlueIndustries\pdb2mdb\pdb2mdb.exe" "$(TargetFileName)"
-xcopy /Y "$(TargetPath)" "C:\KSPDev\GameData\WildBlueIndustries\000WildBlueTools\Plugins\"﻿
+    <PostBuildEvent>xcopy /Y "$(TargetPath)" "C:\KSPDev\GameData\WildBlueIndustries\000WildBlueTools\Plugins\"﻿
 xcopy /Y "$(TargetDir)$(TargetName).dll" "C:\KSPDev\GameData\WildBlueIndustries\000WildBlueTools\Plugins\"
 xcopy /Y "$(TargetDir)$(TargetName).pdb" "C:\KSPDev\GameData\WildBlueIndustries\000WildBlueTools\Plugins\"
-xcopy /Y "$(TargetDir)$(TargetName).dll.mdb" "C:\KSPDev\GameData\WildBlueIndustries\000WildBlueTools\Plugins\"
 
 xcopy /Y  "C:\KSPDev\GameData\WildBlueIndustries\ClassicStockResources\ClassicStockResources.version" "C:\Projects\KSP\WildBlueIndustries\ClassicStockResources\Notes\"
 xcopy /Y  "C:\KSPDev\GameData\WildBlueIndustries\000WildBlueTools\WildBlueTools.version" "C:\Projects\KSP\WildBlueIndustries\WildBlueTools\Notes\"

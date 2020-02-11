@@ -344,12 +344,7 @@ namespace WildBlueIndustries
             RedecorateModule();
 
             //Dirty the GUI
-            if (UIPartActionController.Instance != null)
-            {
-                UIPartActionWindow window = UIPartActionController.Instance.GetItem(part);
-                if (window != null)
-                    window.displayDirty = true;
-            }
+            MonoUtilities.RefreshContextWindows(this.part);
             GameEvents.onPartResourceListChange.Fire(this.part);
         }
 

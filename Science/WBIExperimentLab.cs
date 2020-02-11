@@ -75,7 +75,7 @@ namespace WildBlueIndustries
         private ExpManifestAdminView manifestAdmin;
         private double elapsedDistributionTime;
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Show Manifest")]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Show Lab GUI")]
         public void ShowManifestGUI()
         {
             //Setup the experiment slots
