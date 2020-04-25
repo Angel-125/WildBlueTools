@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlyingSaucers", "..\FlyingS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServoController", "..\ServoController\Source\ServoController.csproj", "{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecalUtils", "..\Decals\DecalUtils\DecalUtils.csproj", "{239E2B25-187D-4ACB-8A53-5506DF37B807}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -183,6 +185,18 @@ Global
 		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Release|x86.ActiveCfg = Release|Any CPU
 		{F7A80263-AEB6-4C6B-A1B6-A46FB76BFA57}.Release|x86.Build.0 = Release|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Debug|x86.Build.0 = Debug|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Release|Any CPU.Build.0 = Release|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Release|x86.ActiveCfg = Release|Any CPU
+		{239E2B25-187D-4ACB-8A53-5506DF37B807}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

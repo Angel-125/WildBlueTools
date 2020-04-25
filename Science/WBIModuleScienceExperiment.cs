@@ -429,7 +429,7 @@ namespace WildBlueIndustries
             //Celestial bodies
             if (string.IsNullOrEmpty(celestialBodies) == false)
             {
-                if (celestialBodies.Contains(this.part.vessel.mainBody.name) == false)
+                if (celestialBodies.Contains(this.part.vessel.mainBody.displayName) == false)
                 {
                     status =  "Needs one: " + celestialBodies;
                     return false;
@@ -457,7 +457,7 @@ namespace WildBlueIndustries
             //Min altitude
             if (minAltitude > 0.001f)
             {
-                if (this.part.vessel.altitude < minAltitude)
+                if (this.part.vessel.altitude <= minAltitude)
                 {
                     status = string.Format("Needs min altitude: {0:f2}m", minAltitude);
                     return false;
@@ -467,7 +467,7 @@ namespace WildBlueIndustries
             //Max altitude
             if (maxAltitude > 0.001f)
             {
-                if (this.part.vessel.altitude > maxAltitude)
+                if (this.part.vessel.altitude >= maxAltitude)
                 {
                     status = string.Format("Max acceptable altitude: {0:f2}m", maxAltitude);
                     return false;
@@ -617,12 +617,27 @@ namespace WildBlueIndustries
 
             if (checkPartResources)
             {
-                PartResource[] resources = this.part.Resources.ToArray();
-                for (int resourceIndex = 0; resourceIndex < resources.Length; resourceIndex++)
-                    resources[resourceIndex].amount = 0f;
+                totalCount = resourceMapKeys.Length;
+                SExperimentResource experimentResource;
+                for (index = 0; index < totalCount; index++)
+                {
+                    experimentResource = resourceMap[resourceMapKeys[index]];
+                    if (this.part.Resources.Contains(experimentResource.name))
+                    {
+                        if (this.rerunnable)
+                            this.part.Resources[experimentResource.name].amount = 0;
+                        else
+                            this.part.Resources.Remove(experimentResource.name);
+                    }
+                }
+
+                //Dirty the GUI
+                MonoUtilities.RefreshContextWindows(this.part);
             }
+
             if (Deployed == false)
                 DeployExperiment();
+
             return true;
         }
 

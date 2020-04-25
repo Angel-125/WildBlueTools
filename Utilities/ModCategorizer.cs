@@ -42,6 +42,9 @@ namespace WildBlueIndustries
                 if (availablePart.partUrl.Contains("Deprecated"))
                     return false;
 
+                else if (availablePart.TechHidden == true)
+                    return false;
+
                 else if (availablePart.partUrl.Contains(folderName))
                     return true;
             }

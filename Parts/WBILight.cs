@@ -113,9 +113,12 @@ namespace WildBlueIndustries
                 animationLayer = kDefaultLightAnimationLayer;
 
             base.OnStart(state);
-            Animation anim = this.part.FindModelAnimators(animationName)[0];
-
-            anim[animationName].layer = animationLayer;
+            Animation[] animators = this.part.FindModelAnimators(animationName);
+            if (animators != null && animators.Length >= 1)
+            {
+                Animation anim = animators[0];
+                anim[animationName].layer = animationLayer;
+            }
 
             //Find the lights
             lights = this.part.gameObject.GetComponentsInChildren<Light>();
