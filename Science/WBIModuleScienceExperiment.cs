@@ -136,6 +136,9 @@ namespace WildBlueIndustries
 
         [KSPField]
         public string decalPath = string.Empty;
+
+        [KSPField()]
+        public string spaceSituations = string.Empty; //InSpaceHigh;InSpaceLow
         #endregion
 
         #region Housekeeping
@@ -446,10 +449,25 @@ namespace WildBlueIndustries
             //Flight states
             if (string.IsNullOrEmpty(situations) == false)
             {
-                string situation = this.part.vessel.situation.ToString();
-                if (situations.Contains(situation) == false)
+                string situation = this.part.vessel.situation.ToString().ToUpper();
+                string experimentSituations = this.situations.ToUpper();
+                if (experimentSituations.Contains(situation) == false)
                 {
                     status = "Needs one: " + situations;
+                    return false;
+                }
+            }
+
+            //Space situations
+            if (string.IsNullOrEmpty(spaceSituations) == false)
+            {
+                string expSit = ScienceUtil.GetExperimentSituation(this.part.vessel).ToString().ToUpper();
+                if (spaceSituations.Contains(expSit) == false)
+                {
+                    if (spaceSituations.Contains("INSPACELOW"))
+                        status = "Needs In Space Low";
+                    else if (spaceSituations.Contains("INSPACEHIGH"))
+                        status = "Needs In Space High";
                     return false;
                 }
             }
@@ -536,6 +554,16 @@ namespace WildBlueIndustries
                 }
             }
 
+            //Required anomalies
+            if (!string.IsNullOrEmpty(requiredAnomalies))
+            {
+                if (!isNearAnomaly())
+                {
+                    status = "Needs to be near " + requiredAnomalies.Replace(";", ", ");
+                    return false;
+                }
+            }
+
             //Required resources
             if (string.IsNullOrEmpty(requiredResources) == false)
             {
@@ -579,16 +607,6 @@ namespace WildBlueIndustries
                             }
                         }
                     }
-                }
-            }
-
-            //Required anomalies
-            if (!string.IsNullOrEmpty(requiredAnomalies))
-            {
-                if (!isNearAnomaly())
-                {
-                    status = "Needs to be near " + requiredAnomalies.Replace(";", ", ");
-                    return false;
                 }
             }
 
@@ -833,6 +851,10 @@ namespace WildBlueIndustries
             //situations
             if (nodeDefinition.HasValue("situations"))
                 situations = nodeDefinition.GetValue("situations");
+
+            //Space situations
+            if (nodeDefinition.HasValue("spaceSituations"))
+                spaceSituations = nodeDefinition.GetValue("spaceSituations");
 
             //mass
             if (nodeDefinition.HasValue("mass"))

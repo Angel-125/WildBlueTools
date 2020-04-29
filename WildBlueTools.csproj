@@ -266,9 +266,7 @@ xcopy /Y "$(TargetDir)$(TargetName).dll" "C:\KSPDev\GameData\WildBlueIndustries\
 xcopy /Y "$(TargetDir)$(TargetName).pdb" "C:\KSPDev\GameData\WildBlueIndustries\000WildBlueTools\Plugins\"
 
 xcopy /Y  "C:\KSPDev\GameData\WildBlueIndustries\ClassicStockResources\ClassicStockResources.version" "C:\Projects\KSP\WildBlueIndustries\ClassicStockResources\Notes\"
-xcopy /Y  "C:\KSPDev\GameData\WildBlueIndustries\000WildBlueTools\WildBlueTools.version" "C:\Projects\KSP\WildBlueIndustries\WildBlueTools\Notes\"
-
-del "C:\Projects\KSP\WildBlueIndustries\WildBlueTools\GameData\WildBlueIndustries\000WildBlueTools\MiniAVC.xml"</PostBuildEvent>
+xcopy /Y  "C:\KSPDev\GameData\WildBlueIndustries\000WildBlueTools\WildBlueTools.version" "C:\Projects\KSP\WildBlueIndustries\WildBlueTools\Notes\"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

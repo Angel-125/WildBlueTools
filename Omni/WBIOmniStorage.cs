@@ -476,6 +476,7 @@ namespace WildBlueIndustries
 
                 this.part.Resources.Clear();
                 resourceAmounts.Clear();
+                previewRatios.Clear();
                 previewResources.Clear();
 
                 //Clear the switcher's list of omni storage resources
@@ -669,6 +670,9 @@ namespace WildBlueIndustries
             StringBuilder resourceConfigs = new StringBuilder();
             for (int index = 0; index < keys.Length; index++)
             {
+                if (!previewRatios.ContainsKey(keys[index]))
+                    continue;
+
                 resourceConfigs.Append(keys[index]);
                 resourceConfigs.Append(",");
                 resourceConfigs.Append(resourceAmounts[keys[index]]);
@@ -676,8 +680,12 @@ namespace WildBlueIndustries
                 resourceConfigs.Append(previewRatios[keys[index]]);
                 resourceConfigs.Append(";");
             }
-            omniResources = resourceConfigs.ToString();
-            omniResources = omniResources.Substring(0, omniResources.Length - 1);
+
+            if (!string.IsNullOrEmpty(resourceConfigs.ToString()))
+            {
+                omniResources = resourceConfigs.ToString();
+                omniResources = omniResources.Substring(0, omniResources.Length - 1);
+            }
         }
 
         protected void loadResourceCombos()
