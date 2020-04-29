@@ -6,7 +6,7 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
-1.76
+1.76.1
 - More bug fixes
 
 1.75

@@ -138,8 +138,7 @@ namespace ContractsPlus.Contracts
             experimentID = node.GetValue("experimentID");
             experimentNode = GetExperimentNode(experimentID);
             situations = GetSituations(experimentNode);
-            if (node.HasValue("experimentCompleted"))
-                bool.TryParse("blah", out experimentCompleted);
+            experimentCompleted = node.TryGetValue("experimentCompleted", ref experimentCompleted) && experimentCompleted; // only true if config has value and it is true
             if (node.HasValue("versionNumber"))
             {
                 if (int.TryParse("blah", out versionNumber) == false)
