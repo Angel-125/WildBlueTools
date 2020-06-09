@@ -114,6 +114,36 @@ namespace WildBlueIndustries
         /// </summary>
         [KSPField]
         public bool showOpsView = false;
+
+        /// <summary>
+        /// Specificies the minimum number of crew that the part must contain in order for the converter to run. Default is 0.
+        /// </summary>
+        [KSPField]
+        public int minimumCrew = 0;
+
+        /// <summary>
+        /// Flag that indicates that the converter needs a CommNet connection to the home world in order to run.
+        /// </summary>
+        [KSPField]
+        public bool requiresCommNet = false;
+
+        /// <summary>
+        /// Flag that indicates that the converter's part needs to be splashed in order to run.
+        /// </summary>
+        [KSPField]
+        public bool requiresSplashed = false;
+
+        /// <summary>
+        /// Flag that indicates that the converter's part needs to be splashed and submerged in order to run.
+        /// </summary>
+        [KSPField]
+        public bool requiresSubmerged = false;
+
+        [KSPField]
+        /// <summary>
+        /// Flag that indicates that the converter's part needs to be in orbit in order to run.
+        /// </summary>
+        public bool requiresOrbiting = false;
         #endregion
 
         #region Timed Resource Fields
@@ -455,6 +485,83 @@ namespace WildBlueIndustries
             else if (string.IsNullOrEmpty(status))
                 status = "Running";
         }
+
+        protected override ConversionRecipe PrepareRecipe(double deltatime)
+        {
+            missingResources = false;
+
+            if (!HighLogic.LoadedSceneIsFlight || !IsActivated)
+                return null;
+
+            // Check situations
+            // Submerged takes precedence over splashed.
+            // A part can't be splashed or submerged if it requires orbiting
+            if (requiresSubmerged)
+            {
+                if (!this.part.vessel.mainBody.ocean)
+                {
+                    status = string.Format("Needs to be submerged");
+                    return null;
+                }
+
+                if (FlightGlobals.getAltitudeAtPos((Vector3d)this.part.transform.position, this.part.vessel.mainBody) > 0.0f)
+                {
+                    status = string.Format("Needs to be submerged");
+                    return null;
+                }
+            }
+
+            else if (requiresSplashed && !this.part.vessel.Splashed)
+            {
+                status = string.Format("Needs to be splashed");
+                return null;
+            }
+
+            else if (requiresOrbiting && this.part.vessel.situation != Vessel.Situations.ORBITING && this.part.vessel.situation != Vessel.Situations.ESCAPING)
+            {
+                status = string.Format("Needs to be orbiting");
+                return null;
+            }
+
+            //Check CommNet
+            if (requiresCommNet && CommNet.CommNetScenario.CommNetEnabled && !this.part.vessel.connection.IsConnectedHome)
+            {
+                status = string.Format("Needs connection to home world");
+                return null;
+            }
+
+            // Check minimum crew
+            if (minimumCrew > 0)
+            {
+                int partCrewCount = this.part.protoModuleCrew.Count;
+                if (partCrewCount < minimumCrew && string.IsNullOrEmpty(ExperienceEffect))
+                {
+                    status = string.Format("Needs crew: ({0}/{1})", partCrewCount, minimumCrew);
+                    return null;
+                }
+
+                // Check required skill
+                else if (!string.IsNullOrEmpty(ExperienceEffect) && minimumCrew > 0)
+                {
+                    ProtoCrewMember[] partCrew = this.part.protoModuleCrew.ToArray();
+                    int requiredSkillCount = 0;
+                    for (int index = 0; index < partCrew.Length; index++)
+                    {
+                        if (partCrew[index].HasEffect(ExperienceEffect))
+                            requiredSkillCount += 1;
+                    }
+
+                    if (requiredSkillCount < minimumCrew)
+                    {
+                        status = string.Format("Needs {0} crew with ", minimumCrew);
+                        status += ExperienceEffect;
+                        return null;
+                    }
+                }
+            }
+
+            return base.PrepareRecipe(deltatime);
+        }
         #endregion
 
         #region Resource Conversion
@@ -608,13 +715,27 @@ namespace WildBlueIndustries
                 if (currentTemplate.HasValue("SpecialistBonusBase"))
                     float.TryParse(currentTemplate.GetValue("SpecialistBonusBase"), out SpecialistBonusBase);
 
-                if (currentTemplate.HasValue("ExperienceEffect"))
-                    ExperienceEffect = currentTemplate.GetValue("ExperienceEffect");
             }
 
+            //Crew requirements
+            if (currentTemplate.HasValue("ExperienceEffect"))
+                ExperienceEffect = currentTemplate.GetValue("ExperienceEffect");
+            if (currentTemplate.HasValue("minimumCrew"))
+                int.TryParse(currentTemplate.GetValue("minimumCrew"), out minimumCrew);
+
+            //Situations
+            if (currentTemplate.HasValue("minimumCrew"))
+                int.TryParse(currentTemplate.GetValue("minimumCrew"), out minimumCrew);
+            if (currentTemplate.HasValue("requiresCommNet"))
+                bool.TryParse(currentTemplate.GetValue("requiresCommNet"), out requiresCommNet);
+            if (currentTemplate.HasValue("requiresSplashed"))
+                bool.TryParse(currentTemplate.GetValue("requiresSplashed"), out requiresSplashed);
+            if (currentTemplate.HasValue("requiresSubmerged"))
+                bool.TryParse(currentTemplate.GetValue("requiresSubmerged"), out requiresSubmerged);
+            if (currentTemplate.HasValue("requiresOrbiting"))
+                bool.TryParse(currentTemplate.GetValue("requiresOrbiting"), out requiresOrbiting);
+
             //Efficiency
-            if (currentTemplate.HasValue("EfficiencyBonus"))
-                float.TryParse(currentTemplate.GetValue("EfficiencyBonus"), out EfficiencyBonus);
             EfficiencyBonus *= BaseEfficiency;
 
             //Clear existing lists
@@ -832,14 +953,39 @@ namespace WildBlueIndustries
             }
 
             //Specialist info
+            info.AppendLine(" ");
             bool useBonus = false;
             if (templateNode.HasValue("UseSpecialistBonus"))
                 bool.TryParse(templateNode.GetValue("UseSpecialistBonus"), out useBonus);
             if (useBonus)
             {
-                info.AppendLine(" ");
                 if (templateNode.HasValue("ExperienceEffect"))
                     info.AppendLine("<color=white><b>Bonus Output Skill: </b>" + templateNode.GetValue("ExperienceEffect") + "</color>");
+            }
+
+            if (templateNode.HasValue("minimumCrew"))
+            {
+                info.AppendLine("<b>Minimum crew</b>: " + templateNode.GetValue("minimumCrew"));
+                if (templateNode.HasValue("ExperienceEffect"))
+                    info.AppendLine("<b>Required skill: </b>" + templateNode.GetValue("ExperienceEffect"));
+            }
+
+            //Situations
+            if (templateNode.HasValue("requiresCommNet") || templateNode.HasValue("requiresSplashed") || templateNode.HasValue("requiresSubmerged") || templateNode.HasValue("requiresOrbiting"))
+            {
+                if (templateNode.HasValue("requiresCommNet"))
+                    info.AppendLine("<b>Requires connection to home world: </b> Yes");
+                else
+                    info.AppendLine("<b>Requires connection to home world: </b> Yes");
+
+                if (templateNode.HasValue("requiresSubmerged"))
+                    info.AppendLine("<b>Must be submerged: </b>" + templateNode.GetValue("requiresSubmerged"));
+
+                else if (templateNode.HasValue("requiresSplashed"))
+                    info.AppendLine("<b>Must be splashed: </b>" + templateNode.GetValue("requiresSplashed"));
+
+                else if (templateNode.HasValue("requiresOrbiting"))
+                    info.AppendLine("<b>Must be orbiting: </b>" + templateNode.GetValue("requiresOrbiting"));
             }
 
             //Set the information view string
@@ -1161,7 +1307,15 @@ namespace WildBlueIndustries
                 resourceName = resourceRatio.ResourceName;
                 yieldAmount = resourceRatio.Ratio * (1.0 + (highestSkill * SpecialistEfficiencyFactor)) * yieldMultiplier;
 
-                this.part.RequestResource(resourceName, -yieldAmount, resourceRatio.FlowMode);
+                if (resourceName != "Science")
+                {
+                    this.part.RequestResource(resourceName, -yieldAmount, resourceRatio.FlowMode);
+                }
+                else if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
+                {
+                    ScreenMessages.PostScreenMessage(string.Format("{0:n2} Science added", yieldAmount), 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    ResearchAndDevelopment.Instance.AddScience((float)yieldAmount, TransactionReasons.ScienceTransmission);
+                }
             }
         }
 

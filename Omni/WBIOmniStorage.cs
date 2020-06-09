@@ -25,7 +25,7 @@ namespace WildBlueIndustries
     }
 
     [KSPModule("Omni Storage")]
-    public class WBIOmniStorage : PartModule, IOpsView
+    public class WBIOmniStorage : PartModule, IOpsView, IPartCostModifier
     {
         const string kKISResource = "KIS Inventory";
         const string kDefaultBlacklist = "GeoEnergy;ElectroPlasma;CoreHeat;Atmosphere;CompressedAtmosphere;LabTime;ExposureTime;ScopeTime;SolarReports;SimulatorTime;GravityWaves;IntakeLqd;IntakeAir;StaticCharge;EVA Propellant;Plants";
@@ -1272,6 +1272,8 @@ namespace WildBlueIndustries
             //Dirty the GUI
             MonoUtilities.RefreshContextWindows(this.part);
             GameEvents.onPartResourceListChange.Fire(this.part);
+            if (HighLogic.LoadedSceneIsEditor)
+                GameEvents.onEditorShipModified.Fire(EditorLogic.fetch.ship);
         }
 
         protected void GetRequiredResources(float materialModifier)
@@ -1412,6 +1414,18 @@ namespace WildBlueIndustries
             }
 
             return 1.0;
+        }
+        #endregion
+
+        #region IPartCostModifier
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
+        {
+            return ResourceHelper.GetResourceCost(this.part);
+        }
+
+        public ModifierChangeWhen GetModuleCostChangeWhen()
+        {
+            return ModifierChangeWhen.CONSTANTLY;
         }
         #endregion
     }

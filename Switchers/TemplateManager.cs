@@ -204,11 +204,13 @@ namespace WildBlueIndustries
             value = nodeTemplate.GetValue("requiresModule");
             if (string.IsNullOrEmpty(value) == false)
             {
-                requiredModule = this.part.Modules[value];
-                if (requiredModule == null)
-                {
+                if (!this.part.Modules.Contains(value))
                     return EInvalidTemplateReasons.RequiredModuleNotFound;
-                }
+//                requiredModule = this.part.Modules[value];
+//                if (requiredModule == null)
+//                {
+//                    return EInvalidTemplateReasons.RequiredModuleNotFound;
+//                }
             }
 
             //If we need a specific template type then check for it.

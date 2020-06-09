@@ -28,6 +28,9 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public bool isGUIVisible;
 
+        [KSPField]
+        public bool editorOnly = false;
+
         public WBIModuleScienceExperiment[] experimentSlots = null;
 
         private ExpManifestAdminView manifestAdmin;
@@ -46,6 +49,8 @@ namespace WildBlueIndustries
             manifestAdmin = new ExpManifestAdminView();
             GetExperimentSlots();
             manifestAdmin.SetupView(this.part, false, false);
+
+            this.Events["ShowManifestGUI"].guiActive = !editorOnly;
         }
 
         public bool HasAvailableSlots()
