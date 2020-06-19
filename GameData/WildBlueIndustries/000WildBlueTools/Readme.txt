@@ -6,6 +6,9 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.78
+- Bug fixes
+
 1.77
 OmniConverter Templates
 - Templates can now specify a minimumCrew as a requirement to run. The part must have a crew equal to or greater than the specified minimum in order to run. If the template also specifies an ExperienceEffect then each minimum crew member needs the ExperienceEffect.

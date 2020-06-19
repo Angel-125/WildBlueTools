@@ -449,6 +449,13 @@ namespace WildBlueIndustries
         {
             GUILayout.BeginVertical();
 
+            int totalCount;
+            ModuleResourceConverter converter;
+            string converterName = "??";
+
+            if (converters.Count == 0)
+                UpdateConverters();
+
             //If the part is broken, then no need to show the converters.
             if (isBroken)
             {
@@ -466,20 +473,24 @@ namespace WildBlueIndustries
 
             else if (HighLogic.LoadedSceneIsEditor)
             {
-                GUILayout.Label("<color=yellow>Converter controls disabled in the editor.</color>");
+                GUILayout.Label("<color=yellow>Converter controls disabled in the editor. These are the current configurations:</color>");
+                totalCount = converters.Count;
+                int converterID = 0;
+                for (int index = 0; index < totalCount; index++)
+                {
+                    converter = converters[index];
+                    converterName = converter.ConverterName;
+                    converterID = index + 1;
+
+                    GUILayout.Label("<color=white> " + converterID.ToString() + ": " + converterName + "</color>");
+                }
                 GUILayout.EndVertical();
                 return;
             }
 
-            string converterName = "??";
             string converterStatus = "??";
             bool isActivated;
-            ModuleResourceConverter converter;
-            int totalCount;
             int activeConverters = 0;
-
-            if (converters.Count == 0)
-                UpdateConverters();
 
             _scrollPosConverters = GUILayout.BeginScrollView(_scrollPosConverters, new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
             if (converters.Count == 0)

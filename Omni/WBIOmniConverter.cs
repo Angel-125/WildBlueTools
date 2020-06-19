@@ -922,6 +922,10 @@ namespace WildBlueIndustries
                         info.AppendLine("Flow mode: " + getFlowModeDescription(resourceRatio.FlowMode));
                         info.AppendLine("Dumps excess: " + resourceRatio.DumpExcess);
                     }
+                    else if (resourceRatio.ResourceName == "Science")
+                    {
+                        info.AppendLine("<b>Science</b>: " + string.Format("{0:n2} units", resourceRatio.Ratio));
+                    }
                     else
                     {
                         info.AppendLine("No definition for " + resourceRatio.ResourceName);
@@ -953,7 +957,6 @@ namespace WildBlueIndustries
             }
 
             //Specialist info
-            info.AppendLine(" ");
             bool useBonus = false;
             if (templateNode.HasValue("UseSpecialistBonus"))
                 bool.TryParse(templateNode.GetValue("UseSpecialistBonus"), out useBonus);
@@ -963,29 +966,36 @@ namespace WildBlueIndustries
                     info.AppendLine("<color=white><b>Bonus Output Skill: </b>" + templateNode.GetValue("ExperienceEffect") + "</color>");
             }
 
-            if (templateNode.HasValue("minimumCrew"))
+            if (templateNode.HasValue("requiresCommNet") || templateNode.HasValue("requiresSplashed") || 
+                templateNode.HasValue("requiresSubmerged") || templateNode.HasValue("requiresOrbiting") || 
+                templateNode.HasValue("minimumCrew"))
             {
-                info.AppendLine("<b>Minimum crew</b>: " + templateNode.GetValue("minimumCrew"));
-                if (templateNode.HasValue("ExperienceEffect"))
-                    info.AppendLine("<b>Required skill: </b>" + templateNode.GetValue("ExperienceEffect"));
-            }
+                info.AppendLine(" ");
+                info.AppendLine("<color=white><b>Requirements</b></color>");
+                if (templateNode.HasValue("minimumCrew"))
+                {
+                    info.AppendLine("<b>Minimum crew</b>: " + templateNode.GetValue("minimumCrew"));
+                    if (templateNode.HasValue("ExperienceEffect"))
+                        info.AppendLine("<b>Required skill: </b>" + templateNode.GetValue("ExperienceEffect"));
+                }
 
-            //Situations
-            if (templateNode.HasValue("requiresCommNet") || templateNode.HasValue("requiresSplashed") || templateNode.HasValue("requiresSubmerged") || templateNode.HasValue("requiresOrbiting"))
-            {
-                if (templateNode.HasValue("requiresCommNet"))
-                    info.AppendLine("<b>Requires connection to home world: </b> Yes");
-                else
-                    info.AppendLine("<b>Requires connection to home world: </b> Yes");
+                //Situations
+                if (templateNode.HasValue("requiresCommNet") || templateNode.HasValue("requiresSplashed") || templateNode.HasValue("requiresSubmerged") || templateNode.HasValue("requiresOrbiting"))
+                {
+                    if (templateNode.HasValue("requiresCommNet"))
+                        info.AppendLine("<b>Requires connection to home world: </b> Yes");
+                    else
+                        info.AppendLine("<b>Requires connection to home world: </b> Yes");
 
-                if (templateNode.HasValue("requiresSubmerged"))
-                    info.AppendLine("<b>Must be submerged: </b>" + templateNode.GetValue("requiresSubmerged"));
+                    if (templateNode.HasValue("requiresSubmerged"))
+                        info.AppendLine("<b>Must be submerged: </b>" + templateNode.GetValue("requiresSubmerged"));
 
-                else if (templateNode.HasValue("requiresSplashed"))
-                    info.AppendLine("<b>Must be splashed: </b>" + templateNode.GetValue("requiresSplashed"));
+                    else if (templateNode.HasValue("requiresSplashed"))
+                        info.AppendLine("<b>Must be splashed: </b>" + templateNode.GetValue("requiresSplashed"));
 
-                else if (templateNode.HasValue("requiresOrbiting"))
-                    info.AppendLine("<b>Must be orbiting: </b>" + templateNode.GetValue("requiresOrbiting"));
+                    else if (templateNode.HasValue("requiresOrbiting"))
+                        info.AppendLine("<b>Must be orbiting: </b>" + templateNode.GetValue("requiresOrbiting"));
+                }
             }
 
             //Set the information view string
