@@ -6,6 +6,9 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.79
+- WBIOmniStorage now supports its own set of OMNIRESOURCECOMBO nodes. If a combo is defined within the part module and a combo with the same resources is defined as a global OMNIRESOURCECOMBO, then the part's OMNIRESOURCECOMBO will be used.
+
 1.78
 - Bug fixes
 

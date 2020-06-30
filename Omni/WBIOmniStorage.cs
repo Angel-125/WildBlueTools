@@ -271,12 +271,19 @@ namespace WildBlueIndustries
                 }
             }
 
-            //Load resource combos
-            loadResourceCombos();
+            //Load resource combos. Overrides first.
+            loadResourceCombos(getPartComboNodes());
+            loadResourceCombos(GameDatabase.Instance.GetConfigNodes("OMNIRESOURCECOMBO"));
 
             //Setup default resources if needed
             Debug.Log("[WBIOmniStorage] - OnStart called. resourceAmounts.Count: " + resourceAmounts.Count);
-            if (resourceAmounts.Count == 0 && !isEmpty)
+            if (isEmpty)
+            {
+                this.previewRatios.Clear();
+                this.previewResources.Clear();
+                this.part.Resources.Clear();
+            }
+            else if (resourceAmounts.Count == 0 && !isEmpty)
                 setupDefaultResources();
             else
                 clearDefaultResources();
@@ -688,9 +695,8 @@ namespace WildBlueIndustries
             }
         }
 
-        protected void loadResourceCombos()
+        protected void loadResourceCombos(ConfigNode[] comboNodes)
         {
-            ConfigNode[] comboNodes = GameDatabase.Instance.GetConfigNodes("OMNIRESOURCECOMBO");
             ConfigNode[] resourceNodes;
             ConfigNode comboNode = null;
             ConfigNode resourceNode = null;
@@ -699,13 +705,34 @@ namespace WildBlueIndustries
             double maxAmountMultiplier = 1.0;
             ComboRatio comboRatio;
             Dictionary<string, ComboRatio> comboRatios = null;
+            List<string> existingComboKeys = new List<string>();
+            string comboKey = string.Empty;
 
+            //Build the list of existing combos
+            int count = resourceCombos.Count;
+            string[] keys;
+            for (int index = 0; index < count; index++)
+            {
+                comboRatios = resourceCombos[index];
+                comboKey = string.Empty;
+                keys = comboRatios.Keys.ToArray();
+
+                for (int keyIndex = 0; keyIndex < keys.Length; keyIndex++)
+                {
+                    comboKey += keys[keyIndex];
+                }
+
+                existingComboKeys.Add(comboKey);
+            }
+
+            //Now add the new ones
             for (int index = 0; index < comboNodes.Length; index++)
             {
                 comboNode = comboNodes[index];
 
                 resourceNodes = comboNode.GetNodes("RESOURCE");
                 comboRatios = new Dictionary<string, ComboRatio>();
+                comboKey = string.Empty;
                 for (int nodeIndex = 0; nodeIndex < resourceNodes.Length; nodeIndex++)
                 {
                     //Get the resource node
@@ -731,11 +758,17 @@ namespace WildBlueIndustries
                     comboRatio.ratio = ratio;
                     comboRatio.maxAmountMultiplier = maxAmountMultiplier;
                     comboRatios.Add(resourceName, comboRatio);
+
+                    // Update the comboKey
+                    comboKey += resourceName;
                 }
 
                 //Add the combo to the list.
-                if (comboRatios.Keys.Count > 0)
+                if (comboRatios.Keys.Count > 0 && !string.IsNullOrEmpty(comboKey) && !existingComboKeys.Contains(comboKey))
+                {
                     resourceCombos.Add(comboRatios);
+                    existingComboKeys.Add(comboKey);
+                }
             }
         }
 
@@ -836,6 +869,38 @@ namespace WildBlueIndustries
             string[] keys = comboRatios.Keys.ToArray();
             for (int index = 0; index < keys.Length; index++)
                 previewRatios[keys[index]] = ratio;
+        }
+
+        protected ConfigNode[] getPartComboNodes()
+        {
+            if (this.part.partInfo.partConfig == null)
+                return new ConfigNode[] { };
+            ConfigNode[] nodes = this.part.partInfo.partConfig.GetNodes("MODULE");
+            ConfigNode storageNode = null;
+            ConfigNode node = null;
+            string moduleName;
+
+            //Get the switcher config node.
+            for (int index = 0; index < nodes.Length; index++)
+            {
+                node = nodes[index];
+                if (node.HasValue("name"))
+                {
+                    moduleName = node.GetValue("name");
+                    if (moduleName == this.ClassName)
+                    {
+                        storageNode = node;
+                        break;
+                    }
+                }
+            }
+            if (storageNode == null)
+                return new ConfigNode[] { };
+
+            if (storageNode.HasNode("OMNIRESOURCECOMBO"))
+                return storageNode.GetNodes("OMNIRESOURCECOMBO");
+            else
+                return new ConfigNode[] { };
         }
 
         protected void clearDefaultResources()
