@@ -138,6 +138,7 @@ namespace WildBlueIndustries
         private string searchText = string.Empty;
         private bool updateSymmetry;
         private bool synchronizeComboResources = true;
+        private ConfigNode partConfigNode = null;
         #endregion
 
         #region Events
@@ -871,10 +872,14 @@ namespace WildBlueIndustries
                 previewRatios[keys[index]] = ratio;
         }
 
-        protected ConfigNode[] getPartComboNodes()
+        protected ConfigNode getPartConfigNode()
         {
+            if (partConfigNode != null)
+                return partConfigNode;
+            if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
+                return null;
             if (this.part.partInfo.partConfig == null)
-                return new ConfigNode[] { };
+                return null;
             ConfigNode[] nodes = this.part.partInfo.partConfig.GetNodes("MODULE");
             ConfigNode storageNode = null;
             ConfigNode node = null;
@@ -894,6 +899,14 @@ namespace WildBlueIndustries
                     }
                 }
             }
+
+            partConfigNode = storageNode;
+            return storageNode;
+        }
+
+        protected ConfigNode[] getPartComboNodes()
+        {
+            ConfigNode storageNode = getPartConfigNode();
             if (storageNode == null)
                 return new ConfigNode[] { };
 
@@ -905,27 +918,10 @@ namespace WildBlueIndustries
 
         protected void clearDefaultResources()
         {
-            if (this.part.partInfo.partConfig == null)
-                return;
-            ConfigNode[] nodes = this.part.partInfo.partConfig.GetNodes("MODULE");
-            ConfigNode storageNode = null;
+            ConfigNode[] nodes = null;
+            ConfigNode storageNode = getPartConfigNode();
             ConfigNode node = null;
-            string moduleName;
 
-            //Get the switcher config node.
-            for (int index = 0; index < nodes.Length; index++)
-            {
-                node = nodes[index];
-                if (node.HasValue("name"))
-                {
-                    moduleName = node.GetValue("name");
-                    if (moduleName == this.ClassName)
-                    {
-                        storageNode = node;
-                        break;
-                    }
-                }
-            }
             if (storageNode == null)
                 return;
 
@@ -967,27 +963,11 @@ namespace WildBlueIndustries
                 return;
             if (isEmpty)
                 return;
-            if (this.part.partInfo.partConfig == null)
-                return;
-            ConfigNode[] nodes = this.part.partInfo.partConfig.GetNodes("MODULE");
-            ConfigNode storageNode = null;
+            ConfigNode[] nodes = null;
+            ConfigNode storageNode = getPartConfigNode();
             ConfigNode node = null;
             string moduleName;
 
-            //Get the switcher config node.
-            for (int index = 0; index < nodes.Length; index++)
-            {
-                node = nodes[index];
-                if (node.HasValue("name"))
-                {
-                    moduleName = node.GetValue("name");
-                    if (moduleName == this.ClassName)
-                    {
-                        storageNode = node;
-                        break;
-                    }
-                }
-            }
             if (storageNode == null)
                 return;
 
@@ -1459,7 +1439,19 @@ namespace WildBlueIndustries
 
         protected double getMaxAmountMultiplier(string resourceName)
         {
-            ConfigNode[] maxAmountNodes = GameDatabase.Instance.GetConfigNodes("MAX_RESOURCE_MULTIPLIER");
+            ConfigNode configNode = getPartConfigNode();
+            if (configNode != null && configNode.HasNode("MAX_RESOURCE_MULTIPLIER"))
+            {
+                double multiplier = getMaxAmountMultiplier(resourceName, configNode.GetNodes("MAX_RESOURCE_MULTIPLIER"), -1.0);
+                if (multiplier > 0)
+                    return multiplier;
+            }
+
+            return getMaxAmountMultiplier(resourceName, GameDatabase.Instance.GetConfigNodes("MAX_RESOURCE_MULTIPLIER"));
+        }
+
+        protected double getMaxAmountMultiplier(string resourceName, ConfigNode[] maxAmountNodes, double defaultMultiplier = 1.0)
+        {
             ConfigNode node;
             double maxAmountMultiplier = 0.0f;
 
@@ -1467,7 +1459,7 @@ namespace WildBlueIndustries
             {
                 node = maxAmountNodes[index];
 
-                if (!node.HasValue("name") && !node.HasValue("maxAmountMultiplier"))
+                if (!node.HasValue("name") || !node.HasValue("maxAmountMultiplier"))
                     continue;
 
                 if (node.GetValue("name") == resourceName)
@@ -1478,7 +1470,7 @@ namespace WildBlueIndustries
                 }
             }
 
-            return 1.0;
+            return defaultMultiplier;
         }
         #endregion
 
