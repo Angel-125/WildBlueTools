@@ -608,7 +608,7 @@ namespace WildBlueIndustries
                 def = definitions[sortedResourceName];
 
                 //Ignore items on the blacklist and resources not shown to the user.
-                if (resourceBlacklist.Contains(def.name) || def.isVisible == false)
+                if (resourceBlacklist.Contains(sortedResourceName) || def.isVisible == false)
                     continue;
 
                 //Get button name
