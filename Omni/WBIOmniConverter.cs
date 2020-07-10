@@ -274,8 +274,38 @@ namespace WildBlueIndustries
 
             StringBuilder info = new StringBuilder();
 
-            info.AppendLine("<b>" + managedName + "</b>");
-            info.AppendLine("Inputs and outputs vary depending upon current configuration.");
+            info.AppendLine("<color=white><b>" + managedName + "</b></color>");
+
+            info.AppendLine(string.Format("<color=white><b>Base Efficiency: </b>{0:n2}%</color>", this.BaseEfficiency * 100));
+            if (!string.IsNullOrEmpty(reconfigureSkill))
+            {
+                string skillsRequired = "Requires " + getRequiredTraits();
+                if (reconfigureRank > 0)
+                    skillsRequired = skillsRequired + "(" + reconfigureRank.ToString() + ")";
+                info.AppendLine("<color=white>" + skillsRequired + " to reconfigure.</color>");
+            }
+
+            if (requiredAmount > 0 && !string.IsNullOrEmpty(requiredResource))
+                info.AppendLine(string.Format("<color=white>Requires {0:n2} units of {1:s} to reconfigure</color>", requiredAmount, requiredResource));
+
+            if (requiresCommNet)
+                info.AppendLine("<color=white><b>Needs connection to KSC:</b> YES</color>");
+            else
+                info.AppendLine("<color=white><b>Needs connection to KSC:</b> NO</color>");
+
+            if (requiresOrbiting)
+                info.AppendLine("<color=white><b>Must be orbiting:</b> YES</color>");
+            else
+                info.AppendLine("<color=white><b>Must be orbiting:</b> NO</color>");
+
+            if (requiresSubmerged)
+                info.AppendLine("<color=white><b>Must be submerged:</b> YES</color>");
+            else if (requiresSplashed)
+                info.AppendLine("<color=white><b>Must be splashed:</b> YES</color>");
+            else
+                info.AppendLine("<b>Must be splashed:</b> NO</color>");
+
+            info.AppendLine("<color=white>Inputs and outputs vary depending upon current configuration.</color>");
 
             return info.ToString();
         }

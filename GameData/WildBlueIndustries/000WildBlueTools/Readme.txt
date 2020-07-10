@@ -6,6 +6,9 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.81.1
+- Updated OmniConverter part info.
+
 1.80
 - WBIOmniStorage now supports its own set of MAX_RESOURCE_MULTIPLIER nodes. If defined within the part module, and a global MAX_RESOURCE_MULTIPLIER has the same resource, then the part module's MAX_RESOURCE_MULTIPLIER definition will be used instead.
 
