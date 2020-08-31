@@ -29,7 +29,19 @@ namespace WildBlueIndustries
         [GameParameters.CustomParameterUI("Enable Debug Logging", toolTip = "If enabled, your logs will be spammed with debug info.", autoPersistance = true)]
         public bool enableDebugLogging = false;
 
+        [GameParameters.CustomParameterUI("Email background converter results.", toolTip = "Enable this to know when converters run out of resources or room.", autoPersistance = true)]
+        public bool emailConverterResults = true;
+
         #region Properties
+        public static bool EmailConverterResults
+        {
+            get
+            {
+                WBIMainSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<WBIMainSettings>();
+                return settings.emailConverterResults;
+            }
+        }
+
         public static bool EnableDebugLogging
         {
             get

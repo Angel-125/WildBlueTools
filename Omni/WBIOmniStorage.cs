@@ -262,13 +262,16 @@ namespace WildBlueIndustries
             sortedResourceNames = resourceNames.OrderBy(q => q).ToList();
 
             //Find the KIS inventory if any
-            foreach (PartModule partModule in this.part.Modules)
+            if (!resourceBlacklist.Contains(kKISResource))
             {
-                if (partModule.moduleName == "ModuleKISInventory")
+                foreach (PartModule partModule in this.part.Modules)
                 {
-                    inventory = new WBIKISInventoryWrapper(partModule);
-                    if (inventory.invType == WBIKISInventoryWrapper.InventoryType.Container)
-                        break;
+                    if (partModule.moduleName == "ModuleKISInventory")
+                    {
+                        inventory = new WBIKISInventoryWrapper(partModule);
+                        if (inventory.invType == WBIKISInventoryWrapper.InventoryType.Container)
+                            break;
+                    }
                 }
             }
 

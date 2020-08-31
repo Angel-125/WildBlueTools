@@ -262,7 +262,10 @@ namespace WildBlueIndustries
         public double elapsedTime;
         public double secondsPerCycle = 0f;
         public List<ResourceRatio> yieldResources = new List<ResourceRatio>();
-        protected bool missingResources;
+        public bool situationValid;
+
+        //Timestamp for when the module was started. We need to give mods like Snacks a chance to do their thing or we'll get false positives for our situation checks during initial startup.
+        protected double initialStartTime;
         #endregion
 
         #region Overrides
@@ -399,6 +402,9 @@ namespace WildBlueIndustries
 
             //Load yield resources if needed
             loadYieldResources();
+
+            //Get initial start time
+            initialStartTime = Planetarium.GetUniversalTime();
         }
 
         public override void OnSave(ConfigNode node)
@@ -468,6 +474,10 @@ namespace WildBlueIndustries
             if (!string.IsNullOrEmpty(runningEffect))
                 this.part.Effect(runningEffect, 1.0f);
 
+            //Check initial start time. We need to give other mods like Snacks time to do their setup before we can trust that the converter's situation is valid.
+            if (Planetarium.GetUniversalTime() - initialStartTime < 5.0f)
+                return;
+
             //Check cycle start time
             if (cycleStartTime == 0f)
             {
@@ -482,8 +492,8 @@ namespace WildBlueIndustries
             {
                 if (result.Status.ToLower().Contains("missing"))
                 {
+                    cycleStartTime = Planetarium.GetUniversalTime();
                     status = result.Status;
-                    missingResources = true;
                     return;
                 }
             }
@@ -496,17 +506,17 @@ namespace WildBlueIndustries
 
             //If we've elapsed time cycle then perform the analyis.
             float completionRatio = (float)(elapsedTime / secondsPerCycle);
-            if (completionRatio > 1.0f && !missingResources)
+            StringBuilder resultMessages = new StringBuilder();
+            if (completionRatio > 1.0f && situationValid)
             {
                 int cyclesSinceLastUpdate = Mathf.RoundToInt(completionRatio);
                 int currentCycle;
                 for (currentCycle = 0; currentCycle < cyclesSinceLastUpdate; currentCycle++)
-                {
-                    PerformAnalysis();
+                    PerformAnalysis(currentCycle + 1);
 
-                    //Reset start time
-                    cycleStartTime = Planetarium.GetUniversalTime();
-                }
+                //Reset start time
+                cycleStartTime = Planetarium.GetUniversalTime();
+                elapsedTime = 0.0f;
             }
 
             //Update status
@@ -518,11 +528,20 @@ namespace WildBlueIndustries
 
         protected override ConversionRecipe PrepareRecipe(double deltatime)
         {
-            missingResources = false;
-
             if (!HighLogic.LoadedSceneIsFlight || !IsActivated)
                 return null;
 
+            situationValid = checkSituation();
+            if (!situationValid)
+                return null;
+
+            return base.PrepareRecipe(deltatime);
+        }
+        #endregion
+
+        #region Resource Conversion
+        protected bool checkSituation()
+        {
             // Check situations
             // Submerged takes precedence over splashed.
             // A part can't be splashed or submerged if it requires orbiting
@@ -531,33 +550,43 @@ namespace WildBlueIndustries
                 if (!this.part.vessel.mainBody.ocean)
                 {
                     status = string.Format("Needs to be submerged");
-                    return null;
+                    cycleStartTime = Planetarium.GetUniversalTime();
+                    elapsedTime = 0.0f;
+                    return false;
                 }
 
                 if (FlightGlobals.getAltitudeAtPos((Vector3d)this.part.transform.position, this.part.vessel.mainBody) > 0.0f)
                 {
                     status = string.Format("Needs to be submerged");
-                    return null;
+                    cycleStartTime = Planetarium.GetUniversalTime();
+                    elapsedTime = 0.0f;
+                    return false;
                 }
             }
 
             else if (requiresSplashed && !this.part.vessel.Splashed)
             {
                 status = string.Format("Needs to be splashed");
-                return null;
+                cycleStartTime = Planetarium.GetUniversalTime();
+                elapsedTime = 0.0f;
+                return false;
             }
 
             else if (requiresOrbiting && this.part.vessel.situation != Vessel.Situations.ORBITING && this.part.vessel.situation != Vessel.Situations.ESCAPING)
             {
                 status = string.Format("Needs to be orbiting");
-                return null;
+                cycleStartTime = Planetarium.GetUniversalTime();
+                elapsedTime = 0.0f;
+                return false;
             }
 
             //Check CommNet
             if (requiresCommNet && CommNet.CommNetScenario.CommNetEnabled && !this.part.vessel.connection.IsConnectedHome)
             {
                 status = string.Format("Needs connection to home world");
-                return null;
+                cycleStartTime = Planetarium.GetUniversalTime();
+                elapsedTime = 0.0f;
+                return false;
             }
 
             // Check minimum crew
@@ -567,7 +596,9 @@ namespace WildBlueIndustries
                 if (partCrewCount < minimumCrew && string.IsNullOrEmpty(ExperienceEffect))
                 {
                     status = string.Format("Needs crew: ({0}/{1})", partCrewCount, minimumCrew);
-                    return null;
+                    cycleStartTime = Planetarium.GetUniversalTime();
+                    elapsedTime = 0.0f;
+                    return false;
                 }
 
                 // Check required skill
@@ -585,16 +616,37 @@ namespace WildBlueIndustries
                     {
                         status = string.Format("Needs {0} crew with ", minimumCrew);
                         status += ExperienceEffect;
-                        return null;
+                        cycleStartTime = Planetarium.GetUniversalTime();
+                        elapsedTime = 0.0f;
+                        return false;
                     }
                 }
             }
 
-            return base.PrepareRecipe(deltatime);
-        }
-        #endregion
+            //Check resources
+            int count = inputList.Count;
+            double currentAmount, maxAmount;
+            PartResourceDefinition resourceDefinition;
+            for (int index = 0; index < count; index++)
+            {
+                resourceDefinition = ResourceHelper.DefinitionForResource(inputList[index].ResourceName);
+                if (resourceDefinition == null)
+                    continue;
 
-        #region Resource Conversion
+                this.part.vessel.resourcePartSet.GetConnectedResourceTotals(resourceDefinition.id, out currentAmount, out maxAmount, true);
+
+                if (currentAmount <= 0)
+                {
+                    status = "Missing " + resourceDefinition.displayName;
+                    cycleStartTime = Planetarium.GetUniversalTime();
+                    elapsedTime = 0.0f;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         protected void setupSearchTexts()
         {
             if (searchableTexts != null)
@@ -1235,12 +1287,12 @@ namespace WildBlueIndustries
                 yieldResources.Add(yieldResource);
             }
         }
-        public virtual void PerformAnalysis()
+        public virtual void PerformAnalysis(int yieldNumber)
         {
             //If we have no minimum success then just produce the yield resources.
             if (minimumSuccess <= 0.0f)
             {
-                produceYieldResources(1.0);
+                produceYieldResources(1.0, string.Empty);
                 return;
             }
 
@@ -1248,16 +1300,16 @@ namespace WildBlueIndustries
             float analysisRoll = performAnalysisRoll();
 
             if (analysisRoll <= criticalFail)
-                onCriticalFailure();
+                onCriticalFailure(yieldNumber);
 
             else if (analysisRoll >= criticalSuccess)
-                onCriticalSuccess();
+                onCriticalSuccess(yieldNumber);
 
             else if (analysisRoll >= minimumSuccess)
-                onSuccess();
+                onSuccess(yieldNumber);
 
             else
-                onFailure();
+                onFailure(yieldNumber);
 
         }
 
@@ -1275,7 +1327,7 @@ namespace WildBlueIndustries
             return roll;
         }
 
-        protected virtual void onCriticalFailure()
+        protected virtual void onCriticalFailure(int yieldNumber)
         {
             lastAttempt = attemptCriticalFail;
 
@@ -1284,37 +1336,32 @@ namespace WildBlueIndustries
             StopResourceConverter();
 
             //Show user message
-            ScreenMessages.PostScreenMessage(ConverterName + ": " + criticalFailMessage, kMessageDuration);
+            string message = string.Format("{0:s} Yield {1:n0}: {2:s}. ", ConverterName, yieldNumber, criticalFailMessage);
+            ScreenMessages.PostScreenMessage(message, kMessageDuration);
         }
 
-        protected virtual void onCriticalSuccess()
+        protected virtual void onCriticalSuccess(int yieldNumber)
         {
             lastAttempt = attemptCriticalSuccess;
-            produceYieldResources(criticalSuccessMultiplier);
-
-            //Show user message
-            ScreenMessages.PostScreenMessage(ConverterName + ": " + criticalSuccessMessage, kMessageDuration);
+            string message = string.Format("{0:s} Yield {1:n0}: {2:s}. ", ConverterName, yieldNumber, criticalSuccessMessage);
+            produceYieldResources(criticalSuccessMultiplier, message);
         }
 
-        protected virtual void onFailure()
+        protected virtual void onFailure(int yieldNumber)
         {
             lastAttempt = attemptFail;
-            produceYieldResources(failureMultiplier);
-
-            //Show user message
-            ScreenMessages.PostScreenMessage(ConverterName + ": " + failMessage, kMessageDuration);
+            string message = string.Format("{0:s} Yield {1:n0}: {2:s}. ", ConverterName, yieldNumber, failMessage);
+            produceYieldResources(failureMultiplier, message);
         }
 
-        protected virtual void onSuccess()
+        protected virtual void onSuccess(int yieldNumber)
         {
             lastAttempt = attemptSuccess;
-            produceYieldResources(1.0);
-
-            //Show user message
-            ScreenMessages.PostScreenMessage(successMessage, kMessageDuration);
+            string message = string.Format("{0:s} Yield {1:n0}: {2:s}. ", ConverterName, yieldNumber, successMessage);
+            produceYieldResources(1.0, message);
         }
 
-        protected virtual void produceYieldResources(double yieldMultiplier)
+        protected virtual void produceYieldResources(double yieldMultiplier, string message)
         {
             int count = yieldResources.Count;
             ResourceRatio resourceRatio;
@@ -1339,6 +1386,7 @@ namespace WildBlueIndustries
             }
 
             //Produce the yield resources
+            double totalScienceAdded = 0;
             for (int index = 0; index < count; index++)
             {
                 yieldAmount = 0;
@@ -1353,10 +1401,18 @@ namespace WildBlueIndustries
                 }
                 else if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
                 {
-                    ScreenMessages.PostScreenMessage(string.Format("{0:n2} Science added", yieldAmount), 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    totalScienceAdded += yieldAmount;
+                    ScreenMessages.PostScreenMessage(string.Format("{0:n2} Science added", yieldAmount), kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                     ResearchAndDevelopment.Instance.AddScience((float)yieldAmount, TransactionReasons.ScienceTransmission);
                 }
             }
+
+            //Inform player
+            if (totalScienceAdded > 0 && !string.IsNullOrEmpty(message))
+                ScreenMessages.PostScreenMessage(message + string.Format("{0:n2} Science added", yieldAmount), kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+
+            else if (!string.IsNullOrEmpty(message))
+                ScreenMessages.PostScreenMessage(message, kMessageDuration, ScreenMessageStyle.UPPER_CENTER);
         }
 
         public virtual void CalculateProgress()

@@ -22,19 +22,7 @@ namespace WildBlueIndustries
     public class WBIDockingNodeHelper : PartModule
     {
         [KSPField]
-        public string dockingPortMeshName = string.Empty;
-
-        [KSPField]
-        public string weldedMeshName = string.Empty;
-
-        [KSPField]
-        public bool keepPartAfterWeld;
-
-        [KSPField]
         public string weldEffect = "RepairSkill";
-
-        [KSPField(isPersistant = true)]
-        public bool hasBeenWelded;
 
         [KSPField(isPersistant = true)]
         public bool watchForDocking = false;
@@ -68,9 +56,41 @@ namespace WildBlueIndustries
         public void WeldPorts()
         {
             //Check welding requirements
-            if (!canWeldPorts())
-                return;
+//            if (!canWeldPorts())
+//                return;
 
+            AttachNode sourceNode, targetNode;
+            Part sourcePart, targetPart, thisPart, parentPart, otherNodePart;
+            if (!getNodes(out sourceNode, out targetNode, out sourcePart, out targetPart))
+                return;
+            parentPart = this.part.parent;
+            thisPart = this.part;
+            otherNodePart = dockingNode.otherNode.part;
+
+            otherNodePart.decouple();
+            thisPart.decouple();
+
+            sourcePart.Couple(targetPart);
+
+            sourceNode.attachedPart = targetPart;
+            targetNode.attachedPart = sourcePart;
+            sourcePart.fuelLookupTargets.AddUnique(targetPart);
+            targetPart.fuelLookupTargets.AddUnique(sourcePart);
+
+            //cleanup global data from all the changing of parts/etc
+            FlightGlobals.ForceSetActiveVessel(thisPart.vessel);
+            //if you don't de-activate the GUI it will null-ref because the active window belongs to one of the exploding parts below.
+            UIPartActionController.Instance.Deactivate();
+
+            //Cleanup
+            otherNodePart.Die();
+            thisPart.Die();
+
+            //but then we need to re-activate it to make sure that part-right clicking/etc doesn't break
+            UIPartActionController.Instance.Activate();
+
+            GameEvents.onVesselWasModified.Fire(part.vessel);
+            /*
             AttachNode sourceNode, targetNode;
             Part sourcePart, targetPart, thisPart, parentPart, otherNodePart;
             if (!getNodes(out sourceNode, out targetNode, out sourcePart, out targetPart))
@@ -141,6 +161,7 @@ namespace WildBlueIndustries
                 dockingNode.otherNode.part.Die();
                 this.part.Die();
             }
+            */
         }
 
         [KSPEvent(guiName = "Control from Here", guiActive = true)]
@@ -237,12 +258,6 @@ namespace WildBlueIndustries
                 glowAnim.Toggle();
         }
 
-        public override void OnLoad(ConfigNode node)
-        {
-            base.OnLoad(node);
-            ShowWeldedMesh(false);
-        }
-
         public override void OnStart(StartState st)
         {
             base.OnStart(st);
@@ -269,10 +284,6 @@ namespace WildBlueIndustries
             //Update GUI
             UpdateWeldGUI();
             updateAngleSnap();
-
-            //If we have been welded and we should show the welded mesh then do so.
-            if (string.IsNullOrEmpty(weldedMeshName) == false)
-                ShowWeldedMesh(hasBeenWelded);
 
             //Update docking state
             if (dockingNode != null && dockingNode.vesselInfo != null)
@@ -351,7 +362,6 @@ namespace WildBlueIndustries
             onGameSettingsApplied();
             TurnAnimationOff();
             UpdateWeldGUI();
-            ShowWeldedMesh(hasBeenWelded);
         }
 
         public void UpdateWeldGUI()
@@ -367,66 +377,7 @@ namespace WildBlueIndustries
             //Welding GUI
             if (dockingNode.vesselInfo != null)
             {
-                Events["WeldPorts"].guiActive = !WBIDockingParameters.WeldRequiresEVA;
-            }
-
-            //If we've already done the welding then disable the GUI.
-            if (hasBeenWelded)
-            {
-                dockingNode.enabled = false;
-                dockingNode.isEnabled = false;
-                dockingNode.moduleIsEnabled = false;
-                Events["WeldPorts"].guiActiveUnfocused = false;
-                Events["WeldPorts"].guiActive = false;
-                Events["UnsetNodeTarget"].guiActiveUnfocused = false;
-                Events["SetNodeTarget"].guiActiveUnfocused = false;
-
-                ModuleAnimateGeneric glowAnim = this.part.FindModuleImplementing<ModuleAnimateGeneric>();
-                if (glowAnim != null)
-                {
-                    if (glowAnim.Events["Toggle"].guiName == glowAnim.endEventGUIName)
-                        glowAnim.Toggle();
-
-                    glowAnim.enabled = false;
-                    glowAnim.isEnabled = false;
-                    glowAnim.moduleIsEnabled = false;
-                }
-
-                //If we're welded to a docking port without a WBIDockingNodeHelper then manually disable the other port.
-                if (dockingNode != null && dockingNode.otherNode != null)
-                {
-                    WBIDockingNodeHelper otherNodeHelper = dockingNode.otherNode.part.FindModuleImplementing<WBIDockingNodeHelper>();
-                    if (otherNodeHelper == null)
-                    {
-                        dockingNode.otherNode.enabled = false;
-                        dockingNode.otherNode.isEnabled = false;
-                        dockingNode.otherNode.moduleIsEnabled = false;
-                    }
-                }
-            }
-
-            else
-            {
-                Events["UnsetNodeTarget"].guiActiveUnfocused = false;
-                Events["SetNodeTarget"].guiActiveUnfocused = true;
-            }
-        }
-
-        public void ShowWeldedMesh(bool isVisible)
-        {
-            if (string.IsNullOrEmpty(weldedMeshName) || string.IsNullOrEmpty(dockingPortMeshName))
-                return;
-
-            if (isVisible)
-            {
-                setMeshVisible(weldedMeshName, true);
-                setMeshVisible(dockingPortMeshName, false);
-            }
-
-            else
-            {
-                setMeshVisible(weldedMeshName, false);
-                setMeshVisible(dockingPortMeshName, true);
+                //Events["WeldPorts"].guiActive = !WBIDockingParameters.WeldRequiresEVA;
             }
         }
 

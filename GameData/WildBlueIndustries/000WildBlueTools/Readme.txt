@@ -6,6 +6,13 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.81.2
+- Fix WBIOmniConverter yield resources being produced when required conditions weren't met.
+- Fix WBIOmniConverter yield resources being produced immediately after previously unmet requirements were met.
+- Fix WBIOmniConverter yield results not showing all the cycle results after player leaves the vessel for a length of time and returns.
+- Fix background converters not respecting locked resources.
+- Background processors no longer consume ElectricCharge for simplicity; it's either that or bog the game down with finding and running power generators.
+
 1.81.1
 - Updated OmniConverter part info.
 

@@ -26,6 +26,7 @@ namespace WildBlueIndustries
         #region Properties
         public string converterID;
         public string vesselID;
+        public bool playerEmailed = false;
         double hoursPerCycle = 0.0f;
         float minimumSuccess = 0.0f;
         float criticalSuccess = 0.0f;
@@ -221,6 +222,11 @@ namespace WildBlueIndustries
             for (int index = 0; index < count; index++)
             {
                 resourceRatio = inputList[index];
+
+                //Skip EC for simplicity
+                if (resourceRatio.ResourceName == "ElectricCharge")
+                    continue;
+
                 demand = resourceRatio.Ratio * productionMultiplier * elapsedTime;
                 amount = getAmount(resourceRatio.ResourceName, resourceRatio.FlowMode);
                 if (amount < demand)
@@ -238,6 +244,11 @@ namespace WildBlueIndustries
             for (int index = 0; index < count; index++)
             {
                 resourceRatio = inputList[index];
+
+                //Skip EC for simplicity
+                if (resourceRatio.ResourceName == "ElectricCharge")
+                    continue;
+
                 demand = resourceRatio.Ratio * productionMultiplier * elapsedTime;
                 requestAmount(resourceRatio.ResourceName, demand, resourceRatio.FlowMode);
             }
@@ -484,6 +495,8 @@ namespace WildBlueIndustries
             if (node.HasValue("ConverterName"))
             {
                 bool.TryParse(protoModule.moduleValues.GetValue("IsActivated"), out IsActivated);
+                if (node.HasValue("playerEmailed"))
+                    bool.TryParse(moduleSnapshot.moduleValues.GetValue("playerEmailed"), out playerEmailed);
 
                 //Get input resources
                 if (node.HasNode("INPUT_RESOURCE"))
@@ -626,6 +639,17 @@ namespace WildBlueIndustries
             PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
             string titleMessage;
 
+            //Spam check
+            if (playerEmailed || !WBIMainSettings.EmailConverterResults)
+            {
+                return;
+            }
+            else
+            {
+                playerEmailed = true;
+                moduleSnapshot.moduleValues.SetValue("playerEmailed", playerEmailed);
+            }
+
             //From
             resultsMessage.AppendLine("From: " + protoPart.pVesselRef.vesselName);
 
@@ -633,14 +657,14 @@ namespace WildBlueIndustries
             {
                 case WBIBackroundEmailTypes.missingResources:
                     resourceDef = definitions[resourceName];
-                    titleMessage = "needs more resources";
+                    titleMessage = " needs more resources";
                     resultsMessage.AppendLine("Subject: Missing Resources");
                     resultsMessage.AppendLine("There is no more " + resourceDef.displayName + " available to continue production. Operations cannot continue with the " + ConverterName + " until more resource becomes available.");
                     break;
 
                 case WBIBackroundEmailTypes.missingRequiredResource:
                     resourceDef = definitions[resourceName];
-                    titleMessage = "needs a resource";
+                    titleMessage = " needs a resource";
                     resultsMessage.AppendLine("Subject: Missing Required Resource");
                     resultsMessage.AppendLine(ConverterName + " needs " + resourceDef.displayName + " in order to function. Operations halted until the resource becomes available.");
                     break;
@@ -741,6 +765,10 @@ namespace WildBlueIndustries
                 double currentDemand = demand;
                 for (int index = 0; index < count; index++)
                 {
+                    //Skip locked resources
+                    if (!resourceShapshots[index].flowState)
+                        continue;
+
                     if (resourceShapshots[index].amount > currentDemand)
                     {
                         resourceShapshots[index].amount -= currentDemand;
@@ -760,6 +788,10 @@ namespace WildBlueIndustries
                 count = protoPart.resources.Count;
                 for (int index = 0; index < count; index++)
                 {
+                    //Skip locked resources
+                    if (!protoPart.resources[index].flowState)
+                        continue;
+
                     if (protoPart.resources[index].resourceName == resourceName)
                     {
                         supply = protoPart.resources[index].amount;
@@ -794,7 +826,8 @@ namespace WildBlueIndustries
                 count = resourceShapshots.Count;
                 for (int index = 0; index < count; index++)
                 {
-                    amount += resourceShapshots[index].amount;
+                    if (resourceShapshots[index].flowState)
+                        amount += resourceShapshots[index].amount;
                 }
             }
             else //Check the part
@@ -802,7 +835,7 @@ namespace WildBlueIndustries
                 count = protoPart.resources.Count;
                 for (int index = 0; index < count; index++)
                 {
-                    if (protoPart.resources[index].resourceName == resourceName)
+                    if (protoPart.resources[index].resourceName == resourceName && protoPart.resources[index].flowState)
                         return protoPart.resources[index].amount;
                 }
             }
