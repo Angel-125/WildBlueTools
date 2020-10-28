@@ -111,6 +111,12 @@ namespace WildBlueIndustries
         /// </summary>
         [KSPField(isPersistant = true)]
         public string ID;
+
+        /// <summary>
+        /// List of resources that cannot be altered.
+        /// </summary>
+        [KSPField]
+        public string lockedResources = string.Empty;
         #endregion
 
         #region Housekeeping
@@ -610,8 +616,8 @@ namespace WildBlueIndustries
             {
                 def = definitions[sortedResourceName];
 
-                //Ignore items on the blacklist and resources not shown to the user.
-                if (resourceBlacklist.Contains(sortedResourceName) || def.isVisible == false)
+                //Ignore items on the blacklist, locked resources list, and resources not shown to the user.
+                if (resourceBlacklist.Contains(sortedResourceName) || def.isVisible == false || lockedResources.Contains(sortedResourceName))
                     continue;
 
                 //Get button name
@@ -664,6 +670,8 @@ namespace WildBlueIndustries
                     resourceConfig = resourceConfigs[index];
                     resourceParams = resourceConfig.Split(new char[] { ',' });
                     resourceName = resourceParams[0];
+                    if (lockedResources.Contains(resourceName))
+                        continue;
                     double.TryParse(resourceParams[1], out maxAmount);
                     float.TryParse(resourceParams[2], out ratio);
                     resourceAmounts.Add(resourceName, maxAmount);
@@ -924,21 +932,29 @@ namespace WildBlueIndustries
             ConfigNode[] nodes = null;
             ConfigNode storageNode = getPartConfigNode();
             ConfigNode node = null;
+            List<string> defaultResources = new List<string>();
+            string resourceName;
 
             if (storageNode == null)
                 return;
 
-            //Get the nodes we're interested in
+            //Get the nodes we're interested in and add to our list of resources
             nodes = storageNode.GetNodes("DEFAULT_RESOURCE");
-            string resourceName;
             for (int index = 0; index < nodes.Length; index++)
             {
                 node = nodes[index];
                 if (node.HasValue("name"))
                 {
-                    resourceName = nodes[index].GetValue("name");
-                    if (this.part.Resources.Contains(resourceName) && !resourceAmounts.ContainsKey(resourceName))
-                        this.part.Resources.Remove(resourceName);
+                    resourceName = node.GetValue("name");
+                    defaultResources.Add(resourceName);
+                }
+            }
+            if (!string.IsNullOrEmpty(defaultResourceNames))
+            {
+                string[] names = defaultResourceNames.Split(new char[] { ';' });
+                for (int index = 0; index < names.Length; index++)
+                {
+                    defaultResources.Add(names[index]);
                 }
             }
 
@@ -948,15 +964,13 @@ namespace WildBlueIndustries
             else if (inventory != null)
                 inventory.maxVolume = 0.001f;
 
-            //Finally, clear any resources in our defaultResourceNames field.
-            if (!string.IsNullOrEmpty(defaultResourceNames))
+            //Finally, clear any default resources.
+            int count = defaultResources.Count;
+            for (int index = 0; index < count; index++)
             {
-                string[] doomedResources = defaultResourceNames.Split(new char[] { ';' });
-                for (int index = 0; index < doomedResources.Length; index++)
-                {
-                    if (this.part.Resources.Contains(doomedResources[index]) && !resourceAmounts.ContainsKey(doomedResources[index]))
-                        ResourceHelper.RemoveResource(doomedResources[index], this.part);
-                }
+                resourceName = defaultResources[index];
+                if (this.part.Resources.Contains(resourceName) && !resourceAmounts.ContainsKey(resourceName))
+                    ResourceHelper.RemoveResource(resourceName, this.part);
             }
         }
 
@@ -1028,6 +1042,8 @@ namespace WildBlueIndustries
                 {
                     resource = this.part.Resources[index];
                     resourceName = resource.resourceName;
+                    if (lockedResources.Contains(resourceName))
+                        continue;
                     maxAmount = resource.maxAmount;
 
                     resourceAmounts.Add(resourceName, maxAmount);

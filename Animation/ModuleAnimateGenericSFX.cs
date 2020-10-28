@@ -22,6 +22,9 @@ namespace WildBlueIndustries
     public class ModuleAnimateGenericSFX : ModuleAnimateGeneric
     {
         [KSPField]
+        public bool debugMode = false;
+
+        [KSPField]
         public string startSoundURL = string.Empty;
 
         [KSPField]
@@ -47,7 +50,16 @@ namespace WildBlueIndustries
 
         [KSPField]
         public float stopSoundVolume = 0.5f;
-        
+
+        [KSPField]
+        public string enabledModules = string.Empty;
+
+        [KSPField(isPersistant = true)]
+        public bool isDeployed = false;
+
+        [KSPField(isPersistant = true)]
+        public bool modulesEnabled = false;
+
         protected AudioSource loopSound = null;
         protected AudioSource startSound = null;
         protected AudioSource stopSound = null;
@@ -102,14 +114,32 @@ namespace WildBlueIndustries
                 stopSound.pitch = stopSoundPitch;
                 stopSound.volume = GameSettings.SHIP_VOLUME * stopSoundVolume;
             }
+
+            //Debug stuff
+            Fields["isDeployed"].guiActive = debugMode;
+            Fields["isDeployed"].guiActiveEditor = debugMode;
+            Fields["modulesEnabled"].guiActive = debugMode;
+            Fields["modulesEnabled"].guiActiveEditor = debugMode;
+
+            //Make sure partmodules are setup.
+            setModulesActive(isDeployed);
         }
 
         public override void OnUpdate()
         {
             base.OnUpdate();
-
             if (HighLogic.LoadedSceneIsFlight == false)
                 return;
+
+            //Deploy state
+            if (isMoving)
+                updateDeployStatus();
+
+            if (isDeployed != moduleIsEnabled)
+            {
+                moduleIsEnabled = isDeployed;
+                setModulesActive(isDeployed);
+            }
 
             //Play start
             if (aniState == animationStates.MOVING && isMoving == false)
@@ -123,6 +153,39 @@ namespace WildBlueIndustries
             {
                 isMoving = false;
                 playEnd();
+            }
+        }
+
+        protected void updateDeployStatus()
+        {
+            if (anim[animationName] == null)
+                return;
+
+            //1 = deployed, 0 = not deployed
+            if (anim[animationName].normalizedTime >= 0.999f)
+            {
+                isDeployed = true;
+            }
+            else if (anim[animationName].normalizedTime < 0.001f)
+            {
+                isDeployed = false;
+            }
+        }
+
+        protected void setModulesActive(bool isActive = true)
+        {
+            if (string.IsNullOrEmpty(enabledModules) || !HighLogic.LoadedSceneIsFlight)
+                return;
+            int count = this.part.Modules.Count;
+
+            for (int index = 0; index < count; index++)
+            {
+                if (enabledModules.Contains(this.part.Modules[index].moduleName))
+                {
+                    this.part.Modules[index].enabled = isActive;
+                    this.part.Modules[index].isEnabled = isActive;
+                    this.part.Modules[index].moduleIsEnabled = isActive;
+                }
             }
         }
     }

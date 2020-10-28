@@ -92,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animation\ModuleAnimateGenericSFX.cs" />
+    <Compile Include="Animation\WBIModuleColorChanger.cs" />
     <Compile Include="Contracts\WBIContractVesselTour.cs" />
     <Compile Include="Contracts\WBIFerryKerbalParam.cs" />
     <Compile Include="Contracts\WBIKerbalStayParam.cs" />

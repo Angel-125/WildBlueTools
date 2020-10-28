@@ -34,9 +34,12 @@ namespace WildBlueIndustries
         Light[] lights;
         KSPParticleEmitter[] emitters;
 
-        [KSPField(guiActive = true, guiName = "Particle Effects", isPersistant = true)]
+        [KSPField(guiActiveEditor = true, guiName = "Particle Effects", isPersistant = true)]
         [UI_Toggle(enabledText = "On", disabledText = "Off")]
         public bool showParticleEffects = true;
+
+        [KSPField]
+        public bool affectsLights = true;
 
         public override void OnUpdate()
         {
@@ -110,6 +113,8 @@ namespace WildBlueIndustries
                 if (!string.IsNullOrEmpty(runningEffect))
                     this.part.Effect(runningEffect, 1.0f);
             }
+
+            Fields["showParticleEffects"].guiName = ConverterName + " effects";
         }
 
         public override void OnPartBroken(BaseQualityControl moduleQualityControl)
@@ -121,7 +126,7 @@ namespace WildBlueIndustries
         protected void setupLightsAndEmitters()
         {
             //Turn off lights if any
-            if (lights != null)
+            if (lights != null && affectsLights)
             {
                 for (int index = 0; index < lights.Length; index++)
                     lights[index].intensity = IsActivated ? 1.0f : 0.0f;
