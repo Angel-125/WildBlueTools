@@ -38,7 +38,7 @@ namespace WildBlueIndustries
             return totalResourceMass;
         }
 
-        public static float GetResourceCost(Part part)
+        public static float GetResourceCost(Part part, bool maxAmount = false)
         {
             PartResourceDefinitionList definitions = PartResourceLibrary.Instance.resourceDefinitions;
             PartResourceList resources = part.Resources;
@@ -50,7 +50,12 @@ namespace WildBlueIndustries
                 //Find definition
                 resourceDef = definitions[resource.resourceName];
                 if (resourceDef != null)
-                    totalCost += (float)(resourceDef.unitCost * resource.maxAmount);
+                {
+                    if (!maxAmount)
+                        totalCost += (float)(resourceDef.unitCost * resource.amount);
+                    else
+                        totalCost += (float)(resourceDef.unitCost * resource.maxAmount);
+                }
 
             }
 

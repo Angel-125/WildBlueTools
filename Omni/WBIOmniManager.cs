@@ -26,9 +26,11 @@ namespace WildBlueIndustries
         #region Housekeeping
         public static WBIOmniManager Instance;
 
+        public bool debugMode = false;
         public double cycleStartTime;
         public Dictionary<Vessel, List<WBIBackgroundConverter>> backgroundConverters;
         public List<Part> createdParts;
+        public Dictionary<string, float> originalResourceCosts;
         #endregion
 
         #region Background processing
@@ -117,6 +119,29 @@ namespace WildBlueIndustries
         #endregion
 
         #region API
+        public float GetOriginalResourceCost(Part part)
+        {
+            if (originalResourceCosts.ContainsKey(part.partInfo.name))
+            {
+                float cost = originalResourceCosts[part.partInfo.name];
+
+                if (debugMode)
+                    Debug.Log(string.Format("[WBIOmniManager] original resource cost: {0:n2}", cost));
+
+                return cost;
+            }
+
+            if (debugMode)
+                Debug.Log(string.Format("[WBIOmniManager] {0:s} part cost: {1:n2}", part.partInfo.name, part.partInfo.cost));
+
+            float resourceCost = ResourceHelper.GetResourceCost(part, true);
+            if (debugMode)
+                Debug.Log(string.Format("[WBIOmniManager] original resource cost: {0:n2}", resourceCost));
+
+            originalResourceCosts.Add(part.partInfo.name, resourceCost);
+            return resourceCost;
+        }
+
         public bool WasRecentlyCreated(Part part)
         {
             if (createdParts == null)
@@ -141,18 +166,42 @@ namespace WildBlueIndustries
 
             if (cycleStartTime <= 0)
                 cycleStartTime = Planetarium.GetUniversalTime();
+
+            originalResourceCosts = new Dictionary<string, float>();
         }
 
         public override void OnLoad(ConfigNode node)
         {
             //Housekeeping
             double.TryParse(node.GetValue("cycleStartTime"), out cycleStartTime);
+
+            if (node.HasNode("OriginalResourceCost"))
+            {
+                ConfigNode[] costNodes = node.GetNodes("OriginalResourceCost");
+                string partName = string.Empty;
+                float dryCost = 0f;
+                foreach (ConfigNode costNode in costNodes)
+                {
+                    partName = costNode.GetValue("partName");
+                    float.TryParse(costNode.GetValue("cost"), out dryCost);
+                    if (!originalResourceCosts.ContainsKey(partName))
+                        originalResourceCosts.Add(partName, dryCost);
+                }
+            }
         }
 
         public override void OnSave(ConfigNode node)
         {
             //Housekeeping
             node.AddValue("cycleStartTime", cycleStartTime);
+
+            foreach (string key in originalResourceCosts.Keys)
+            {
+                ConfigNode costNode = new ConfigNode("OriginalResourceCost");
+                node.SetValue("partName", key);
+                node.SetValue("cost", originalResourceCosts[key].ToString());
+                node.AddNode(costNode);
+            }
         }
 
         public void OnDestroy()

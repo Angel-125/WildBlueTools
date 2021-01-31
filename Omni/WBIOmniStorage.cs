@@ -33,6 +33,11 @@ namespace WildBlueIndustries
 
         #region Fields
         /// <summary>
+        /// Debug flag.
+        /// </summary>
+        public bool debugMode = true;
+
+        /// <summary>
         /// Amount of storage volume in liters. Standard volume is 9000 liters,
         /// corresponding to the Titan 1800 upon which the standard template system was based.
         /// </summary>
@@ -1496,12 +1501,12 @@ namespace WildBlueIndustries
         #region IPartCostModifier
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            return ResourceHelper.GetResourceCost(this.part);
+            return (WBIOmniManager.Instance.GetOriginalResourceCost(this.part) * -1f) + ResourceHelper.GetResourceCost(this.part, true);
         }
 
         public ModifierChangeWhen GetModuleCostChangeWhen()
         {
-            return ModifierChangeWhen.CONSTANTLY;
+            return ModifierChangeWhen.FIXED;
         }
         #endregion
     }
