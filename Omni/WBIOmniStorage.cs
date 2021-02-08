@@ -122,6 +122,12 @@ namespace WildBlueIndustries
         /// </summary>
         [KSPField]
         public string lockedResources = string.Empty;
+
+        /// <summary>
+        /// If a stock inventory module is present, how much volume should it have?
+        /// </summary>
+        [KSPField(isPersistant = true)]
+        public float packedVolumeLimit = -1f;
         #endregion
 
         #region Housekeeping
@@ -150,6 +156,10 @@ namespace WildBlueIndustries
         private bool updateSymmetry;
         private bool synchronizeComboResources = true;
         private ConfigNode partConfigNode = null;
+        private ModuleInventoryPart stockInventory = null;
+        private float stockInventoryVolumeUpdate = 0f;
+        private float inventoryAdjustedVolume = 0f;
+        private float originalVolumeLimit = 0f;
         #endregion
 
         #region Events
@@ -305,6 +315,22 @@ namespace WildBlueIndustries
 
             //Add any resources that are restricted.
             addRestrictedResources();
+
+            // Setup stock inventory module
+            stockInventory = this.part.FindModuleImplementing<ModuleInventoryPart>();
+            if (stockInventory != null)
+            {
+                originalVolumeLimit = stockInventory.packedVolumeLimit;
+
+                if (packedVolumeLimit < 0)
+                    packedVolumeLimit = stockInventory.packedVolumeLimit;
+                else
+                    stockInventory.packedVolumeLimit = packedVolumeLimit;
+
+                stockInventoryVolumeUpdate = stockInventory.packedVolumeLimit;
+                inventoryAdjustedVolume = adjustedVolume;
+                adjustedVolume = inventoryAdjustedVolume - stockInventoryVolumeUpdate;
+            }
         }
         #endregion
 
@@ -339,8 +365,13 @@ namespace WildBlueIndustries
             GUILayout.BeginVertical();
 
             //Capacity
-            GUILayout.Label(string.Format("<color=white><b>Storage Capacity: </b>{0:f2}L</color>", adjustedVolume));
+            GUILayout.Label(string.Format("<color=white><b>Resource Capacity: </b>{0:f2}L</color>", adjustedVolume));
+            if (stockInventory != null)
+                GUILayout.Label(string.Format("<color=white><b>Inventory Capacity:</b> {0:n2}L</color>", stockInventoryVolumeUpdate));
             GUILayout.Label("<color=white><b>NOTE:</b> The maximum number of units for any given resource depends upon how the resource defines how many liters occupies one unit of storage.</color>");
+
+            // Stock inventory
+            drawStockInventoryControls();
 
             //Resource ratios
             drawResourceRatios();
@@ -382,6 +413,21 @@ namespace WildBlueIndustries
         #endregion
 
         #region Drawing
+        protected void drawStockInventoryControls()
+        {
+            if (stockInventory == null)
+                return;
+
+            float update = GUILayout.HorizontalSlider(stockInventoryVolumeUpdate, stockInventory.volumeCapacity, originalVolumeLimit);
+
+            if (Mathf.Abs(stockInventoryVolumeUpdate - update) > 0.00001)
+            {
+                stockInventoryVolumeUpdate = update;
+                adjustedVolume = inventoryAdjustedVolume - stockInventoryVolumeUpdate;
+                recalculateMaxAmounts();
+            }
+        }
+
         protected void drawResourceRatios()
         {
             string resourceName;
@@ -1333,6 +1379,13 @@ namespace WildBlueIndustries
                     inventory.maxVolume = (float)resourceAmounts[kKISResource];
                 else
                     inventory.maxVolume = 0.001f;
+            }
+
+            // Update stock inventory
+            if (stockInventory != null)
+            {
+                stockInventory.packedVolumeLimit = stockInventoryVolumeUpdate;
+                packedVolumeLimit = stockInventoryVolumeUpdate;
             }
 
             //Build the sorage configuration

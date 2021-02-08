@@ -10,8 +10,11 @@ Copy the contents of the mod's GameData directory into your GameData folder.
 
 --RELEASE NOTES---
 
-1.1.4
-- Raptium rebalance
+1.2.0
+- Support for KSP 1.11.1
+
+1.1.3
+- Minor tweaks and bug fixes
 
 1.1.1
 - Compatibility update

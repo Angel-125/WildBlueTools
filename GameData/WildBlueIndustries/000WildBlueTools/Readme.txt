@@ -6,6 +6,11 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.82.0
+- Add stock inventory support to several parts.
+- Bug fixes for OmniStorage.
+- OmniStorage now supports stock inventory.
+
 1.81.5
 - New WBIModuleColorChanger.
 - ModuleAnimateGenericSFX can now enable/disable part modules in its enabledModules list. Separate names of part modules of using a ";" character. ModuleAnimateGenericSFX needs to go after all the part modules that it enables/disables.

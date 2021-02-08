@@ -182,10 +182,13 @@ namespace WildBlueIndustries
                 float dryCost = 0f;
                 foreach (ConfigNode costNode in costNodes)
                 {
-                    partName = costNode.GetValue("partName");
-                    float.TryParse(costNode.GetValue("cost"), out dryCost);
-                    if (!originalResourceCosts.ContainsKey(partName))
-                        originalResourceCosts.Add(partName, dryCost);
+                    if (costNode.HasValue("partName") && costNode.HasValue("cost"))
+                    {
+                        partName = costNode.GetValue("partName");
+                        float.TryParse(costNode.GetValue("cost"), out dryCost);
+                        if (!originalResourceCosts.ContainsKey(partName))
+                            originalResourceCosts.Add(partName, dryCost);
+                    }
                 }
             }
         }
