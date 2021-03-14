@@ -502,6 +502,40 @@ namespace WildBlueIndustries
             }
         }
 
+        public void RemoveAllResources()
+        {
+            if (updateSymmetry)
+            {
+                WBIOmniStorage symmetryStorage;
+                foreach (Part symmetryPart in this.part.symmetryCounterparts)
+                {
+                    symmetryStorage = symmetryPart.GetComponent<WBIOmniStorage>();
+                    if (symmetryStorage != null)
+                    {
+                        symmetryStorage.storageVolume = this.storageVolume;
+                        symmetryStorage.isEmpty = this.isEmpty;
+
+                        symmetryStorage.previewRatios.Clear();
+                        symmetryStorage.previewResources.Clear();
+                        symmetryStorage.part.Resources.Clear();
+                    }
+                }
+            }
+
+            this.part.Resources.Clear();
+            resourceAmounts.Clear();
+            previewRatios.Clear();
+            previewResources.Clear();
+
+            //Clear the switcher's list of omni storage resources
+            if (switcher != null)
+                switcher.omniStorageResources = string.Empty;
+
+            //Dirty the GUI
+            MonoUtilities.RefreshContextWindows(this.part);
+            GameEvents.onPartResourceListChange.Fire(this.part);
+        }
+
         protected void drawReconfigureButton()
         {
             if (HighLogic.LoadedSceneIsFlight)
@@ -524,36 +558,7 @@ namespace WildBlueIndustries
                     confirmedReconfigure = false;
                 }
 
-                if (updateSymmetry)
-                {
-                    WBIOmniStorage symmetryStorage;
-                    foreach (Part symmetryPart in this.part.symmetryCounterparts)
-                    {
-                        symmetryStorage = symmetryPart.GetComponent<WBIOmniStorage>();
-                        if (symmetryStorage != null)
-                        {
-                            symmetryStorage.storageVolume = this.storageVolume;
-                            symmetryStorage.isEmpty = this.isEmpty;
-
-                            symmetryStorage.previewRatios.Clear();
-                            symmetryStorage.previewResources.Clear();
-                            symmetryStorage.part.Resources.Clear();
-                        }
-                    }
-                }
-
-                this.part.Resources.Clear();
-                resourceAmounts.Clear();
-                previewRatios.Clear();
-                previewResources.Clear();
-
-                //Clear the switcher's list of omni storage resources
-                if (switcher != null)
-                    switcher.omniStorageResources = string.Empty;
-
-                //Dirty the GUI
-                MonoUtilities.RefreshContextWindows(this.part);
-                GameEvents.onPartResourceListChange.Fire(this.part);
+                RemoveAllResources();
             }
 
             GUILayout.BeginHorizontal();

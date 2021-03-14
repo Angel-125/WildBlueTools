@@ -325,6 +325,8 @@ namespace WildBlueIndustries
 
         protected void getPropellants()
         {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
             PartResourceDefinition definition;
             WBICruisePropellant cruisePropellant;
             List<WBICruisePropellant> cruisePropellants = new List<WBICruisePropellant>();

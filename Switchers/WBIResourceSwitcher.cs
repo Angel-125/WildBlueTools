@@ -78,6 +78,9 @@ namespace WildBlueIndustries
         [KSPField(isPersistant = true)]
         public float partMass = 0f;
 
+        [KSPField]
+        public float currentMass = 0f;
+
         //Index of the current module template we're using.
         public int CurrentTemplateIndex;
 
@@ -574,6 +577,27 @@ namespace WildBlueIndustries
         #endregion
 
         #region Module Overrides
+        public override void OnPartCreatedFomInventory(ModuleInventoryPart moduleInventoryPart)
+        {
+            base.OnPartCreatedFomInventory(moduleInventoryPart);
+            if (HighLogic.LoadedSceneIsFlight && isInflatable && !isDeployed)
+            {
+                float mass = 0.001f;
+                float.TryParse(part.partInfo.partConfig.GetValue("mass"), out mass);
+                part.mass = mass;
+            }
+        }
+
+        public override void OnInventoryModeDisable()
+        {
+            base.OnInventoryModeDisable();
+        }
+
+        public override void OnInventoryModeEnable()
+        {
+            base.OnInventoryModeEnable();
+        }
+
         public override string GetInfo()
         {
             return "Check the tweakables menu for the different resources that the tank can hold.";
@@ -766,6 +790,9 @@ namespace WildBlueIndustries
 
             //Setup KISInventory if any
             setupKISInventory(CurrentTemplate);
+
+            Fields["partMass"].guiActive = WBIMainSettings.EnableDebugLogging;
+            Fields["currentMass"].guiActive = WBIMainSettings.EnableDebugLogging;
         }
 
         #endregion
@@ -1353,11 +1380,11 @@ namespace WildBlueIndustries
         #endregion
 
         #region IPartMassModifier
-        public virtual float CalculatePartMass(float defaultMass, float currentPartMass)
+        public virtual float CalculatePartMass(float defaultMass)
         {
             //To avoid problems with animated collider interactions, we don't update part mass while the part's animation is running.
             if (isMoving)
-                return part.partInfo.partPrefab.mass * -0.9999f;
+                return defaultMass;
             else if (isInflatable && !isDeployed)
                 return 0;
             if (partMass > 0.001f)
@@ -1368,7 +1395,8 @@ namespace WildBlueIndustries
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            return CalculatePartMass(defaultMass, partMass);
+            currentMass = part.mass;
+            return CalculatePartMass(defaultMass);
         }
 
         public ModifierChangeWhen GetModuleMassChangeWhen()
