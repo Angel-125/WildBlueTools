@@ -163,7 +163,7 @@ namespace WildBlueIndustries
         #endregion
 
         #region Events
-        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Jettison contents", guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Jettison contents", guiActiveUnfocused = true, unfocusedRange = 3.0f, groupName = "Omni", groupDisplayName = "Omni", groupStartCollapsed = true)]
         public virtual void DumpResources()
         {
             if (HighLogic.LoadedSceneIsFlight)
@@ -191,7 +191,7 @@ namespace WildBlueIndustries
             DumpResources();
         }
         
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Reconfigure Storage")]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Reconfigure Storage", groupName = "Omni", groupDisplayName = "Omni", groupStartCollapsed = true)]
         public void ToggleStorageView()
         {
             //Setup the ops view

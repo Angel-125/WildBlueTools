@@ -405,6 +405,9 @@ namespace WildBlueIndustries
 
             //Get initial start time
             initialStartTime = Planetarium.GetUniversalTime();
+
+            if (!string.IsNullOrEmpty(runningEffect))
+                part.Effect(runningEffect, IsActivated ? 1.0f : 0.0f);
         }
 
         public override void OnSave(ConfigNode node)
@@ -425,7 +428,7 @@ namespace WildBlueIndustries
             lastUpdateTime = cycleStartTime;
             elapsedTime = 0.0f;
 
-            if (!string.IsNullOrEmpty(runningEffect))
+            if (!string.IsNullOrEmpty(startEffect))
                 this.part.Effect(startEffect, 1.0f);
         }
 
@@ -438,6 +441,13 @@ namespace WildBlueIndustries
                 this.part.Effect(stopEffect, 1.0f);
             if (!string.IsNullOrEmpty(runningEffect))
                 this.part.Effect(runningEffect, 0.0f);
+        }
+
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+            if (!string.IsNullOrEmpty(runningEffect))
+                part.Effect(runningEffect, IsActivated ? 1.0f : 0.0f);
         }
 
         protected override void PostProcess(ConverterResults result, double deltaTime)
@@ -1086,7 +1096,7 @@ namespace WildBlueIndustries
         #endregion
 
         #region IOpsView
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Setup Converter")]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Setup Converter", groupName = "Omni", groupDisplayName = "Omni", groupStartCollapsed = true)]
         public void ToggleOpsView()
         {
             if (templateManager.templateNodes.Length == 0)

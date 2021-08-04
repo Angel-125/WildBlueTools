@@ -326,7 +326,7 @@ namespace WildBlueIndustries
 
                 case ETurbineStates.ThrottleControlled:
                     //If we're missing inputs then flameout.
-                    if (status.ToLower().Contains("missing"))
+                    if (!string.IsNullOrEmpty(status) && status.ToLower().Contains("missing"))
                     {
                         StopResourceConverter();
                         turbineState = ETurbineStates.SpoolingDown;
@@ -426,7 +426,7 @@ namespace WildBlueIndustries
 
         protected void updatePowerDisplay()
         {
-            if (IsActivated && status.Contains("load"))
+            if (IsActivated && !string.IsNullOrEmpty(status) && status.Contains("load"))
             {
                 //Get the numerical value (*somebody* didn't seem to make this convenient to obtain :( )
                 string powerOutputDisplay = status.Substring(0, status.IndexOf("%"));

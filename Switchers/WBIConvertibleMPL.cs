@@ -43,6 +43,9 @@ namespace WildBlueIndustries
 
             if (string.IsNullOrEmpty(resourcesToKeep))
                 resourcesToKeep = "ElectricCharge";
+
+            updateScienceLab();
+            updateWorkshop();
         }
 
         public override void RedecorateModule(bool loadTemplateResources = true)
