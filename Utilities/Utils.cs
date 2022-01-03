@@ -65,9 +65,7 @@ namespace WildBlueIndustries
         public static string[] GetTraitsWithEffect(string effectName)
         {
             List<string> traits;
-            Experience.ExperienceSystemConfig config = new Experience.ExperienceSystemConfig();
-            config.LoadTraitConfigs();
-            traits = config.GetTraitsWithEffect(effectName);
+            traits = GameDatabase.Instance.ExperienceConfigs.GetTraitsWithEffect(effectName);
 
             if (traits == null)
             {

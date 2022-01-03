@@ -109,6 +109,7 @@
     <Compile Include="GoldStrike\WBIGoldStrikeDrill.cs" />
     <Compile Include="GoldStrike\WBIGoldStrikeScenario.cs" />
     <Compile Include="GoldStrike\WBILoadIconHelper.cs" />
+    <Compile Include="Omni\WBIAstroTank.cs" />
     <Compile Include="Omni\WBIOmniManager.cs" />
     <Compile Include="Omni\WBIOmniConverter.cs" />
     <Compile Include="GUI\HarvestView.cs" />

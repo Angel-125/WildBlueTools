@@ -408,6 +408,10 @@ namespace WildBlueIndustries
 
             if (!string.IsNullOrEmpty(runningEffect))
                 part.Effect(runningEffect, IsActivated ? 1.0f : 0.0f);
+
+            //Dirty the GUI
+            MonoUtilities.RefreshContextWindows(this.part);
+            GameEvents.onPartResourceListChange.Fire(this.part);
         }
 
         public override void OnSave(ConfigNode node)
@@ -782,15 +786,30 @@ namespace WildBlueIndustries
 
             //ConverterName
             if (currentTemplate.HasValue("ConverterName"))
+            {
                 ConverterName = currentTemplate.GetValue("ConverterName");
+                Fields["status"].guiName = ConverterName;
+            }
 
             //Action names
             if (currentTemplate.HasValue("StartActionName"))
+            {
                 StartActionName = currentTemplate.GetValue("StartActionName");
+                Events["StartResourceConverter"].guiName = StartActionName;
+                Actions["StartResourceConverterAction"].guiName = StartActionName;
+            }
             if (currentTemplate.HasValue("StopActionName"))
+            {
                 StopActionName = currentTemplate.GetValue("StopActionName");
+                Events["StopResourceConverter"].guiName = StopActionName;
+                Actions["StopResourceConverterAction"].guiName = StopActionName;
+            }
             if (currentTemplate.HasValue("ToggleActionName"))
+            {
                 ToggleActionName = currentTemplate.GetValue("ToggleActionName");
+                Actions["ToggleResourceConverterAction"].guiName = ToggleActionName;
+            }
+
 
             //AutoShutdown
             if (currentTemplate.HasValue("AutoShutdown"))
@@ -816,7 +835,7 @@ namespace WildBlueIndustries
                 int.TryParse(currentTemplate.GetValue("minimumCrew"), out minimumCrew);
 
             //Situations
-            if (currentTemplate.HasValue("minimumCrew"))
+            if(currentTemplate.HasValue("minimumCrew"))
                 int.TryParse(currentTemplate.GetValue("minimumCrew"), out minimumCrew);
             if (currentTemplate.HasValue("requiresCommNet"))
                 bool.TryParse(currentTemplate.GetValue("requiresCommNet"), out requiresCommNet);
@@ -1210,6 +1229,7 @@ namespace WildBlueIndustries
                         {
                             payForReconfigure();
                             reconfigureConverter();
+                            confirmedReconfigure = false;
                         }
                     }
                 }
@@ -1341,8 +1361,6 @@ namespace WildBlueIndustries
         {
             lastAttempt = attemptCriticalFail;
 
-            if (qualityControl != null)
-                qualityControl.DeclarePartBroken();
             StopResourceConverter();
 
             //Show user message
@@ -1566,6 +1584,10 @@ namespace WildBlueIndustries
 
             if (switcher != null)
                 switcher.buildInputList(switcher.CurrentTemplateName);
+
+            //Dirty the GUI
+            MonoUtilities.RefreshContextWindows(this.part);
+            GameEvents.onPartResourceListChange.Fire(this.part);
         }
 
         string formatRate(double rate)

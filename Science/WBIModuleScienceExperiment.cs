@@ -1001,6 +1001,8 @@ namespace WildBlueIndustries
 
                 resourceAmount = resource.Split(new char[] { ',' });
                 experimentResource = new SExperimentResource();
+                // Default to allowing resource transfer from anywhere in the vessel.
+                experimentResource.transferFromVessel = true; 
                 experimentResource.name = resourceAmount[0];
                 experimentResource.targetAmount = double.Parse(resourceAmount[1]);
                 if (resourceAmount.Length > 2)

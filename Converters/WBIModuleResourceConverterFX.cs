@@ -20,7 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 namespace WildBlueIndustries
 {
     [KSPModule("Resource Converter")]
-    public class WBIModuleResourceConverterFX: ModuleBreakableConverter
+    public class WBIModuleResourceConverterFX: ModuleResourceConverter
     {
         [KSPField()]
         public string startEffect = string.Empty;
@@ -115,12 +115,6 @@ namespace WildBlueIndustries
             }
 
             Fields["showParticleEffects"].guiName = ConverterName + " effects";
-        }
-
-        public override void OnPartBroken(BaseQualityControl moduleQualityControl)
-        {
-            base.OnPartBroken(moduleQualityControl);
-            StopResourceConverter();
         }
 
         protected void setupLightsAndEmitters()

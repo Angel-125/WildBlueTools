@@ -137,7 +137,8 @@ namespace WildBlueIndustries
         {
             this.isMothballed = isMothballed;
 
-            opsManagerView.isMothballed = this.isMothballed;
+            if (opsManagerView != null)
+                opsManagerView.isMothballed = this.isMothballed;
 
             if (isMothballed)
             {

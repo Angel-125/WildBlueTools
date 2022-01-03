@@ -140,26 +140,27 @@ namespace WildBlueIndustries
         public static Dictionary<string, double> clipboardResources = new Dictionary<string, double>();
         public static Dictionary<string, float> clipboardRatios = new Dictionary<string, float>();
 
+        protected float adjustedVolume = 0.0f;
+        protected Dictionary<string, double> resourceAmounts = new Dictionary<string, double>();
+        protected Dictionary<string, double> previewResources = new Dictionary<string, double>();
+        protected Dictionary<string, float> previewRatios = new Dictionary<string, float>();
+        protected bool confirmedReconfigure;
+        protected ModuleInventoryPart stockInventory = null;
+        protected float stockInventoryVolumeUpdate = 0f;
+        protected float inventoryAdjustedVolume = 0f;
+        protected float originalVolumeLimit = 0f;
+        protected PartResourceDefinitionList definitions;
+
         private Vector2 scrollPos, scrollPosResources;
-        private bool confirmedReconfigure;
         private WBIAffordableSwitcher switcher;
-        private PartResourceDefinitionList definitions;
         private List<String> sortedResourceNames;
-        private Dictionary<string, double> resourceAmounts = new Dictionary<string, double>();
-        private Dictionary<string, double> previewResources = new Dictionary<string, double>();
-        private Dictionary<string, float> previewRatios = new Dictionary<string, float>();
         private WBIKISInventoryWrapper inventory;
         private WBISingleOpsView opsView;
-        private float adjustedVolume = 0.0f;
         private List<Dictionary<string, ComboRatio>> resourceCombos = new List<Dictionary<string, ComboRatio>>();
         private string searchText = string.Empty;
         private bool updateSymmetry;
         private bool synchronizeComboResources = true;
         private ConfigNode partConfigNode = null;
-        private ModuleInventoryPart stockInventory = null;
-        private float stockInventoryVolumeUpdate = 0f;
-        private float inventoryAdjustedVolume = 0f;
-        private float originalVolumeLimit = 0f;
         #endregion
 
         #region Events
@@ -205,6 +206,9 @@ namespace WildBlueIndustries
             opsView.SetVisible(!opsView.IsVisible());
         }
 
+        #endregion
+
+        #region API
         #endregion
 
         #region Overrides
@@ -1142,6 +1146,22 @@ namespace WildBlueIndustries
             }
         }
 
+        protected void updatePartMaxAmounts()
+        {
+            string[] resourceNames = previewResources.Keys.ToArray();
+            string resourceName;
+            double maxAmount = 0;
+
+            for (int index = 0; index < resourceNames.Length; index++)
+            {
+                resourceName = resourceNames[index];
+                if (resourceName == kKISResource || !part.Resources.Contains(resourceName))
+                    continue;
+                maxAmount = previewResources[resourceName];
+                part.Resources[resourceName].maxAmount = maxAmount;
+            }
+        }
+
         protected void updateMaxAmounts(string updatedResource)
         {
             float litersPerResource = 0;
@@ -1414,7 +1434,7 @@ namespace WildBlueIndustries
                 switcher.inputList.Add(requiredResource, requiredAmount * materialModifier);
         }
 
-        protected void payForReconfigure()
+        protected virtual void payForReconfigure()
         {
             //If we don't pay to reconfigure then we're done.
             if (!WBIMainSettings.PayToReconfigure)
@@ -1438,6 +1458,21 @@ namespace WildBlueIndustries
 
             if (WBIMainSettings.RequiresSkillCheck)
             {
+                // Check repair bot
+                int count = FlightGlobals.ActiveVessel.parts.Count;
+                Part vesselpart;
+                int moduleCount;
+                for (int index = 0; index < count; index++)
+                {
+                    vesselpart = FlightGlobals.ActiveVessel.parts[index];
+                    moduleCount = vesselpart.Modules.Count;
+                    for (int moduleIndex = 0; moduleIndex < moduleCount; moduleIndex++)
+                    {
+                        if (vesselpart.Modules[moduleIndex].moduleName == "ModuleEVABotRepairs")
+                            return true;
+                    }
+                }
+
                 //Check the crew roster
                 ProtoCrewMember[] vesselCrew = vessel.GetVesselCrew().ToArray();
                 for (int index = 0; index < vesselCrew.Length; index++)
@@ -1465,7 +1500,7 @@ namespace WildBlueIndustries
             return true;
         }
 
-        protected bool canAffordReconfigure()
+        protected virtual bool canAffordReconfigure()
         {
             if (string.IsNullOrEmpty(requiredResource))
                 return true;

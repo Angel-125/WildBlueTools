@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 namespace WildBlueIndustries
 {
-    public class WBIGasTurbine : ModuleBreakableConverter
+    public class WBIGasTurbine : ModuleResourceConverter
     {
         const float kBaseEfficiencyBonus = 0.01f;
         const float kBaseSpoolPowerLevel = 0.1f;

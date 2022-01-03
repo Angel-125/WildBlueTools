@@ -23,6 +23,9 @@ namespace WildBlueIndustries
     /// </summary>
     public class WBIModuleAsteroidResource : ModuleAsteroidResource
     {
+        [KSPField]
+        public bool debugMode;
+
         /// <summary>
         /// Resource is guaranteed to be present in a magic boulder.
         /// </summary>
@@ -86,8 +89,6 @@ namespace WildBlueIndustries
             }
 
             base.OnStart(state);
-
-            ScreenMessages.PostScreenMessage("Is Magic Boulder: " + isMagicBoulder, 20.0f, ScreenMessageStyle.UPPER_CENTER);
         }
 
         /// <summary>
