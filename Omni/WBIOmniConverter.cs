@@ -810,7 +810,6 @@ namespace WildBlueIndustries
                 Actions["ToggleResourceConverterAction"].guiName = ToggleActionName;
             }
 
-
             //AutoShutdown
             if (currentTemplate.HasValue("AutoShutdown"))
                 bool.TryParse(currentTemplate.GetValue("AutoShutdown"), out AutoShutdown);
