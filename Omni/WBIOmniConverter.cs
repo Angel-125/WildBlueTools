@@ -144,6 +144,24 @@ namespace WildBlueIndustries
         /// Flag that indicates that the converter's part needs to be in orbit in order to run.
         /// </summary>
         public bool requiresOrbiting = false;
+
+        /// <summary>
+        /// List of anomalies that the converter must be next to in order to function.
+        /// </summary>
+        [KSPField]
+        public string requiredAnomalies = string.Empty;
+
+        /// <summary>
+        /// Minimum range from the required anomalies that the converter must be next to in order to function.
+        /// </summary>
+        [KSPField]
+        public float minAnomalyRange = 50.0f;
+
+        /// <summary>
+        /// The converter must orbit a star.
+        /// </summary>
+        [KSPField]
+        public bool solarOrbitRequired = false;
         #endregion
 
         #region Timed Resource Fields
@@ -307,6 +325,16 @@ namespace WildBlueIndustries
                 info.AppendLine("<color=white><b>Must be splashed:</b> YES</color>");
             else
                 info.AppendLine("<b>Must be splashed:</b> NO</color>");
+
+            //Required anomalies
+            if (!string.IsNullOrEmpty(requiredAnomalies))
+            {
+                info.AppendLine("<b>Anomalies: </b>" + requiredAnomalies.Replace(";", ", "));
+                info.AppendLine(string.Format("<b>Minimum Range: </b>{0:f2}m", minAnomalyRange));
+            }
+            //Solar orbit
+            if (solarOrbitRequired)
+                info.AppendLine("Requires an orbit around a star");
 
             info.AppendLine("<color=white>Inputs and outputs vary depending upon current configuration.</color>");
 
@@ -637,6 +665,23 @@ namespace WildBlueIndustries
                 }
             }
 
+            // Check anomalies
+            if (!string.IsNullOrEmpty(requiredAnomalies))
+            {
+                if (!isNearAnomaly())
+                {
+                    status = "Needs to be near " + requiredAnomalies.Replace(";", ", ");
+                    return false;
+                }
+            }
+
+            // Check solar orbit
+            if (solarOrbitRequired)
+            {
+                if (this.part.vessel.mainBody.scaledBody.GetComponentsInChildren<SunShaderController>(true).Length == 0)
+                    return false;
+            }
+
             //Check resources
             int count = inputList.Count;
             double currentAmount, maxAmount;
@@ -659,6 +704,39 @@ namespace WildBlueIndustries
             }
 
             return true;
+        }
+
+        protected bool isNearAnomaly()
+        {
+            CelestialBody mainBody = this.part.vessel.mainBody;
+            PQSSurfaceObject[] anomalies = mainBody.pqsSurfaceObjects;
+            double longitude;
+            double latitude;
+            double distance = 0f;
+
+            if (this.part.vessel.situation == Vessel.Situations.LANDED || this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
+            {
+                for (int index = 0; index < anomalies.Length; index++)
+                {
+                    if (requiredAnomalies.Contains(anomalies[index].SurfaceObjectName))
+                    {
+                        //Get the longitude and latitude of the anomaly
+                        longitude = mainBody.GetLongitude(anomalies[index].transform.position);
+                        latitude = mainBody.GetLatitude(anomalies[index].transform.position);
+
+                        //Get the distance (in meters) from the anomaly.
+                        distance = Utils.HaversineDistance(longitude, latitude,
+                            this.part.vessel.longitude, this.part.vessel.latitude, this.part.vessel.mainBody) * 1000;
+
+                        //If we're near the anomaly, then we're done
+                        if (distance <= minAnomalyRange)
+                            return true;
+                    }
+                }
+            }
+
+            //Not near anomaly or not close enough
+            return false;
         }
 
         protected void setupSearchTexts()

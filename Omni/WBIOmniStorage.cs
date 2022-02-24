@@ -209,6 +209,36 @@ namespace WildBlueIndustries
         #endregion
 
         #region API
+        public void UpdateStorageVolume(float volume)
+        {
+            // Set new adjusted volume.
+            adjustedVolume = volume;
+
+            if (stockInventory != null)
+            {
+                // Get the current ratio between cargo volume and resource volume.
+                float cargoToResourcesRatio = packedVolumeLimit / inventoryAdjustedVolume;
+
+                // Set the new max volumes
+                originalVolumeLimit = volume;
+                inventoryAdjustedVolume = volume;
+
+                // Calculate the new volume allocated to inventory.
+                stockInventoryVolumeUpdate = inventoryAdjustedVolume * cargoToResourcesRatio;
+                packedVolumeLimit = stockInventoryVolumeUpdate;
+                stockInventory.packedVolumeLimit = stockInventoryVolumeUpdate;
+
+                // Calculate the new volume allocated to resources.
+                adjustedVolume = inventoryAdjustedVolume - stockInventoryVolumeUpdate;
+
+                recalculateMaxAmounts();
+
+                if (HighLogic.LoadedSceneIsEditor)
+                    reconfigureStorage();
+                else if (HighLogic.LoadedSceneIsFlight)
+                    updatePartMaxAmounts();
+            }
+        }
         #endregion
 
         #region Overrides

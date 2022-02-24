@@ -97,7 +97,7 @@
     <Compile Include="Contracts\WBIFerryKerbalParam.cs" />
     <Compile Include="Contracts\WBIKerbalStayParam.cs" />
     <Compile Include="Converters\WBIGasTurbine.cs" />
-    <Compile Include="Converters\WBIModuleResourceHarvester.cs" />
+    <Compile Include="Omni\WBIModuleResourceHarvester.cs" />
     <Compile Include="GoldStrike\GoldStrikeData.cs" />
     <Compile Include="GoldStrike\GoldStrikeLode.cs" />
     <Compile Include="GoldStrike\GoldStrikeSettings.cs" />

@@ -12,6 +12,81 @@ using KSP.Localization;
 
 namespace WildBlueIndustries
 {
+    #region AnomalyResource
+    public class AnomalyResource
+    {
+        public string name;
+        public string resourceName;
+        public double minAbundance;
+        public double maxAbundance;
+        public double abundance;
+        public double minAmount;
+        public double maxAmount;
+        public double currentAmount;
+
+        public AnomalyResource(ConfigNode node)
+        {
+            if (node.HasValue("name"))
+                name = node.GetValue("name");
+
+            if (node.HasValue("resourceName"))
+                resourceName = node.GetValue("resourceName");
+
+            if (node.HasValue("minAbundance"))
+                double.TryParse(node.GetValue("minAbundance"), out minAbundance);
+            if (node.HasValue("maxAbundance"))
+                double.TryParse(node.GetValue("maxAbundance"), out maxAbundance);
+
+            if (node.HasValue("abundance"))
+                double.TryParse(node.GetValue("abundance"), out abundance);
+            else if (minAbundance > 0 && maxAbundance > 0)
+            {
+                abundance = UnityEngine.Random.Range((float)minAbundance, (float)maxAbundance);
+            }
+            else if (maxAbundance > 0)
+            {
+                abundance = maxAbundance;
+            }
+            else if (minAbundance > 0)
+            {
+                abundance = minAbundance;
+            }
+
+            if (node.HasValue("minAmount"))
+                double.TryParse(node.GetValue("minAmount"), out minAmount);
+            if (node.HasValue("maxAmount"))
+                double.TryParse(node.GetValue("maxAmount"), out maxAmount);
+
+            if (node.HasValue("currentAmount"))
+            {
+                double.TryParse(node.GetValue("currentAmount"), out currentAmount);
+            }
+            else if (minAmount > 0 && maxAmount > 0)
+            {
+                currentAmount = UnityEngine.Random.Range((float)minAmount, (float)maxAmount);
+            }
+            else if (maxAmount > 0)
+            {
+                currentAmount = maxAmount;
+            }
+            else if (minAmount > 0)
+            {
+                currentAmount = minAmount;
+            }
+        }
+
+        public void Save(ConfigNode node)
+        {
+            node.SetValue("name", name, true);
+            node.SetValue("resourceName", resourceName, true);
+            node.SetValue("abundance", abundance.ToString(), true);
+            node.SetValue("minAmount", minAmount.ToString(), true);
+            node.SetValue("maxAmount", maxAmount.ToString(), true);
+            node.SetValue("currentAmount", currentAmount.ToString(), true);
+        }
+    }
+    #endregion
+
     /// <summary>
     /// The purpose of this class is to run converters in the background, meaning that the vessel is currently unloaded. This is primarily to drive life support systems,
     /// but other types of converters also benefit.
@@ -31,6 +106,7 @@ namespace WildBlueIndustries
         public Dictionary<Vessel, List<WBIBackgroundConverter>> backgroundConverters;
         public List<Part> createdParts;
         public Dictionary<string, float> originalResourceCosts;
+        public Dictionary<string, Dictionary<string, AnomalyResource>> anomalyResources;
         #endregion
 
         #region Background processing
@@ -191,6 +267,28 @@ namespace WildBlueIndustries
                     }
                 }
             }
+
+            // Anomaly resources
+            anomalyResources = new Dictionary<string, Dictionary<string, AnomalyResource>>();
+            Dictionary<string, AnomalyResource> resources;
+            ConfigNode[] resourceNodes = GameDatabase.Instance.GetConfigNodes("ANOMALY_RESOURCE");
+            AnomalyResource anomalyResource;
+            for (int index = 0; index < resourceNodes.Length; index++)
+            {
+                anomalyResource = new AnomalyResource(resourceNodes[index]);
+
+                if (!anomalyResources.ContainsKey(anomalyResource.name))
+                {
+                    resources = new Dictionary<string, AnomalyResource>();
+                    anomalyResources.Add(anomalyResource.name, resources);
+                }
+
+                resources = anomalyResources[anomalyResource.name];
+                if (!resources.ContainsKey(anomalyResource.resourceName))
+                {
+                    resources.Add(anomalyResource.resourceName, anomalyResource);
+                }
+            }
         }
 
         public override void OnSave(ConfigNode node)
@@ -204,6 +302,19 @@ namespace WildBlueIndustries
                 node.SetValue("partName", key);
                 node.SetValue("cost", originalResourceCosts[key].ToString());
                 node.AddNode(costNode);
+            }
+
+            Dictionary<string, AnomalyResource> resources;
+            ConfigNode anomalyResourceNode;
+            foreach (string key in anomalyResources.Keys)
+            {
+                resources = anomalyResources[key];
+                foreach (string resourceKey in resources.Keys)
+                {
+                    anomalyResourceNode = new ConfigNode("ANOMALY_RESOURCE");
+                    resources[resourceKey].Save(anomalyResourceNode);
+                    node.AddNode(anomalyResourceNode);
+                }
             }
         }
 
