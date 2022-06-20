@@ -97,6 +97,9 @@
     <Compile Include="Contracts\WBIFerryKerbalParam.cs" />
     <Compile Include="Contracts\WBIKerbalStayParam.cs" />
     <Compile Include="Converters\WBIGasTurbine.cs" />
+    <Compile Include="GUI\BaseDialog\Dialog.cs" />
+    <Compile Include="GUI\BaseDialog\DialogManager.cs" />
+    <Compile Include="GUI\BaseDialog\DialogUils.cs" />
     <Compile Include="Omni\WBIModuleResourceHarvester.cs" />
     <Compile Include="GoldStrike\GoldStrikeData.cs" />
     <Compile Include="GoldStrike\GoldStrikeLode.cs" />
@@ -115,7 +118,8 @@
     <Compile Include="GUI\HarvestView.cs" />
     <Compile Include="Omni\WBIBackgroundConverter.cs" />
     <Compile Include="Utilities\WBIEmitterHelper.cs" />
-    <Compile Include="WBIEngineHeat.cs" />
+    <Compile Include="Utilities\WBIComponentAdder.cs" />
+    <Compile Include="Utilities\WBIEngineHeat.cs" />
     <Compile Include="Wrappers\KIS\WBIKISInventoryManager.cs" />
     <Compile Include="Parts\WBIModuleAsteroidResource.cs" />
     <Compile Include="PlayModes\PlayModesWindow.cs" />
@@ -250,12 +254,6 @@
     <Compile Include="Settings\WBIDockingParameters.cs" />
     <Compile Include="Settings\WBIMainSettings.cs" />
     <Compile Include="Utilities\WBINodeStripper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\BARIS\BARISBridge\BARISBridge.csproj">
-      <Project>{8D46364B-4F22-403D-84E3-C2DCA8E49A4A}</Project>
-      <Name>BARISBridge</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

@@ -607,7 +607,9 @@ namespace WildBlueIndustries
         {
             Log("ToggleInflation called.");
             DictionaryValueList<int, PartResource> resourceList = this.part.Resources.dict;
-            PartModule inventory = this.part.Modules["ModuleKISInventory"];
+            PartModule inventory = null;
+            if (part.Modules.Contains("ModuleKISInventory"))
+                inventory = part.Modules["ModuleKISInventory"];
 
             //If the module cannot be deflated then exit.
             if (CanBeDeflated() == false)
@@ -745,6 +747,13 @@ namespace WildBlueIndustries
 
             //Create the templateManager
             templateManager = new TemplateManager(this.part, this.vessel, new LogDelegate(Log), templateNodes, templateTags);
+        }
+
+        public override void OnSave(ConfigNode node)
+        {
+            if (string.IsNullOrEmpty(templateName))
+                templateName = defaultTemplate;
+            base.OnSave(node);
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -1383,6 +1392,7 @@ namespace WildBlueIndustries
         public virtual float CalculatePartMass(float defaultMass)
         {
             //To avoid problems with animated collider interactions, we don't update part mass while the part's animation is running.
+            double test = part.partInfo.partPrefab.mass;
             if (isMoving)
                 return defaultMass;
             else if (isInflatable && !isDeployed)
@@ -1395,6 +1405,7 @@ namespace WildBlueIndustries
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
+            double test = part.partInfo.partPrefab.mass;
             currentMass = part.mass;
             return CalculatePartMass(defaultMass);
         }

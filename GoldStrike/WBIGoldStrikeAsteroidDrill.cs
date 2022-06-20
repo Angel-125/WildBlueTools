@@ -23,7 +23,7 @@ namespace WildBlueIndustries
 {
     //Asteroid drills work differently than Planetary drills.
     //They will drill for every resource that an asteroid has.
-    public class WBIGoldStrikeAsteroidDrill : ModuleBreakableAsteroidDrill
+    public class WBIGoldStrikeAsteroidDrill : ModuleAsteroidDrill
     {
         private const float kMessageDisplayTime = 10.0f;
 
@@ -51,12 +51,12 @@ namespace WildBlueIndustries
         public GoldStrikeLode nearestLode = null;
         public ModuleAsteroid asteroid;
 
-        public override void StartConverter()
+        public override void StartResourceConverter()
         {
             //Update the output units
             UpdateLode();
 
-            base.StartConverter();
+            base.StartResourceConverter();
         }
 
         public override void OnStart(StartState state)
@@ -96,12 +96,12 @@ namespace WildBlueIndustries
                 nearestLode = null;
                 lodeStatus = Localizer.Format(statusNoNearbyName);
                 lodeResourceName = "N/A";
-                debugLog("No lode found nearby because there's no captured asteroid.");
+                Debug.Log("No lode found nearby because there's no captured asteroid.");
                 return;
             }
 
             //Find the nearest lode (if any)
-            debugLog("Looking for a prospect lode for asteroid " + asteroid.AsteroidName);
+            Debug.Log("Looking for a prospect lode for asteroid " + asteroid.AsteroidName);
             nearestLode = WBIGoldStrikeScenario.Instance.FindNearestLode(asteroid);
 
             if (nearestLode != null)
@@ -109,13 +109,13 @@ namespace WildBlueIndustries
                 lodeStatus = Localizer.Format(statusOKName);
                 lodeResourceName = nearestLode.resourceName;
                 lodeAbundance = nearestLode.abundance * 100.0f;
-                debugLog("nearestLode: " + nearestLode.ToString());
+                Debug.Log("nearestLode: " + nearestLode.ToString());
             }
             else
             {
                 lodeStatus = Localizer.Format(statusNoNearbyName);
                 lodeResourceName = "N/A";
-                debugLog("No lode found nearby.");
+                Debug.Log("No lode found nearby.");
             }
         }
 

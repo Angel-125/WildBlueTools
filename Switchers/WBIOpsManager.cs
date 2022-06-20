@@ -32,7 +32,7 @@ namespace WildBlueIndustries
         string GetPartTitle();
     }
 
-    public class WBIOpsManager : WBIConvertibleStorage, ICanBreak
+    public class WBIOpsManager : WBIConvertibleStorage
     {
         [KSPField(isPersistant = true)]
         public int activeConverters; 
@@ -47,7 +47,6 @@ namespace WildBlueIndustries
         public bool canConfigureWhenDeflated = false;
 
         protected OpsManagerView opsManagerView;
-        protected BaseQualityControl qualityControl = null;
 
         public override void OnStart(StartState state)
         {
@@ -67,87 +66,13 @@ namespace WildBlueIndustries
 
         public void Destroy()
         {
-            qualityControl.onPartBroken -= OnPartBroken;
-            qualityControl.onPartFixed -= OnPartFixed;
-            qualityControl.onMothballStateChanged -= onMothballStateChanged;
         }
 
         protected void setActiveConverterCount(int count)
         {
-            if (qualityControl == null)
-            {
-                activeConverters = count;
-                return;
-            }
-
-            //If the active converter count != the current count and
-            //at least one converter is active, then perform a quality check
-            if (activeConverters != count && count > 0)
-                qualityControl.PerformQualityCheck();
-
             //Record the new count.
             activeConverters = count;
-
-            //Wake up the qualityControl
-            qualityControl.UpdateActivationState();
         }
-
-        #region ICanBreak
-        public string GetCheckSkill()
-        {
-            if (CurrentTemplate.HasValue("reconfigureSkill"))
-                return CurrentTemplate.GetValue("reconfigureSkill");
-            else
-                return "RepairSkill";
-        }
-
-        public bool ModuleIsActivated()
-        {
-            if (activeConverters > 0)
-                return true;
-            else
-                return false;
-        }
-
-        public void SubscribeToEvents(BaseQualityControl moduleQualityControl)
-        {
-            qualityControl = this.part.FindModuleImplementing<BaseQualityControl>();
-            qualityControl.onPartBroken += OnPartBroken;
-            qualityControl.onPartFixed += OnPartFixed;
-            qualityControl.onMothballStateChanged += onMothballStateChanged;
-        }
-
-        public void OnPartFixed(BaseQualityControl moduleQualityControl)
-        {
-            isBroken = false;
-            opsManagerView.isBroken = isBroken;
-        }
-
-        public void OnPartBroken(BaseQualityControl moduleQualityControl)
-        {
-            isBroken = true;
-            opsManagerView.isBroken = isBroken;
-
-            List<ModuleResourceConverter> converters = this.part.FindModulesImplementing<ModuleResourceConverter>();
-            foreach (ModuleResourceConverter converter in converters)
-                converter.StopResourceConverter();
-        }
-
-        public void onMothballStateChanged(bool isMothballed)
-        {
-            this.isMothballed = isMothballed;
-
-            if (opsManagerView != null)
-                opsManagerView.isMothballed = this.isMothballed;
-
-            if (isMothballed)
-            {
-                List<ModuleResourceConverter> converters = this.part.FindModulesImplementing<ModuleResourceConverter>();
-                foreach (ModuleResourceConverter converter in converters)
-                    converter.StopResourceConverter();
-            }
-        }
-        #endregion
 
         public override void ReconfigureStorage()
         {
@@ -193,7 +118,6 @@ namespace WildBlueIndustries
             opsManagerView.storageView = this.storageView;
             opsManagerView.setActiveConverterCount = setActiveConverterCount;
             opsManagerView.fieldReconfigurable = this.fieldReconfigurable;
-            opsManagerView.qualityControl = this.qualityControl;
             opsManagerView.isAssembled = getAssembledState();
         }
 

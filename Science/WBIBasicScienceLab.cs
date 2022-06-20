@@ -157,29 +157,13 @@ namespace WildBlueIndustries
             attemptSuccess = kResearchSuccess;
 
             //Repairs
-            if (isBroken)
-            {
-                StopResourceConverter();
-                status = kNeedsRepairs;
-            }
-
-            else if (isMothballed)
-            {
-                StopResourceConverter();
-            }
-
-            else
-            {
-                status = "";
-            }
+            status = "";
         }
         #endregion
 
         #region Helpers
         protected virtual double calculateRepairCost()
         {
-            if (BARISBridge.RepairsRequireResources == false)
-                return 0f;
             if (!Utils.IsExperienceEnabled())
                 return 0f;
 

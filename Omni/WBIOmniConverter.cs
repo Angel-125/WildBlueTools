@@ -252,7 +252,7 @@ namespace WildBlueIndustries
         /// Unique ID of the converter.
         /// </summary>
         [KSPField(isPersistant = true)]
-        public string ID;
+        public string ID = "none";
         #endregion
 
         #region Housekeeping
@@ -367,7 +367,7 @@ namespace WildBlueIndustries
             base.OnStart(state);
 
             //Create unique ID if needed
-            if (string.IsNullOrEmpty(ID))
+            if (string.IsNullOrEmpty(ID) || ID == "none")
                 ID = Guid.NewGuid().ToString();
             else if (HighLogic.LoadedSceneIsEditor && WBIOmniManager.Instance.WasRecentlyCreated(this.part))
                 ResetSettings();
@@ -413,6 +413,17 @@ namespace WildBlueIndustries
                     this.Fields["progress"].guiActive = false;
                     this.Fields["lastAttempt"].guiActive = false;
                 }
+            }
+            Fields["showParticleEffects"].group.name = "Omni";
+            Fields["showParticleEffects"].group.displayName = "Omni";
+            Events["StartResourceConverter"].group.name = "Omni";
+            Events["StartResourceConverter"].group.displayName = "Omni";
+            Events["StopResourceConverter"].group.name = "Omni";
+            Events["StopResourceConverter"].group.displayName = "Omni";
+            if (string.IsNullOrEmpty(startEffect) && string.IsNullOrEmpty(stopEffect) && string.IsNullOrEmpty(runningEffect))
+            {
+                Fields["showParticleEffects"].guiActive = false;
+                Fields["showParticleEffects"].guiActiveEditor = false;
             }
 
             //Setup defaults if needed

@@ -8,7 +8,7 @@ using KSP.IO;
 namespace WildBlueIndustries
 {
     [KSPModule("Geology Lab")]
-    public class WBIGeoLab : PartModule, IOpsView
+    public class WBIGeoLab : PartModule, IOpsView, IModuleInfo
     {
         const string kNoCrew = "At least one cremember must staff the lab in order to perform the analysis.";
         const string kScienceGenerated = "You gained {0:f2} Bonus Science!";
@@ -209,6 +209,31 @@ namespace WildBlueIndustries
         public virtual string GetPartTitle()
         {
             return this.part.partInfo.title;
+        }
+
+        public override string GetModuleDisplayName()
+        {
+            return "Geology Lab";
+        }
+
+        public string GetPrimaryField()
+        {
+            return string.Empty;
+        }
+
+        public string GetModuleTitle()
+        {
+            return GetModuleDisplayName();
+        }
+
+        public Callback<Rect> GetDrawModulePanelCallback()
+        {
+            return null;
+        }
+
+        public override string GetInfo()
+        {
+            return "Analyzes the biome to determine the resources that it contains.";
         }
 
         protected void Log(string message)

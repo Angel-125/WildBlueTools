@@ -53,6 +53,8 @@ namespace WildBlueIndustries
         //Helper objects
         public Animation anim;
         protected bool isMoving;
+        private ModuleInventoryPart inventory;
+        private float packedVolumeLimit = 0;
 
         #region User Events & API
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "ToggleInflation", externalToEVAOnly = false, unfocusedRange = 3.0f, guiActiveUnfocused = true)]
@@ -92,6 +94,9 @@ namespace WildBlueIndustries
                 if (HighLogic.LoadedSceneIsFlight)
                     this.part.SpawnIVA();
                 Events["ToggleInflation"].guiName = endEventGUIName;
+
+                if (inventory != null)
+                    inventory.packedVolumeLimit = packedVolumeLimit;
             }
             else
             {
@@ -108,6 +113,9 @@ namespace WildBlueIndustries
                     if (light.isDeployed)
                         light.TurnOffLights();
                 }
+
+                if (inventory != null)
+                    inventory.packedVolumeLimit = 0;
             }
 
             //If this is a one-shot then hide the animation button.
@@ -115,13 +123,14 @@ namespace WildBlueIndustries
                 Events["ToggleInflation"].active = false;
 
             Log("Animation toggled new gui name: " + Events["ToggleInflation"].guiName);
+            MonoUtilities.RefreshContextWindows(this.part);
+            GameEvents.onPartResourceListChange.Fire(this.part);
         }
         #endregion
 
         #region Overrides
         public virtual void OnToggleStateCompleted()
         {
-
         }
 
         public override void OnUpdate()
@@ -188,6 +197,15 @@ namespace WildBlueIndustries
 
             SetupAnimations();
             setupColliders();
+            inventory = part.FindModuleImplementing<ModuleInventoryPart>();
+            if (inventory != null)
+            {
+                packedVolumeLimit = inventory.packedVolumeLimit;
+                if (isInflatable && !isDeployed)
+                {
+                    inventory.packedVolumeLimit = 0;
+                }
+            }
             //setupInventories();
 //            if (isInflatable && isDeployed == false && HighLogic.LoadedSceneIsFlight)
 //                this.part.DespawnIVA();

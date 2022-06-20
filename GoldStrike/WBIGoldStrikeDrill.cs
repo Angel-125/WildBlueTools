@@ -60,18 +60,18 @@ namespace WildBlueIndustries
         public Vector3d lastLocation = Vector3d.zero;
         string currentBiome = string.Empty;
 
-        protected override void debugLog(string message)
+        protected void debugLog(string message)
         {
             if (WBIGoldStrikeScenario.showDebugLog == true)
                 Debug.Log("[" + this.ClassName + "] - " + message);
         }
 
-        public override void StartConverter()
+        public override void StartResourceConverter()
         {
             //Update the output units
             UpdateLode();
 
-            base.StartConverter();
+            base.StartResourceConverter();
         }
 
         public override string GetInfo()
@@ -214,13 +214,6 @@ namespace WildBlueIndustries
             if (IsActivated == false)
             {
                 lodeStatus = Localizer.Format(statusNAName);
-                return;
-            }
-
-            //Check broken
-            if (isBroken)
-            {
-                StopResourceConverter();
                 return;
             }
 

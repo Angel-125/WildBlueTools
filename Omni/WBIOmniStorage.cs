@@ -115,7 +115,7 @@ namespace WildBlueIndustries
         /// Unique ID of the converter. Used to identify it during background processing.
         /// </summary>
         [KSPField(isPersistant = true)]
-        public string ID;
+        public string ID = "none";
 
         /// <summary>
         /// List of resources that cannot be altered.
@@ -230,14 +230,14 @@ namespace WildBlueIndustries
 
                 // Calculate the new volume allocated to resources.
                 adjustedVolume = inventoryAdjustedVolume - stockInventoryVolumeUpdate;
-
-                recalculateMaxAmounts();
-
-                if (HighLogic.LoadedSceneIsEditor)
-                    reconfigureStorage();
-                else if (HighLogic.LoadedSceneIsFlight)
-                    updatePartMaxAmounts();
             }
+
+            recalculateMaxAmounts();
+
+            if (HighLogic.LoadedSceneIsEditor)
+                reconfigureStorage();
+            else if (HighLogic.LoadedSceneIsFlight)
+                updatePartMaxAmounts();
         }
         #endregion
 
@@ -275,7 +275,7 @@ namespace WildBlueIndustries
             base.OnStart(state);
             loadOmniResourceConfigs();
 
-            if (string.IsNullOrEmpty(ID))
+            if (string.IsNullOrEmpty(ID) || ID == "none" )
                 ID = Guid.NewGuid().ToString();
             else if (HighLogic.LoadedSceneIsEditor && WBIOmniManager.Instance.WasRecentlyCreated(this.part))
                 ResetSettings();

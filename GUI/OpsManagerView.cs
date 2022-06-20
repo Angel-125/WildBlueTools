@@ -48,7 +48,6 @@ namespace WildBlueIndustries
         public ModuleCommand commandModule;
         public WBIResourceSwitcher switcher;
         public WBILight lightModule = null;
-        public BaseQualityControl qualityControl = null;
 
         public OpsManagerView() :
         base("Manage Operations", 800, 480)
@@ -171,11 +170,6 @@ namespace WildBlueIndustries
                     drawConvertersView();
                     break;
 
-                case "Quality Control":
-                    if (qualityControl != null)
-                        drawQualityControl();
-                    break;
-
                 default:
                     if (currentDrawableView.vessel != null)
                         currentDrawableView.view.DrawOpsWindow(buttonLabel);
@@ -205,10 +199,6 @@ namespace WildBlueIndustries
 
             if (converters.Count > 0)
                 buttonLabels.Add("Converters");
-
-            //If parts can break, then add the Quality Control button
-            if (qualityControl != null)
-                buttonLabels.Add("Quality Control");
 
             return buttonLabels;
         }
@@ -294,61 +284,6 @@ namespace WildBlueIndustries
             }
 
             lightModule = this.part.FindModuleImplementing<WBILight>();
-
-            qualityControl = this.part.FindModuleImplementing<BaseQualityControl>();
-        }
-
-        protected void drawQualityControl()
-        {
-            GUILayout.BeginVertical();
-            GUILayout.BeginScrollView(new Vector2(), new GUIStyle(GUI.skin.textArea), new GUILayoutOption[] { GUILayout.Height(480) });
-            int quality;
-            int currentQuality;
-            double currentMTBF;
-            double mtbf;
-
-            //Quality
-            qualityControl.GetQualityStats(out quality, out currentQuality, out mtbf, out currentMTBF);
-            if (BARISBridge.PartsCanBreak || BARISBridge.showDebug)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Quality: " + qualityControl.qualityDisplay);
-                if (currentQuality <= 0)
-                    GUILayout.Label("To repair: " + qualityControl.GetRepairCost());
-
-                else if (currentMTBF <= 0)
-                    GUILayout.Label("To maintain: " + qualityControl.GetRepairCost());
-
-                if (BARISBridge.showDebug)
-                {
-                    GUILayout.Label(string.Format("MTBF: {0:f2}/{1:f2}", currentMTBF, mtbf));
-                }
-                GUILayout.EndHorizontal();
-
-                //If the part needs maintenance and EVA repairs aren't required, then show the repair button
-                //if the part isn't broken.
-                if (currentQuality > 0 && currentMTBF <= 0 && !BARISBridge.RepairsRequireEVA)
-                {
-                    if (GUILayout.Button(qualityControl.Events["PerformMaintenance"].guiName))
-                        qualityControl.PerformMaintenance();
-                }
-
-                //If the part is broken and EVA repairs aren't required, then show the repair button.
-                else if (currentQuality <= 0 && !BARISBridge.RepairsRequireEVA)
-                {
-                    if (GUILayout.Button(qualityControl.Events["RepairPart"].guiName))
-                        qualityControl.RepairPart();
-                }
-            }
-
-            //Feature is disabled
-            else
-            {
-                GUILayout.Label("<color=yellow><b>This feature is disabled while Parts Can Break is also disabled.</b></color>");
-            }
-
-            GUILayout.EndScrollView();
-            GUILayout.EndVertical();
         }
 
         protected void drawCommandView()
@@ -454,22 +389,7 @@ namespace WildBlueIndustries
             if (converters.Count == 0)
                 UpdateConverters();
 
-            //If the part is broken, then no need to show the converters.
-            if (isBroken)
-            {
-                GUILayout.Label("<color=yellow><b>" + BARISBridge.MsgBodyThis + this.part.partInfo.title + BARISBridge.MsgBodyBroken1 + qualityControl.GetRepairCost() + BARISBridge.MsgBodyBroken2 + "</b></color>");
-                GUILayout.EndVertical();
-                return;
-            }
-
-            else if (isMothballed)
-            {
-                GUILayout.Label("<color=yellow><b>" + BARISBridge.MsgBodyThis + this.part.partInfo.title + BARISBridge.MsgBodyMothballed + "</b></color>");
-                GUILayout.EndVertical();
-                return;
-            }
-
-            else if (HighLogic.LoadedSceneIsEditor)
+            if (HighLogic.LoadedSceneIsEditor)
             {
                 GUILayout.Label("<color=yellow>Converter controls disabled in the editor. These are the current configurations:</color>");
                 totalCount = converters.Count;

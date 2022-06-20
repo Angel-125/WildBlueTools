@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 namespace WildBlueIndustries
 {
     [KSPModule("Resource Harvester")]
-    public class WBIModuleResourceHarvester: ModuleBreakableHarvester
+    public class WBIModuleResourceHarvester: ModuleResourceHarvester
     {
         #region Fields
         [KSPField]
@@ -707,7 +707,7 @@ namespace WildBlueIndustries
             }
         }
 
-        protected override void debugLog(string message)
+        protected void debugLog(string message)
         {
             if (WBIMainSettings.EnableDebugLogging)
                 Debug.Log("[" + this.ClassName + "] - " + message);

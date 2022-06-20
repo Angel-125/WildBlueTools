@@ -78,10 +78,13 @@ namespace WildBlueIndustries
                 if (count > 0)
                 {
                     string[] keys = abundanceSummary.Keys.ToArray();
+                    string abundance;
                     scrollPosResources = GUILayout.BeginScrollView(scrollPosResources, new GUIStyle(GUI.skin.textArea));
                     for (int index = 0; index < count; index++)
                     {
-                        GUILayout.Label("<color=white>" + keys[index] + " abundance: " + getAbundance(abundanceSummary[keys[index]]) + "</color>");
+                        abundance = getAbundance(abundanceSummary[keys[index]]);
+                        if (!string.IsNullOrEmpty(abundance))
+                            GUILayout.Label("<color=white>" + keys[index] + " abundance: " + abundance + "</color>");
                     }
                 }
                 else
@@ -110,7 +113,7 @@ namespace WildBlueIndustries
             if (displayAbundance > 0.001)
                 return string.Format("{0:f2}%", displayAbundance);
             else
-                return "None present.";
+                return string.Empty;
         }
     }
 

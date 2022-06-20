@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 namespace WildBlueIndustries
 {
     [KSPModule("Resource Converter")]
-    public class WBIResourceConverter : ModuleBreakableConverter
+    public class WBIResourceConverter : ModuleResourceConverter
     {
         private const float kminimumSuccess = 80f;
         private const float kCriticalSuccess = 95f;
@@ -244,10 +244,8 @@ namespace WildBlueIndustries
 
         }
 
-        public override void SetGuiVisible(bool isVisible)
+        public virtual void SetGuiVisible(bool isVisible)
         {
-            base.SetGuiVisible(isVisible);
-
             Fields["lastAttempt"].guiActive = isVisible;
             Fields["lastAttempt"].guiActiveEditor = isVisible;
             Fields["progress"].guiActive = isVisible;
@@ -371,7 +369,6 @@ namespace WildBlueIndustries
         protected virtual void onCriticalFailure()
         {
             lastAttempt = attemptCriticalFail;
-            qualityControl.DeclarePartBroken();
         }
 
         protected virtual void onCriticalSuccess()
