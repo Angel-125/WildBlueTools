@@ -182,7 +182,10 @@ namespace WildBlueIndustries
             foreach (PartResource resource in this.part.Resources)
             {
                 if (resource.resourceName != "ElectricCharge" && resource.flowState)
+                {
                     resource.amount = 0;
+                    GameEvents.onPartResourceNonemptyEmpty.Fire(resource);
+                }
             }
         }
 
@@ -213,6 +216,10 @@ namespace WildBlueIndustries
         {
             // Set new adjusted volume.
             adjustedVolume = volume;
+
+            // If we haven't started yet then just return. We can tell this if our definitions list is empty.
+            if (definitions == null)
+                return;
 
             if (stockInventory != null)
             {
@@ -289,7 +296,8 @@ namespace WildBlueIndustries
             }
 
             //Get the switcher
-            adjustedVolume = storageVolume;
+            if (adjustedVolume <= 0)
+                adjustedVolume = storageVolume;
             switcher = this.part.FindModuleImplementing<WBIAffordableSwitcher>();
             if (switcher != null)
             {
