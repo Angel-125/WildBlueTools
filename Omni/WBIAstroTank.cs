@@ -140,7 +140,7 @@ namespace WildBlueIndustries
                 return;
 
             // Make sure the converter is a drill.
-            if (!(partModule is ModuleAsteroidDrill))
+            if (!(partModule is ModuleAsteroidDrill) && !(partModule is ModuleCometDrill))
                 return;
 
             // Make sure the resource extracted is one of the abundance resources.

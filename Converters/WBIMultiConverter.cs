@@ -65,6 +65,7 @@ namespace WildBlueIndustries
             {
                 canDeploy = true;
                 base.ToggleInflation();
+                isMoving = false;
                 return;
             }
 
