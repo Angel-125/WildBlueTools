@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using KSP.IO;
 using KSP.UI.Screens;
+using KSP.Localization;
 
 /*
 Source code copyrighgt 2015, by Michael Billard (Angel-125)
@@ -48,6 +49,12 @@ namespace WildBlueIndustries
 
         [KSPField]
         public string celestialBodies = string.Empty;
+
+        [KSPField]
+        public bool showRequiredBodies = true;
+
+        [KSPField]
+        public string requiredCelestialBodiesMsg = string.Empty;
 
         [KSPField]
         public double minAltitude;
@@ -277,7 +284,7 @@ namespace WildBlueIndustries
             info.Append(description + "\r\n\r\n");
 
             //Celestial bodies
-            if (string.IsNullOrEmpty(celestialBodies) == false)
+            if (string.IsNullOrEmpty(celestialBodies) == false && showRequiredBodies)
                 requirements.Append("<b>Allowed Planets: </b>" + celestialBodies + "\r\n");
             //Flight states
             if (string.IsNullOrEmpty(situations) == false)
@@ -286,10 +293,10 @@ namespace WildBlueIndustries
             if (minCrew > 0)
                 requirements.Append("<b>Minimum Crew: </b>" + minCrew + "\r\n");
             //Min Altitude
-            if (minAltitude > 0.001f)
+            if (Math.Abs(minAltitude) > 0.001f)
                 requirements.Append(string.Format("<b>Min altitude: </b>{0:f2}m\r\n", minAltitude));
             //Max Altitude
-            if (maxAltitude > 0.001f)
+            if (Math.Abs(maxAltitude) > 0.001f)
                 requirements.Append(string.Format("<b>Max altitude: </b>{0:f2}m\r\n", maxAltitude));
             //Asteroid Mass
             if (minimumAsteroidMass > 0.001f)
@@ -434,7 +441,12 @@ namespace WildBlueIndustries
             {
                 if (celestialBodies.Contains(this.part.vessel.mainBody.displayName) == false)
                 {
-                    status =  "Needs one: " + celestialBodies;
+                    if (showRequiredBodies)
+                        status = "Needs one: " + celestialBodies;
+                    else if (!string.IsNullOrEmpty(requiredCelestialBodiesMsg))
+                        status = Localizer.Format(requiredCelestialBodiesMsg);
+                    else
+                        status = "Failed to yield results";
                     return false;
                 }
             }
