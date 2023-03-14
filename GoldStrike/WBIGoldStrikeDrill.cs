@@ -60,12 +60,6 @@ namespace WildBlueIndustries
         public Vector3d lastLocation = Vector3d.zero;
         string currentBiome = string.Empty;
 
-        protected void debugLog(string message)
-        {
-            if (WBIGoldStrikeScenario.showDebugLog == true)
-                Debug.Log("[" + this.ClassName + "] - " + message);
-        }
-
         public override void StartResourceConverter()
         {
             //Update the output units

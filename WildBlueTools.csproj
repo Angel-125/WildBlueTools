@@ -120,6 +120,7 @@
     <Compile Include="Utilities\WBIEmitterHelper.cs" />
     <Compile Include="Utilities\WBIComponentAdder.cs" />
     <Compile Include="Utilities\WBIEngineHeat.cs" />
+    <Compile Include="Utilities\WBIModuleUpdateHelper.cs" />
     <Compile Include="Wrappers\KIS\WBIKISInventoryManager.cs" />
     <Compile Include="Parts\WBIModuleAsteroidResource.cs" />
     <Compile Include="PlayModes\PlayModesWindow.cs" />

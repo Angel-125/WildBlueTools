@@ -73,6 +73,7 @@ namespace WildBlueIndustries
         List<HarvestTypes> harvestTypeList;
         HarvestTypes currentHarvestType;
         protected HarvestView infoView;
+        protected FixedUpdateHelper fixedUpdateHelper;
         #endregion
 
         #region events
@@ -134,6 +135,7 @@ namespace WildBlueIndustries
 
         public override void OnStart(StartState state)
         {
+            Debug.Log("[WBIModuleResourceHarvester] - OnStart called.");
             base.OnStart(state);
 
             //Setup info view
@@ -207,6 +209,8 @@ namespace WildBlueIndustries
             }
 
             base.OnUpdate();
+            if (Efficiency <= 0)
+                Efficiency = 1.0f;
         }
 
         protected override void LoadRecipe(double harvestRate)
