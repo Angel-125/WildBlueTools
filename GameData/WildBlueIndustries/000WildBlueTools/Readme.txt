@@ -12,7 +12,6 @@ WBIModuleScienceExperiment
  - Added showRequiredBodies field to hide the celestial bodies required to run an experiment. The default value is true.
  - Added requiredCelestialBodiesMsg to show a custom status message when the experiment isn't run on a required celestial body. The default value is "Failed to yield results."
  - Fixed issue were minAltitude and maxAltitude weren't showing up.
- - Bug fixes
 
 1.88.2
 - Bug fixes
