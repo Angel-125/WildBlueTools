@@ -324,7 +324,7 @@ namespace WildBlueIndustries
             else if (requiresSplashed)
                 info.AppendLine("<color=white><b>Must be splashed:</b> YES</color>");
             else
-                info.AppendLine("<b>Must be splashed:</b> NO</color>");
+                info.AppendLine("<color=white><b>Must be splashed:</b> NO</color>");
 
             //Required anomalies
             if (!string.IsNullOrEmpty(requiredAnomalies))
