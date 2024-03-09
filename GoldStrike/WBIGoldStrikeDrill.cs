@@ -133,6 +133,25 @@ namespace WildBlueIndustries
             return true;
         }
 
+        protected override void setupHarvester()
+        {
+            base.setupHarvester();
+
+            //Make sure our lode is up to date
+            UpdateLode();
+
+            if (nearestLode != null && outputDef != null)
+            {
+                StringBuilder outputInfo = new StringBuilder();
+                outputInfo.AppendLine(infoView.ModuleInfo);
+                outputInfo.AppendLine("<color=white><b--- Prospecting ---</b></color>");
+                outputInfo.AppendLine("<color=white><b>Resource: </b>" + outputDef.displayName + "</color>");
+                outputInfo.AppendLine("<color=white><b>Remaining: </b>" + string.Format("{0:n2}", nearestLode.amountRemaining) + "u</color>");
+
+                infoView.ModuleInfo = outputInfo.ToString();
+            }
+        }
+
         protected void findNearestLode()
         {
             int planetID;

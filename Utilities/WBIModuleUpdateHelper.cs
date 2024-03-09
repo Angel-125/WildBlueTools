@@ -26,8 +26,6 @@ namespace WildBlueIndustries.Utilities
         {
             if (!HighLogic.LoadedSceneIsFlight || harvester == null)
                 return;
-
-            Debug.Log("[WBIModuleUpdateHelper] - FixedUpdate called.");
         }
     }
 }

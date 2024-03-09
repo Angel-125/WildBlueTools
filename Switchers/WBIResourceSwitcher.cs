@@ -1407,7 +1407,8 @@ namespace WildBlueIndustries
         {
             double test = part.partInfo.partPrefab.mass;
             currentMass = part.mass;
-            return CalculatePartMass(defaultMass);
+            float moduleMass = CalculatePartMass(defaultMass);
+            return moduleMass;
         }
 
         public ModifierChangeWhen GetModuleMassChangeWhen()

@@ -935,7 +935,7 @@ namespace WildBlueIndustries
                 bool.TryParse(currentTemplate.GetValue("requiresOrbiting"), out requiresOrbiting);
 
             //Efficiency
-            EfficiencyBonus *= BaseEfficiency;
+            EfficiencyBonus = BaseEfficiency;
 
             //Clear existing lists
             inputList.Clear();

@@ -394,7 +394,7 @@ namespace WildBlueIndustries
             return infoView.ModuleInfo;
         }
 
-        protected void setupHarvester()
+        protected virtual void setupHarvester()
         {
             if (!HighLogic.LoadedSceneIsFlight)
                 return;

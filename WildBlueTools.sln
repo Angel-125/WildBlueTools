@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2042
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.33529.622
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WildBlueTools", "WildBlueTools.csproj", "{CC0BDF1A-9641-4628-9F0F-3500DDC99534}"
 EndProject
@@ -44,6 +44,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EVARepairs", "..\EVARepairs\source\EVARepairs\EVARepairs.csproj", "{17824212-51E6-450A-8D64-17CAF900EE3F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WildBlueCore", "..\WildBlueCore\source\WildBlueCore\WildBlueCore.csproj", "{7D8D783F-DDA6-4C96-BF65-8905FAB07CB5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepStore", "..\DeepStore\source\DeepStore\DeepStore.csproj", "{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -271,6 +273,18 @@ Global
 		{7D8D783F-DDA6-4C96-BF65-8905FAB07CB5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{7D8D783F-DDA6-4C96-BF65-8905FAB07CB5}.Release|x86.ActiveCfg = Release|Any CPU
 		{7D8D783F-DDA6-4C96-BF65-8905FAB07CB5}.Release|x86.Build.0 = Release|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Debug|x86.Build.0 = Debug|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Release|x86.ActiveCfg = Release|Any CPU
+		{CC7FDE93-91D6-4F68-A0ED-A5CBDF94B823}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
