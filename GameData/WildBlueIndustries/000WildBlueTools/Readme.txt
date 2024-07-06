@@ -6,6 +6,16 @@ A KSP mod that provides common functionality for mods by Wild Blue Industries.
 
 Copy the contents of the mod's GameData directory into your GameData folder.
 
+1.90.2
+
+- Fixes for WBIModuleScienceExperiment
+- The Kermulan Bloaking Device now fades in/out.
+- New WBIRandomExperimentResult part module.
+
+1.90
+
+New part: Kermulan Bloaking Device. 'Nuff Said!
+
 1.89
 
 WBIModuleScienceExperiment

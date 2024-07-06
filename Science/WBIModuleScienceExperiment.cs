@@ -41,11 +41,17 @@ namespace WildBlueIndustries
     public class WBIModuleScienceExperiment : ModuleScienceExperiment
     {
         #region Fields
+        [KSPField]
+        public bool debugMode;
+
         [KSPField(isPersistant = true)]
         public string overrideExperimentID = string.Empty;
 
         [KSPField]
         public int minCrew;
+
+        [KSPField]
+        public int minCrewInPart;
 
         [KSPField]
         public string celestialBodies = string.Empty;
@@ -161,6 +167,9 @@ namespace WildBlueIndustries
         protected ConfigNode nodeCompletionHandler = null;
         protected string partsList = string.Empty;
         protected InfoView infoView;
+        protected string[] anomaliesRequired = null;
+        protected double kscMonolithLong;
+        protected double kscMonolithLat;
         #endregion
 
         #region PAW Events
@@ -426,12 +435,22 @@ namespace WildBlueIndustries
                 return false;
             }
 
-            //Mininum Crew
+            //Mininum Crew (vessel)
             if (minCrew > 0)
             {
                 if (this.part.vessel.GetCrewCount() < minCrew)
                 {
                     status = "Needs " + minCrew.ToString() + " crew";
+                    return false;
+                }
+            }
+
+            //Mininum Crew (part)
+            if (minCrewInPart > 0)
+            {
+                if (this.part.protoModuleCrew.Count < minCrewInPart)
+                {
+                    status = "Needs " + minCrewInPart.ToString() + " crew";
                     return false;
                 }
             }
@@ -569,7 +588,7 @@ namespace WildBlueIndustries
             //Required anomalies
             if (!string.IsNullOrEmpty(requiredAnomalies))
             {
-                if (!isNearAnomaly())
+                if (!isNearRequiredAnomaly())
                 {
                     status = "Needs to be near " + requiredAnomalies.Replace(";", ", ");
                     return false;
@@ -840,6 +859,10 @@ namespace WildBlueIndustries
             if (nodeDefinition.HasValue("minCrew"))
                 minCrew = int.Parse(nodeDefinition.GetValue("minCrew"));
 
+            //minCrewInPart
+            if (nodeDefinition.HasValue("minCrewInPart"))
+                minCrewInPart = int.Parse(nodeDefinition.GetValue("minCrewInPart"));
+
             //celestialBodies
             if (nodeDefinition.HasValue("celestialBodies"))
                 celestialBodies = nodeDefinition.GetValue("celestialBodies");
@@ -889,6 +912,25 @@ namespace WildBlueIndustries
                 requiredAnomalies = nodeDefinition.GetValue("requiredAnomalies");
             if (nodeDefinition.HasValue("minAnomalyRange"))
                 minAnomalyRange = float.Parse(nodeDefinition.GetValue("minAnomalyRange"));
+            if (!string.IsNullOrEmpty(requiredAnomalies))
+            {
+                anomaliesRequired = requiredAnomalies.Split(new char[] { ';' });
+                if (debugMode)
+                {
+                    if (anomaliesRequired != null)
+                        Debug.Log("[WBIModuleScienceExperiment] - anomaliesRequired length: " + anomaliesRequired.Length);
+                    else
+                        Debug.Log("[WBIModuleScienceExperiment] - Can't split the anomaliesRequired for  " + requiredAnomalies);
+                }
+
+                // KSC anomaly
+                ConfigNode[] kscMonolithNodes = GameDatabase.Instance.GetConfigNodes("KSCMONILITH");
+                if (kscMonolithNodes.Length > 0)
+                {
+                    double.TryParse(kscMonolithNodes[0].GetValue("longitude"), out kscMonolithLong);
+                    double.TryParse(kscMonolithNodes[0].GetValue("latitude"), out kscMonolithLat);
+                }
+            }
 
             //changeOfSuccess
             if (nodeDefinition.HasValue("chanceOfSuccess"))
@@ -1063,9 +1105,13 @@ namespace WildBlueIndustries
                 StringBuilder requirements = new StringBuilder();
                 string requirementsText = string.Empty;
 
-                //Mininum Crew
+                //Mininum Crew (vessel)
                 if (minCrew > 0)
-                    requirements.Append("<b>This part requires a minimum of </b>" + minCrew + " <b>crew.</b>\r\n");
+                    requirements.Append("<b>This vessel requires a minimum of </b>" + minCrew + " <b>crew.</b>\r\n");
+
+                //Mininum Crew (part)
+                if (minCrewInPart > 0)
+                    requirements.Append("<b>This part requires a minimum of </b>" + minCrewInPart + " <b>crew.</b>\r\n");
 
                 //Required parts
                 if (requiredParts != null && requiredParts.Length > 0)
@@ -1166,37 +1212,82 @@ namespace WildBlueIndustries
             }
         }
 
-        protected bool isNearAnomaly()
+        protected bool isNearRequiredAnomaly()
+        {
+            if (anomaliesRequired == null)
+            {
+                if (debugMode)
+                    Debug.Log("[WBIModueScienceExperiment] - anomaliesRequired is null");
+                return false;
+            }
+
+            string nearestAnomalyName = getNearestAnomalyName();
+            if (string.IsNullOrEmpty(nearestAnomalyName))
+                return false;
+            if (debugMode)
+                Debug.Log("[WBIModueScienceExperiment] - Nearest anomaly is " + nearestAnomalyName);
+
+            string requiredAnomalyName;
+            for (int index = 0; index < anomaliesRequired.Length; index++)
+            {
+                requiredAnomalyName = anomaliesRequired[index];
+                if (debugMode)
+                    Debug.Log("[WBIModueScienceExperiment] - trying to match " + requiredAnomalyName + "with " + nearestAnomalyName);
+
+                if (nearestAnomalyName.Contains(requiredAnomalyName))
+                {
+                    if (debugMode)
+                        Debug.Log("[WBIModueScienceExperiment] - " + requiredAnomalyName + " matches " + nearestAnomalyName);
+                    return true;
+                }
+            }
+
+            if (debugMode)
+                Debug.Log("[WBIModueScienceExperiment] - No required anomalies match " + nearestAnomalyName);
+
+            //Not near anomaly or not close enough
+            return false;
+        }
+
+        string getNearestAnomalyName()
         {
             CelestialBody mainBody = this.part.vessel.mainBody;
             PQSSurfaceObject[] anomalies = mainBody.pqsSurfaceObjects;
             double longitude;
             double latitude;
-            double distance = 0f;
+            double distance;
 
-            if (this.part.vessel.situation == Vessel.Situations.LANDED || this.part.vessel.situation == Vessel.Situations.PRELAUNCH)
+            if (this.part.vessel.situation == Vessel.Situations.LANDED || this.part.vessel.situation == Vessel.Situations.PRELAUNCH || this.part.vessel.situation == Vessel.Situations.SPLASHED)
             {
                 for (int index = 0; index < anomalies.Length; index++)
                 {
-                    if (requiredAnomalies.Contains(anomalies[index].SurfaceObjectName))
-                    {
-                        //Get the longitude and latitude of the anomaly
-                        longitude = mainBody.GetLongitude(anomalies[index].transform.position);
-                        latitude = mainBody.GetLatitude(anomalies[index].transform.position);
+                    //Get the longitude and latitude of the anomaly
+                    longitude = mainBody.GetLongitude(anomalies[index].transform.position);
+                    latitude = mainBody.GetLatitude(anomalies[index].transform.position);
 
-                        //Get the distance (in meters) from the anomaly.
-                        distance = Utils.HaversineDistance(longitude, latitude,
-                            this.part.vessel.longitude, this.part.vessel.latitude, this.part.vessel.mainBody) * 1000;
+                    //Get the distance (in meters) from the anomaly.
+                    distance = Utils.HaversineDistance(longitude, latitude,
+                        this.part.vessel.longitude, this.part.vessel.latitude, this.part.vessel.mainBody) * 1000;
 
-                        //If we're near the anomaly, then we're done
-                        if (distance <= minAnomalyRange)
-                            return true;
-                    }
+                    //If we're near the anomaly, then we're done
+                    if (debugMode)
+                        Debug.Log("[WBIModueScienceExperiment] - distance to " + anomalies[index].SurfaceObjectName + ": " + distance);
+                    if (distance <= minAnomalyRange)
+                        return anomalies[index].SurfaceObjectName;
                 }
+
+                // Special case: The KSC Monolith
+                longitude = kscMonolithLong;
+                latitude = kscMonolithLat;
+                distance = Utils.HaversineDistance(longitude, latitude,
+                    this.part.vessel.longitude, this.part.vessel.latitude, this.part.vessel.mainBody) * 1000;
+                if (distance <= minAnomalyRange)
+                    return "KSCMonolith";
             }
 
             //Not near anomaly or not close enough
-            return false;
+            Debug.Log("[WBIModueScienceExperiment] - Not near an anomaly");
+            return "";
         }
 
         protected virtual float performAnalysisRoll()

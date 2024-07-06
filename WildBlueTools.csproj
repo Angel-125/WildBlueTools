@@ -93,9 +93,6 @@
   <ItemGroup>
     <Compile Include="Animation\ModuleAnimateGenericSFX.cs" />
     <Compile Include="Animation\WBIModuleColorChanger.cs" />
-    <Compile Include="Contracts\WBIContractVesselTour.cs" />
-    <Compile Include="Contracts\WBIFerryKerbalParam.cs" />
-    <Compile Include="Contracts\WBIKerbalStayParam.cs" />
     <Compile Include="Converters\WBIGasTurbine.cs" />
     <Compile Include="GUI\BaseDialog\Dialog.cs" />
     <Compile Include="GUI\BaseDialog\DialogManager.cs" />
@@ -117,6 +114,7 @@
     <Compile Include="Omni\WBIOmniConverter.cs" />
     <Compile Include="GUI\HarvestView.cs" />
     <Compile Include="Omni\WBIBackgroundConverter.cs" />
+    <Compile Include="Science\WBIRandomExperimentResult.cs" />
     <Compile Include="Utilities\WBIEmitterHelper.cs" />
     <Compile Include="Utilities\WBIComponentAdder.cs" />
     <Compile Include="Utilities\WBIEngineHeat.cs" />
@@ -128,11 +126,8 @@
     <Compile Include="PlayModes\PlayModesWindow.cs" />
     <Compile Include="ResourceRefinery\WBIResourceAdder.cs" />
     <Compile Include="Science\GeoLabView.cs" />
-    <Compile Include="Contracts\WBIExpCompleteParam.cs" />
     <Compile Include="Science\WBIEnhancedExperiment.cs" />
     <Compile Include="Science\WBIGeoLab.cs" />
-    <Compile Include="Contracts\WBIResearchContract.cs" />
-    <Compile Include="Contracts\WBIReturnHomeParam.cs" />
     <Compile Include="Science\WBIUnlockTechMgr.cs" />
     <Compile Include="Science\WBIUnlockTechResult.cs" />
     <Compile Include="Switchers\WBIConvertibleMPL.cs" />
@@ -155,11 +150,8 @@
     <Compile Include="Utilities\WBIDockingPortToggle.cs" />
     <Compile Include="Utilities\WBIDeployableEngine.cs" />
     <Compile Include="Science\WBIDataTransferUtility.cs" />
-    <Compile Include="Contracts\WBIContractScenario.cs" />
     <Compile Include="Utilities\WBIForceDock.cs" />
     <Compile Include="Utilities\WBIGroundStabilizer.cs" />
-    <Compile Include="Contracts\WBITargetBodyParam.cs" />
-    <Compile Include="Contracts\WBIExpConditionsParam.cs" />
     <Compile Include="Switchers\WBITextureSwitcher.cs" />
     <Compile Include="PlayModes\WBTAppButton.cs" />
     <Compile Include="PlayModes\WBIPlayModeHelper.cs" />
@@ -217,7 +209,6 @@
     <Compile Include="Wrappers\KIS\WBIKISIcon.cs" />
     <Compile Include="Manifest\WBIKISInventoryManifest.cs" />
     <Compile Include="Utilities\WBIEngineRepLoss.cs" />
-    <Compile Include="Contracts\WBIReturnKerbalHome.cs" />
     <Compile Include="PropModules\WBIDiscoBall.cs" />
     <Compile Include="PropModules\WBIDanceFloor.cs" />
     <Compile Include="PropModules\WBIJukebox.cs" />

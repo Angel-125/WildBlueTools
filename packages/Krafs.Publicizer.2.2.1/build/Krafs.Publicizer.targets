@@ -1,0 +1,54 @@
+<Project>
+
+  <Target Name="PublicizeAssemblies" DependsOnTargets="$(PublicizeAssembliesDependsOn)" BeforeTargets="$(PublicizeBeforeTargets)">
+
+    <ItemGroup Condition="$(PublicizeAll)">
+      <Publicize Include="@(ReferencePath->'%(Filename)')" />
+    </ItemGroup>
+
+    <PublicizeAssemblies
+      LogFilePath="$(PublicizerLogFilePath)"
+      ReferencePaths="@(ReferencePath)"
+      Publicizes="@(Publicize)"
+      DoNotPublicizes="@(DoNotPublicize)"
+      OutputDirectory="$(IntermediateOutputPath)PublicizedAssemblies\">
+      <Output TaskParameter="ReferencePathsToDelete" ItemName="_ReferencePathsToDelete" />
+      <Output TaskParameter="ReferencePathsToAdd" ItemName="_ReferencePathsToAdd" />
+    </PublicizeAssemblies>
+
+    <ItemGroup>
+      <ReferencePath Remove="@(_ReferencePathsToDelete)" />
+      <ReferencePath Include="@(_ReferencePathsToAdd)" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_UnsafePattern>(;|\b)Unsafe(;|\b)</_UnsafePattern>
+      <_IactPattern>(;|\b)IgnoresAccessChecksTo(;|\b)</_IactPattern>
+      <_UseUnsafeStrategy>$([System.Text.RegularExpressions.Regex]::IsMatch($(PublicizerRuntimeStrategies), $(_UnsafePattern), RegexOptions.IgnoreCase))</_UseUnsafeStrategy>
+      <_UseIactStrategy>$([System.Text.RegularExpressions.Regex]::IsMatch($(PublicizerRuntimeStrategies), $(_IactPattern), RegexOptions.IgnoreCase))</_UseIactStrategy>
+    </PropertyGroup>
+
+    <Error Text="'PublicizerRuntimeStrategies' must contain one or both of 'Unsafe' and 'IgnoresAccessChecksTo'. Defaults to both ('Unsafe;IgnoresAccessChecksTo') if unspecified."
+           Condition="!$(_UseUnsafeStrategy) AND !$(_UseIactStrategy)"/>
+
+    <ItemGroup Condition="$(_UseIactStrategy)" >
+      <AssemblyAttribute Include="System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute">
+        <_Parameter1>%(_ReferencePathsToAdd.Filename)</_Parameter1>
+      </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup Condition="!$(_UseIactStrategy)" >
+      <Compile Remove="$(MSBuildThisFileDirectory)..\contentfiles\IgnoresAccessChecksToAttribute.cs"/>
+    </ItemGroup>
+
+    <PropertyGroup Condition="$(_UseUnsafeStrategy)" >
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+  </Target>
+
+  <Target Name="PublicizerClean" BeforeTargets="Clean" Condition="$(PublicizerClearCacheOnClean)">
+    <RemoveDir Directories="$(IntermediateOutputPath)PublicizedAssemblies" />
+  </Target>
+
+</Project>

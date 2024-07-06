@@ -17,18 +17,17 @@ namespace WildBlueIndustries
         [UI_Toggle(enabledText = "Bloaked!", disabledText = "Un-Bloaked!")]
         public bool isBloaking;
 
-        [KSPField(guiName = "Bloak Level", isPersistant = true, guiActive = true, guiActiveEditor = false)]
-        [UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.0f)]
-        public float bloakLevel = 50f;
-
-        [KSPField()]
-        private float prevBloakLevel;
+        [KSPField(isPersistant = true)]
+        public float bloakLevel = 100f;
 
         [KSPField()]
         private int prevVesselPartCount;
 
         [KSPField()]
         private bool wasBloaking;
+
+        float bloakAmount;
+        float bloakEnd;
 
         public override void OnStart(StartState state)
         {
@@ -37,14 +36,13 @@ namespace WildBlueIndustries
                 return;
 
             // Get the list of parts in the vessel
-            prevBloakLevel = bloakLevel;
             prevVesselPartCount = part.vessel.parts.Count;
             wasBloaking = isBloaking;
 
             // Debug UI
             Fields["wasBloaking"].guiActive = debugMode;
             Fields["prevVesselPartCount"].guiActive = debugMode;
-            Fields["prevBloakLevel"].guiActive = debugMode;
+            Fields["bloakLevel"].guiActive = debugMode;
 
             UpdateOpacity();
         }
@@ -58,13 +56,16 @@ namespace WildBlueIndustries
             if (isBloaking != wasBloaking)
             {
                 wasBloaking = isBloaking;
-                UpdateOpacity();
                 if (isBloaking)
                 {
+                    bloakAmount = 0.02f;
+                    bloakEnd = 0.05f;
                     ScreenMessages.PostScreenMessage("Bloaked!", 5.0f, ScreenMessageStyle.UPPER_LEFT);
                 }
                 else
                 {
+                    bloakAmount = 0.02f;
+                    bloakEnd = 100f;
                     ScreenMessages.PostScreenMessage("Un-Bloaked!", 5.0f, ScreenMessageStyle.UPPER_LEFT);
                 }
             }
@@ -72,6 +73,13 @@ namespace WildBlueIndustries
             // If we aren't bloaking then return
             if (!isBloaking)
             {
+                if (bloakLevel < 100f)
+                {
+                    bloakLevel = Mathf.Lerp(bloakLevel, bloakEnd, bloakAmount);
+                    if (bloakLevel > 99.5)
+                        bloakLevel = 100f;
+                    UpdateOpacity();
+                }
                 return;
             }
 
@@ -79,17 +87,22 @@ namespace WildBlueIndustries
             if (!ConsumeResources())
             {
                 isBloaking = false;
-                wasBloaking = false;
-                UpdateOpacity();
-                ScreenMessages.PostScreenMessage("Un-Bloaked!", 5.0f, ScreenMessageStyle.UPPER_LEFT);
                 return;
             }
 
-            // Check changes in bloak level
-            if (!bloakLevel.Equals(prevBloakLevel) || part.vessel.parts.Count != prevVesselPartCount)
+            // Lerp down the bloak level
+            if (bloakLevel > 0.05f)
+            {
+                bloakLevel = Mathf.Lerp(bloakLevel, bloakEnd, bloakAmount);
+                if (bloakLevel < 0.055f)
+                    bloakLevel = 0.05f;
+                UpdateOpacity();
+            }
+
+            // Check changes in part count
+            if (part.vessel.parts.Count != prevVesselPartCount)
             {
                 prevVesselPartCount = part.vessel.parts.Count;
-                prevBloakLevel = bloakLevel;
                 UpdateOpacity();
             }
         }
@@ -118,7 +131,7 @@ namespace WildBlueIndustries
 
         public void UpdateOpacity()
         {
-            float opacity = isBloaking ? (bloakLevel / 100.0f) : 1.0f;
+            float opacity = bloakLevel / 100.0f;
             int count = part.vessel.parts.Count;
             
             foreach (Part vesselPart in part.vessel.parts)

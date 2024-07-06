@@ -1,0 +1,24 @@
+<Project>
+
+  <UsingTask TaskName="PublicizeAssemblies" AssemblyFile="$(MSBuildThisFileDirectory)net472\Publicizer.dll" />
+
+  <PropertyGroup>
+    <PublicizeAssembliesDependsOn>ResolveAssemblyReferences</PublicizeAssembliesDependsOn>
+    <PublicizeBeforeTargets>ResolveReferences</PublicizeBeforeTargets>
+    <PublicizerRuntimeStrategies>Unsafe;IgnoresAccessChecksTo</PublicizerRuntimeStrategies>
+    <PublicizeAll>false</PublicizeAll>
+    <PublicizerClearCacheOnClean>false</PublicizerClearCacheOnClean>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Update="@(Compile)">
+      <Visible Condition="'%(NuGetItemType)' == 'Compile' AND '%(NuGetPackageId)' == 'Krafs.Publicizer'">false</Visible>
+    </Compile>
+  </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <Publicize Visible="false" IncludeCompilerGeneratedMembers="true" IncludeVirtualMembers="true" />
+    <DoNotPublicize Visible="false" />
+  </ItemDefinitionGroup>
+
+</Project>

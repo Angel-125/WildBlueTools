@@ -28,6 +28,9 @@ namespace WildBlueIndustries
         public const float kMessageDuration = 6.0f;
 
         [KSPField]
+        public bool debugMode = true;
+
+        [KSPField]
         public string priorityNodes = string.Empty;
 
         [KSPField]
@@ -53,10 +56,13 @@ namespace WildBlueIndustries
 
         protected void Log(string message)
         {
-            Debug.Log("[WBIUnlockTechResult] - " + message);
+            if (!debugMode)
+                return;
+
+            Debug.Log("[" + ClassName  + "] - " + message);
         }
 
-        public void ExperimentRequirementsMet(string experimentID, float chanceOfSuccess, float resultRoll)
+        public virtual void ExperimentRequirementsMet(string experimentID, float chanceOfSuccess, float resultRoll)
         {
             Log("ExperimentRequirementsMet called");
 
