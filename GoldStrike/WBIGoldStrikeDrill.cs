@@ -219,7 +219,6 @@ namespace WildBlueIndustries
         double totalDelta = 0;
         protected override void PostProcess(ConverterResults result, double deltaTime)
         {
-            base.PostProcess(result, deltaTime);
             if (HighLogic.LoadedSceneIsFlight == false)
                 return;
 
@@ -229,6 +228,7 @@ namespace WildBlueIndustries
                 lodeStatus = Localizer.Format(statusNAName);
                 return;
             }
+            base.PostProcess(result, deltaTime);
 
             //Check situation
             if (this.part.vessel.situation != Vessel.Situations.PRELAUNCH && this.part.vessel.situation != Vessel.Situations.LANDED)

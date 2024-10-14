@@ -26,6 +26,21 @@ namespace WildBlueIndustries
 
         public bool IsPartInCat(AvailablePart availablePart)
         {
+            if (availablePart.partUrl.Contains("Deprecated"))
+                return false;
+
+            else if (availablePart.tags.Contains("Deprecated"))
+                return false;
+
+            else if (availablePart.TechHidden == true)
+                return false;
+
+            else if (availablePart.TechRequired == "unresearchable")
+                return false;
+
+            else if (availablePart.category == PartCategories.none)
+                return false;
+
             string[] folderNames = modName.Split(new char[] { ';' });
 
             if (string.IsNullOrEmpty(availablePart.partUrl))
@@ -39,13 +54,8 @@ namespace WildBlueIndustries
 
             foreach (string folderName in folderNames)
             {
-                if (availablePart.partUrl.Contains("Deprecated"))
-                    return false;
 
-                else if (availablePart.TechHidden == true)
-                    return false;
-
-                else if (availablePart.partUrl.Contains(folderName))
+                if (availablePart.partUrl.Contains(folderName))
                     return true;
             }
             return false;
