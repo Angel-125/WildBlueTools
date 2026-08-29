@@ -38,7 +38,7 @@ namespace WildBlueIndustries
             GameEvents.onLevelWasLoadedGUIReady.Add(OnLevelLoaded);
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             GameEvents.onLevelWasLoadedGUIReady.Remove(OnLevelLoaded);
         }

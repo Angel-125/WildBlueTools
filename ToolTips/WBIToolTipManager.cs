@@ -45,7 +45,7 @@ namespace WildBlueIndustries
             toolTipView = new WBIToolTipView();
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             GameEvents.onEditorPartEvent.Remove(onEditorPartEvent);
         }

@@ -249,7 +249,7 @@ namespace WildBlueIndustries
         #endregion
 
         #region Overrides
-        public void Destroy()
+        public void OnDestroy()
         {
             if (opsView != null)
             {

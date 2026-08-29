@@ -74,7 +74,7 @@ namespace WildBlueIndustries
             Events["Detonate"].guiActive = isArmed;
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             GameEvents.onStageActivate.Remove(onStageActivate);
         }

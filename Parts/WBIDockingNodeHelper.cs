@@ -327,7 +327,7 @@ namespace WildBlueIndustries
             }
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             GameEvents.onSameVesselDock.Remove(onSameVesselDock);
             GameEvents.OnGameSettingsApplied.Remove(onGameSettingsApplied);

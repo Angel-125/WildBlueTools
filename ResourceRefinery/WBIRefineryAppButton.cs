@@ -37,7 +37,7 @@ namespace WildBlueIndustries
             GameEvents.onGUIApplicationLauncherReady.Add(SetupGUI);
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             if (refineryView.IsVisible())
                 refineryView.SetVisible(false);
