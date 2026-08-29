@@ -51,7 +51,7 @@ namespace WildBlueIndustries
             updateMaxPressure();
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             diveComputers = null;
         }

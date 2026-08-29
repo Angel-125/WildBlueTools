@@ -179,7 +179,7 @@ namespace WildBlueIndustries
             node.AddValue("lastUpdate", lastUpdate);
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
             GameEvents.OnVesselRecoveryRequested.Remove(OnVesselRecoveryRequested);
             if (HighLogic.LoadedSceneIsEditor)
