@@ -37,6 +37,11 @@ namespace WildBlueIndustries
             playModesWindow.changePlayModeDelegate = changePlayMode;
         }
 
+        public void OnDestroy()
+        {
+            GameEvents.onGUIApplicationLauncherReady.Remove(SetupGUI);
+        }
+
         private void SetupGUI()
         {
             if (HighLogic.LoadedScene == GameScenes.SPACECENTER)

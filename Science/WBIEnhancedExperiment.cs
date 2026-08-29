@@ -78,8 +78,7 @@ namespace WildBlueIndustries
         }
 
         public void OnDestroy()
-        {
-            if (HighLogic.LoadedSceneIsEditor)
+        {            
                 GameEvents.onEditorPartPlaced.Remove(onPartPlaced);
         }
 
